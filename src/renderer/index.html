@@ -8,121 +8,76 @@
 </head>
 <body>
 
+  <!-- Dynamic Temple Arena Background Image Layer -->
+  <div class="menu-bg-layer" id="menuBgLayer"></div>
+
   <!-- Animated Rising Embers Background Canvas -->
   <canvas id="embersCanvas"></canvas>
 
   <!-- Atmospheric Vignette Overlay -->
   <div class="screen-vignette"></div>
 
-  <!-- Main Menu UI Overlay -->
+  <!-- Main Menu UI: Key Options Only (Clean Minimal Altar Display) -->
   <div class="main-wrapper" id="menuWrapper">
 
-    <!-- Top Status Bar -->
-    <header class="top-bar">
-      <div class="tournament-badge">
-        <span class="pulse-dot"></span>
-        <span>Softablitz 2026 // Grand Tournament</span>
-      </div>
+    <!-- Centered Temple Menu Column -->
+    <nav class="temple-menu" aria-label="Game Modes">
+      <button class="menu-item" data-action="local-1v1" id="menu-local-1v1">
+        <span class="menu-label-group">
+          <span class="menu-icon">⚔️</span>
+          <span>LOCAL 1v1</span>
+        </span>
+        <span class="menu-indicator">▶</span>
+      </button>
 
-      <div class="top-actions">
-        <button class="icon-btn" id="btnAudio" title="Toggle Sound">🔊 AUDIO ON</button>
-        <button class="icon-btn" id="btnFullscreen" title="Toggle Fullscreen">⛶ FULLSCREEN</button>
-      </div>
-    </header>
+      <button class="menu-item" data-action="arcade" id="menu-arcade">
+        <span class="menu-label-group">
+          <span class="menu-icon">🤖</span>
+          <span>ARCADE (VS AI)</span>
+        </span>
+        <span class="menu-indicator">▶</span>
+      </button>
 
-    <!-- Center Content: Hero Branding & Interactive Menu -->
-    <main class="center-content">
-      
-      <!-- Left: Game Branding & Lore -->
-      <section class="branding-section">
-        <!-- Mystic Dragon Crest SVG -->
-        <svg class="crest-icon" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="50" cy="50" r="45" stroke="#f59e0b" stroke-width="2" stroke-dasharray="8 4"/>
-          <path d="M50 15 L62 38 L88 42 L68 60 L74 85 L50 71 L26 85 L32 60 L12 42 L38 38 Z" fill="url(#crestGrad)" stroke="#ea580c" stroke-width="2"/>
-          <defs>
-            <linearGradient id="crestGrad" x1="50" y1="15" x2="50" y2="85" gradientUnits="userSpaceOnUse">
-              <stop stop-color="#fef08a"/>
-              <stop offset="0.5" stop-color="#f59e0b"/>
-              <stop offset="1" stop-color="#b91c1c"/>
-            </linearGradient>
-          </defs>
-        </svg>
+      <button class="menu-item" data-action="training" id="menu-training">
+        <span class="menu-label-group">
+          <span class="menu-icon">🥋</span>
+          <span>DOJO TRAINING</span>
+        </span>
+        <span class="menu-indicator">▶</span>
+      </button>
 
-        <h1 class="game-title">Apex Brawl</h1>
-        <div class="game-subtitle">Mystic Kombat</div>
-        
-        <p class="lore-snippet">
-          Ancient warriors gather at the apex of realms. Master frame-perfect strikes, fatal combos, and occult martial arts to claim eternal dominion.
-        </p>
-      </section>
+      <button class="menu-item" data-action="controls" id="menu-controls">
+        <span class="menu-label-group">
+          <span class="menu-icon">⌨️</span>
+          <span>KEY CONTROLS</span>
+        </span>
+        <span class="menu-indicator">▶</span>
+      </button>
 
-      <!-- Right: Main Menu Action Buttons -->
-      <nav class="menu-section" aria-label="Game Modes">
-        <button class="menu-item" data-action="local-1v1" id="menu-local-1v1">
-          <span class="menu-label-group">
-            <span class="menu-icon">⚔️</span>
-            <span>LOCAL 1v1</span>
-          </span>
-          <span class="menu-indicator">▶</span>
-        </button>
+      <button class="menu-item" data-action="grimoire" id="menu-grimoire">
+        <span class="menu-label-group">
+          <span class="menu-icon">📜</span>
+          <span>GRIMOIRE (DATA)</span>
+        </span>
+        <span class="menu-indicator">▶</span>
+      </button>
 
-        <button class="menu-item" data-action="arcade" id="menu-arcade">
-          <span class="menu-label-group">
-            <span class="menu-icon">🤖</span>
-            <span>ARCADE (VS AI)</span>
-          </span>
-          <span class="menu-indicator">▶</span>
-        </button>
+      <button class="menu-item" data-action="settings" id="menu-settings">
+        <span class="menu-label-group">
+          <span class="menu-icon">⚙️</span>
+          <span>SETTINGS</span>
+        </span>
+        <span class="menu-indicator">▶</span>
+      </button>
 
-        <button class="menu-item" data-action="training" id="menu-training">
-          <span class="menu-label-group">
-            <span class="menu-icon">🥋</span>
-            <span>DOJO TRAINING</span>
-          </span>
-          <span class="menu-indicator">▶</span>
-        </button>
-
-        <button class="menu-item" data-action="grimoire" id="menu-grimoire">
-          <span class="menu-label-group">
-            <span class="menu-icon">📜</span>
-            <span>GRIMOIRE (DATA)</span>
-          </span>
-          <span class="menu-indicator">▶</span>
-        </button>
-
-        <button class="menu-item" data-action="settings" id="menu-settings">
-          <span class="menu-label-group">
-            <span class="menu-icon">⚙️</span>
-            <span>SETTINGS</span>
-          </span>
-          <span class="menu-indicator">▶</span>
-        </button>
-
-        <button class="menu-item exit-item" data-action="exit" id="menu-exit">
-          <span class="menu-label-group">
-            <span class="menu-icon">🚪</span>
-            <span>QUIT GAME</span>
-          </span>
-          <span class="menu-indicator">▶</span>
-        </button>
-      </nav>
-
-    </main>
-
-    <!-- Bottom Navigation Bar & Keyboard Hints -->
-    <footer class="bottom-bar">
-      <div class="control-hints">
-        <div><span class="key-badge">W</span><span class="key-badge">S</span> / <span class="key-badge">↑</span><span class="key-badge">↓</span> NAVIGATE</div>
-        <div><span class="key-badge">ENTER</span> SELECT</div>
-        <div><span class="key-badge">ESC</span> BACK</div>
-        <div><span class="key-badge">F11</span> FULLSCREEN</div>
-      </div>
-
-      <div class="game-meta">
-        <div>BUILD <span>v0.1.0-alpha</span></div>
-        <div>ELECTRON 45 // PHASER 3.90</div>
-      </div>
-    </footer>
+      <button class="menu-item exit-item" data-action="exit" id="menu-exit">
+        <span class="menu-label-group">
+          <span class="menu-icon">🚪</span>
+          <span>QUIT GAME</span>
+        </span>
+        <span class="menu-indicator">▶</span>
+      </button>
+    </nav>
 
   </div>
 
@@ -266,7 +221,61 @@
     </div>
   </div>
 
-  <!-- 5. Settings Modal -->
+  <!-- 5. Battle Controls & Key Mappings Modal -->
+  <div class="modal-overlay" id="modal-controls">
+    <div class="modal-card" style="max-width: 780px;">
+      <div class="modal-header">
+        <div class="modal-title">⌨️ BATTLE CONTROLS & KEY MAPPINGS</div>
+        <button class="close-btn" aria-label="Close">&times;</button>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1rem;">
+        <!-- Player 1 -->
+        <div style="background: rgba(220, 38, 38, 0.1); border: 1px solid rgba(220, 38, 38, 0.4); padding: 1.2rem; border-radius: 6px;">
+          <h3 style="color: #fca5a5; font-family: var(--font-heading); margin-bottom: 0.8rem; font-size: 1.1rem; border-bottom: 1px solid rgba(220, 38, 38, 0.3); padding-bottom: 0.4rem;">
+            ⚔️ PLAYER 1 (WASD)
+          </h3>
+          <table class="data-table" style="margin-top: 0.5rem; font-size: 0.88rem;">
+            <tr><td>Movement / Jump</td><td><span class="command-key">W A S D</span></td></tr>
+            <tr><td>Light Attack</td><td><span class="command-key">F</span></td></tr>
+            <tr><td>Heavy Slash</td><td><span class="command-key">G</span></td></tr>
+            <tr><td>Special Ability</td><td><span class="command-key">H</span></td></tr>
+            <tr><td>Dash / Dodge</td><td>Double Tap <span class="command-key">A</span> / <span class="command-key">D</span></td></tr>
+          </table>
+        </div>
+
+        <!-- Player 2 -->
+        <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.4); padding: 1.2rem; border-radius: 6px;">
+          <h3 style="color: #fde047; font-family: var(--font-heading); margin-bottom: 0.8rem; font-size: 1.1rem; border-bottom: 1px solid rgba(245, 158, 11, 0.3); padding-bottom: 0.4rem;">
+            🛡️ PLAYER 2 (ARROWS)
+          </h3>
+          <table class="data-table" style="margin-top: 0.5rem; font-size: 0.88rem;">
+            <tr><td>Movement / Jump</td><td><span class="command-key">↑ ← ↓ →</span></td></tr>
+            <tr><td>Light Attack</td><td><span class="command-key">NUM 1</span></td></tr>
+            <tr><td>Heavy Slash</td><td><span class="command-key">NUM 2</span></td></tr>
+            <tr><td>Special Ability</td><td><span class="command-key">NUM 3</span></td></tr>
+            <tr><td>Dash / Dodge</td><td>Double Tap <span class="command-key">←</span> / <span class="command-key">→</span></td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div style="margin-top: 1.2rem; padding: 1rem; background: rgba(255,255,255,0.03); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 4px;">
+        <h4 style="font-family: var(--font-heading); color: var(--gold-light); margin-bottom: 0.5rem; font-size: 0.95rem;">
+          SYSTEM HOTKEYS & GAMEPAD
+        </h4>
+        <div style="display: flex; flex-wrap: wrap; gap: 1.5rem; font-size: 0.85rem; color: var(--text-muted);">
+          <div><span class="command-key">ENTER / SPACE</span> Select / Confirm</div>
+          <div><span class="command-key">ESC</span> Back / Close Modal</div>
+          <div><span class="command-key">W / S</span> or <span class="command-key">↑ / ↓</span> Menu Nav</div>
+          <div><span class="command-key">F11</span> Toggle Fullscreen</div>
+          <div><span class="command-key">D-PAD</span> Gamepad Direction</div>
+          <div><span class="command-key">Button A</span> Gamepad Select</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Settings Modal -->
   <div class="modal-overlay" id="modal-settings">
     <div class="modal-card" style="max-width: 600px;">
       <div class="modal-header">
@@ -278,6 +287,15 @@
         <div>
           <label style="display: block; font-weight: 700; margin-bottom: 0.5rem; color: var(--gold-light);">MASTER AUDIO VOLUME</label>
           <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="0.7" style="width: 100%; accent-color: var(--gold-glow); cursor: pointer;">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem;">
+          <button class="icon-btn" id="btnAudio" style="justify-content: center; padding: 0.8rem;">
+            🔊 AUDIO: ON
+          </button>
+          <button class="icon-btn" id="btnFullscreen" style="justify-content: center; padding: 0.8rem;">
+            ⛶ FULLSCREEN (F11)
+          </button>
         </div>
 
         <div>

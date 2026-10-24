@@ -157,6 +157,9 @@ function executeMenuItem(action) {
     case 'training':
       openModal('modal-training');
       break;
+    case 'controls':
+      openModal('modal-controls');
+      break;
     case 'grimoire':
       openModal('modal-grimoire');
       break;
@@ -167,7 +170,7 @@ function executeMenuItem(action) {
       if (window.electronAPI && window.electronAPI.quit) {
         window.electronAPI.quit();
       } else {
-        alert('Exit triggered. In Electron desktop app, this closes the window.');
+        alert('Closing application...');
       }
       break;
     default:
