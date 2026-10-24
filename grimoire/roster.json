@@ -1,0 +1,22 @@
+[
+  {
+    "id": "kharon",
+    "name": "Kharon the Pyromancer",
+    "title": "Pyromancer Ninja",
+    "archetype": "Rushdown",
+    "file": "grimoire/kharon.json",
+    "portrait": "assets/characters/kharon/portrait.png",
+    "themeColor": "#dc2626",
+    "icon": "🔥"
+  },
+  {
+    "id": "harpy",
+    "name": "Harpy the Sky Terror",
+    "title": "Winged Aerial Striker",
+    "archetype": "Rushdown",
+    "file": "grimoire/harpy.json",
+    "portrait": "assets/characters/harpy/portrait.png",
+    "themeColor": "#06b6d4",
+    "icon": "🦅"
+  }
+]

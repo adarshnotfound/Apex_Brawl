@@ -112,6 +112,12 @@ function initMenuNavigation() {
 
   // Keyboard navigation
   window.addEventListener('keydown', (e) => {
+    // If arena is active, ignore menu key events completely!
+    const phaserContainer = document.getElementById('phaser-container');
+    if (phaserContainer && phaserContainer.style.display !== 'none') {
+      return;
+    }
+
     // If a modal is open, don't navigate main menu
     const openModal = document.querySelector('.modal-overlay.open');
     if (openModal) {
@@ -240,12 +246,179 @@ function initModals() {
       if (window.soundFX) window.soundFX.playStartBoom();
       fightBtn.textContent = 'ENTERING THE ARENA...';
       setTimeout(() => {
-        // Redirect or mount Phaser game scene
-        window.location.hash = '#fight';
         closeAllModals();
-        alert('Entering Kombat Arena! Next step: Initializing Phaser Battle Arena.');
-      }, 700);
+        fightBtn.textContent = 'ENTER ARENA & KOMBAT';
+        if (window.startPhaserArena) {
+          window.startPhaserArena();
+        }
+      }, 500);
     });
+  }
+
+  // Grimoire Character Tab Switching
+  initGrimoireTabs();
+
+  // Character Picker for Player 1 and Player 2
+  initCharacterSelection();
+}
+
+window.selectedFighterP1 = 'harpy';
+window.selectedFighterP2 = 'kharon';
+
+function initCharacterSelection() {
+  document.querySelectorAll('.char-picker-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const player = btn.dataset.player; // "1" or "2"
+      const charId = btn.dataset.char;   // "harpy" or "kharon"
+      
+      document.querySelectorAll(`.char-picker-btn[data-player="${player}"]`).forEach(b => {
+        b.style.opacity = '0.5';
+        b.style.borderColor = 'rgba(255,255,255,0.2)';
+      });
+      btn.style.opacity = '1';
+      btn.style.borderColor = '#f59e0b';
+
+      if (player === '1') {
+        window.selectedFighterP1 = charId;
+      } else {
+        window.selectedFighterP2 = charId;
+      }
+
+      updatePlayerCardUI(player, charId);
+      if (window.soundFX) window.soundFX.playSelect();
+    });
+  });
+}
+
+function updatePlayerCardUI(player, charId) {
+  const card = document.getElementById(`p${player}-card`);
+  const portrait = document.getElementById(`p${player}-portrait`);
+  const title = document.getElementById(`p${player}-title`);
+  const archetype = document.getElementById(`p${player}-archetype`);
+  const keys = document.getElementById(`p${player}-keys`);
+
+  if (!card) return;
+
+  if (charId === 'harpy') {
+    card.style.background = 'rgba(6, 182, 212, 0.15)';
+    card.style.borderColor = '#06b6d4';
+    if (portrait) portrait.src = '../../assets/characters/harpy/portrait.png';
+    if (title) title.textContent = 'HARPY';
+    if (archetype) {
+      archetype.textContent = 'Sky Terror • Aerial Striker (Rushdown)';
+      archetype.style.color = '#67e8f9';
+    }
+    if (keys) {
+      keys.innerHTML = player === '1' 
+        ? `Move: <span class="command-key">WASD</span><br>Attacks: <span class="command-key">F</span> (5A) <span class="command-key">G</span> (5B) <span class="command-key">H</span> (5C) <span class="command-key">R</span> (Special) <span class="command-key">T</span> (Taunt)`
+        : `Move: <span class="command-key">ARROWS</span><br>Attacks: <span class="command-key">J / NUM1</span> (5A) <span class="command-key">K / NUM2</span> (5B) <span class="command-key">L / NUM3</span> (5C) <span class="command-key">U</span> (Special)`;
+    }
+  } else {
+    card.style.background = 'rgba(220, 38, 38, 0.15)';
+    card.style.borderColor = '#dc2626';
+    if (portrait) portrait.src = '../../assets/characters/kharon/portrait.png';
+    if (title) title.textContent = 'KHARON';
+    if (archetype) {
+      archetype.textContent = 'Pyromancer Ninja • Rushdown';
+      archetype.style.color = '#f87171';
+    }
+    if (keys) {
+      keys.innerHTML = player === '1'
+        ? `Move: <span class="command-key">WASD</span><br>Attacks: <span class="command-key">F</span> (Jab) <span class="command-key">G</span> (Slash) <span class="command-key">H</span> (Hellfire) <span class="command-key">R</span> (Teleport)`
+        : `Move: <span class="command-key">ARROWS</span><br>Attacks: <span class="command-key">J / NUM1</span> (Jab) <span class="command-key">K / NUM2</span> (Slash) <span class="command-key">L / NUM3</span> (Hellfire)`;
+    }
+  }
+}
+
+function initGrimoireTabs() {
+  const tabs = document.querySelectorAll('.grimoire-tab-btn');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const charId = tab.dataset.char;
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      switchGrimoireCharacter(charId);
+      if (window.soundFX) window.soundFX.playHover();
+    });
+  });
+}
+
+function switchGrimoireCharacter(charId) {
+  const tbody = document.getElementById('grimoire-tbody');
+  const title = document.getElementById('grimoire-char-title');
+  if (!tbody) return;
+
+  if (charId === 'harpy') {
+    if (title) title.textContent = '🦅 HARPY THE SKY TERROR (RUSHDOWN / AERIAL)';
+    tbody.innerHTML = `
+      <tr>
+        <td><strong>Talon Jab (5A)</strong></td>
+        <td><span class="command-key">F</span></td>
+        <td>5f</td><td>3f</td><td>8f</td>
+        <td><span style="color: #4ade80;">+3f</span></td>
+        <td>40 HP</td>
+      </tr>
+      <tr>
+        <td><strong>Wing Flurry (5B)</strong></td>
+        <td><span class="command-key">G</span></td>
+        <td>8f</td><td>4f</td><td>12f</td>
+        <td><span style="color: #fde047;">0f</span></td>
+        <td>75 HP</td>
+      </tr>
+      <tr>
+        <td><strong>Gale Strike (5C)</strong></td>
+        <td><span class="command-key">S + G</span></td>
+        <td>11f</td><td>5f</td><td>17f</td>
+        <td><span style="color: #f87171;">-3f</span></td>
+        <td>120 HP (Wallbounce)</td>
+      </tr>
+      <tr>
+        <td><strong>Tempest Feather Storm</strong></td>
+        <td><span class="command-key">S ➔ D + H</span></td>
+        <td>12f</td><td>10f</td><td>20f</td>
+        <td><span style="color: #f87171;">-6f</span></td>
+        <td>220 HP (Super)</td>
+      </tr>
+    `;
+  } else {
+    if (title) title.textContent = '🔥 KHARON THE PYROMANCER (RUSHDOWN)';
+    tbody.innerHTML = `
+      <tr>
+        <td><strong>Jab</strong></td>
+        <td><span class="command-key">F</span></td>
+        <td>6f</td><td>3f</td><td>10f</td>
+        <td><span style="color: #4ade80;">+2f</span></td>
+        <td>45 HP</td>
+      </tr>
+      <tr>
+        <td><strong>Heavy Slash</strong></td>
+        <td><span class="command-key">G</span></td>
+        <td>12f</td><td>4f</td><td>18f</td>
+        <td><span style="color: #f87171;">-4f</span></td>
+        <td>110 HP</td>
+      </tr>
+      <tr>
+        <td><strong>Crouch Sweep</strong></td>
+        <td><span class="command-key">S + F</span></td>
+        <td>9f</td><td>4f</td><td>15f</td>
+        <td><span style="color: #f87171;">-7f</span></td>
+        <td>85 HP (Trip)</td>
+      </tr>
+      <tr>
+        <td><strong>Hellfire Surge</strong></td>
+        <td><span class="command-key">S ➔ D + H</span></td>
+        <td>14f</td><td>8f</td><td>22f</td>
+        <td><span style="color: #f87171;">-9f</span></td>
+        <td>180 HP (Burn)</td>
+      </tr>
+      <tr>
+        <td><strong>Shadow Teleport</strong></td>
+        <td><span class="command-key">S ➔ A + H</span></td>
+        <td>10f</td><td>-</td><td>12f</td>
+        <td>Neutral</td>
+        <td>0 HP (Evasion)</td>
+      </tr>
+    `;
   }
 }
 
