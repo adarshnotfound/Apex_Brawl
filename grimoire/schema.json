@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "FighterFrameData",
+  "description": "Combat, movement, and frame data schema for Apex Brawl fighters",
+  "type": "object",
+  "required": ["characterId", "name", "archetype", "stats", "moves"],
+  "properties": {
+    "characterId": { "type": "string" },
+    "name": { "type": "string" },
+    "archetype": { "type": "string", "enum": ["Rushdown", "Zoner", "Grappler", "All-Rounder"] },
+    "stats": {
+      "type": "object",
+      "required": ["maxHealth", "walkSpeed", "dashSpeed", "jumpVelocity", "gravity"],
+      "properties": {
+        "maxHealth": { "type": "integer", "default": 1000 },
+        "walkSpeed": { "type": "number", "default": 180 },
+        "dashSpeed": { "type": "number", "default": 320 },
+        "jumpVelocity": { "type": "number", "default": -520 },
+        "gravity": { "type": "number", "default": 1200 }
+      }
+    },
+    "moves": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "inputSequence", "startupFrames", "activeFrames", "recoveryFrames", "damage"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "type": { "type": "string", "enum": ["normal", "command_normal", "special", "super", "throw"] },
+          "inputSequence": { 
+            "type": "array", 
+            "items": { "type": "string" },
+            "description": "Buffered input notation, e.g. ['2', '3', '6', 'H'] or ['F']"
+          },
+          "startupFrames": { "type": "integer", "minimum": 1 },
+          "activeFrames": { "type": "integer", "minimum": 1 },
+          "recoveryFrames": { "type": "integer", "minimum": 1 },
+          "blockAdvantage": { "type": "integer", "description": "Frame plus/minus on block" },
+          "hitAdvantage": { "type": "integer", "description": "Frame plus/minus on direct hit" },
+          "damage": { "type": "integer", "minimum": 0 },
+          "hitbox": {
+            "type": "object",
+            "properties": {
+              "offsetX": { "type": "number" },
+              "offsetY": { "type": "number" },
+              "width": { "type": "number" },
+              "height": { "type": "number" },
+              "knockbackX": { "type": "number" },
+              "knockbackY": { "type": "number" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

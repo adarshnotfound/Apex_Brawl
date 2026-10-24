@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apex Brawl: Mystic Kombat</title>
+  <link rel="stylesheet" href="styles/menu.css">
+</head>
+<body>
+
+  <!-- Animated Rising Embers Background Canvas -->
+  <canvas id="embersCanvas"></canvas>
+
+  <!-- Atmospheric Vignette Overlay -->
+  <div class="screen-vignette"></div>
+
+  <!-- Main Menu UI Overlay -->
+  <div class="main-wrapper" id="menuWrapper">
+
+    <!-- Top Status Bar -->
+    <header class="top-bar">
+      <div class="tournament-badge">
+        <span class="pulse-dot"></span>
+        <span>Softablitz 2026 // Grand Tournament</span>
+      </div>
+
+      <div class="top-actions">
+        <button class="icon-btn" id="btnAudio" title="Toggle Sound">🔊 AUDIO ON</button>
+        <button class="icon-btn" id="btnFullscreen" title="Toggle Fullscreen">⛶ FULLSCREEN</button>
+      </div>
+    </header>
+
+    <!-- Center Content: Hero Branding & Interactive Menu -->
+    <main class="center-content">
+      
+      <!-- Left: Game Branding & Lore -->
+      <section class="branding-section">
+        <!-- Mystic Dragon Crest SVG -->
+        <svg class="crest-icon" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="45" stroke="#f59e0b" stroke-width="2" stroke-dasharray="8 4"/>
+          <path d="M50 15 L62 38 L88 42 L68 60 L74 85 L50 71 L26 85 L32 60 L12 42 L38 38 Z" fill="url(#crestGrad)" stroke="#ea580c" stroke-width="2"/>
+          <defs>
+            <linearGradient id="crestGrad" x1="50" y1="15" x2="50" y2="85" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#fef08a"/>
+              <stop offset="0.5" stop-color="#f59e0b"/>
+              <stop offset="1" stop-color="#b91c1c"/>
+            </linearGradient>
+          </defs>
+        </svg>
+
+        <h1 class="game-title">Apex Brawl</h1>
+        <div class="game-subtitle">Mystic Kombat</div>
+        
+        <p class="lore-snippet">
+          Ancient warriors gather at the apex of realms. Master frame-perfect strikes, fatal combos, and occult martial arts to claim eternal dominion.
+        </p>
+      </section>
+
+      <!-- Right: Main Menu Action Buttons -->
+      <nav class="menu-section" aria-label="Game Modes">
+        <button class="menu-item" data-action="local-1v1" id="menu-local-1v1">
+          <span class="menu-label-group">
+            <span class="menu-icon">⚔️</span>
+            <span>LOCAL 1v1</span>
+          </span>
+          <span class="menu-indicator">▶</span>
+        </button>
+
+        <button class="menu-item" data-action="arcade" id="menu-arcade">
+          <span class="menu-label-group">
+            <span class="menu-icon">🤖</span>
+            <span>ARCADE (VS AI)</span>
+          </span>
+          <span class="menu-indicator">▶</span>
+        </button>
+
+        <button class="menu-item" data-action="training" id="menu-training">
+          <span class="menu-label-group">
+            <span class="menu-icon">🥋</span>
+            <span>DOJO TRAINING</span>
+          </span>
+          <span class="menu-indicator">▶</span>
+        </button>
+
+        <button class="menu-item" data-action="grimoire" id="menu-grimoire">
+          <span class="menu-label-group">
+            <span class="menu-icon">📜</span>
+            <span>GRIMOIRE (DATA)</span>
+          </span>
+          <span class="menu-indicator">▶</span>
+        </button>
+
+        <button class="menu-item" data-action="settings" id="menu-settings">
+          <span class="menu-label-group">
+            <span class="menu-icon">⚙️</span>
+            <span>SETTINGS</span>
+          </span>
+          <span class="menu-indicator">▶</span>
+        </button>
+
+        <button class="menu-item exit-item" data-action="exit" id="menu-exit">
+          <span class="menu-label-group">
+            <span class="menu-icon">🚪</span>
+            <span>QUIT GAME</span>
+          </span>
+          <span class="menu-indicator">▶</span>
+        </button>
+      </nav>
+
+    </main>
+
+    <!-- Bottom Navigation Bar & Keyboard Hints -->
+    <footer class="bottom-bar">
+      <div class="control-hints">
+        <div><span class="key-badge">W</span><span class="key-badge">S</span> / <span class="key-badge">↑</span><span class="key-badge">↓</span> NAVIGATE</div>
+        <div><span class="key-badge">ENTER</span> SELECT</div>
+        <div><span class="key-badge">ESC</span> BACK</div>
+        <div><span class="key-badge">F11</span> FULLSCREEN</div>
+      </div>
+
+      <div class="game-meta">
+        <div>BUILD <span>v0.1.0-alpha</span></div>
+        <div>ELECTRON 45 // PHASER 3.90</div>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- ================= MODALS ================= -->
+
+  <!-- 1. Battle Prompt Modal (Local 1v1) -->
+  <div class="modal-overlay" id="modal-battle-prompt">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">⚔️ LOCAL 1v1 MATCHUP</div>
+        <button class="close-btn" aria-label="Close">&times;</button>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; text-align: center; margin: 1.5rem 0;">
+        <div style="background: rgba(220, 38, 38, 0.15); border: 1px solid #dc2626; padding: 1.5rem; border-radius: 4px;">
+          <h3 style="color: #fca5a5; font-family: var(--font-heading); margin-bottom: 0.5rem;">PLAYER 1 (CHALLENGER)</h3>
+          <p style="font-size: 1.2rem; font-weight: bold; color: #fff;">KHARON</p>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.3rem;">Pyromancer Ninja</p>
+          <div style="margin-top: 1rem; font-size: 0.85rem; color: var(--gold-light);">
+            Keys: <span class="command-key">WASD</span> Movement<br>
+            Attacks: <span class="command-key">F</span> (Light) <span class="command-key">G</span> (Heavy) <span class="command-key">H</span> (Special)
+          </div>
+        </div>
+
+        <div style="background: rgba(245, 158, 11, 0.15); border: 1px solid #f59e0b; padding: 1.5rem; border-radius: 4px;">
+          <h3 style="color: #fde047; font-family: var(--font-heading); margin-bottom: 0.5rem;">PLAYER 2 (DEFENDER)</h3>
+          <p style="font-size: 1.2rem; font-weight: bold; color: #fff;">IGNIS</p>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.3rem;">Shadow Monk</p>
+          <div style="margin-top: 1rem; font-size: 0.85rem; color: var(--gold-light);">
+            Keys: <span class="command-key">ARROWS</span> Movement<br>
+            Attacks: <span class="command-key">NUM 1</span> (Light) <span class="command-key">NUM 2</span> (Heavy) <span class="command-key">NUM 3</span> (Special)
+          </div>
+        </div>
+      </div>
+
+      <button class="fight-cta-btn" id="btnLaunchFight">ENTER ARENA & KOMBAT</button>
+    </div>
+  </div>
+
+  <!-- 2. Arcade Modal -->
+  <div class="modal-overlay" id="modal-arcade">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">🤖 ARCADE LADDER (VS AI)</div>
+        <button class="close-btn" aria-label="Close">&times;</button>
+      </div>
+      <p style="color: var(--text-muted); line-height: 1.6;">
+        Ascend the Mystic Tower defeating 5 elemental bosses in sequence. Each opponent possesses unique frame traps and counter-mechanics.
+      </p>
+      <div style="margin: 1.5rem 0; padding: 1rem; background: rgba(255,255,255,0.03); border-left: 3px solid var(--gold-glow);">
+        <strong>Difficulty:</strong> Normal AI (Buffered inputs, adaptive blocking)
+      </div>
+      <button class="fight-cta-btn" onclick="document.getElementById('btnLaunchFight').click()">START ARCADE RUN</button>
+    </div>
+  </div>
+
+  <!-- 3. Training Modal -->
+  <div class="modal-overlay" id="modal-training">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">🥋 DOJO / PRACTICE ARENA</div>
+        <button class="close-btn" aria-label="Close">&times;</button>
+      </div>
+      <p style="color: var(--text-muted); line-height: 1.6;">
+        Enter the endless sparring room with an AI dummy. Test frame advantages, juggle combos, hitboxes, and input buffering without round timers or death.
+      </p>
+      <button class="fight-cta-btn" onclick="document.getElementById('btnLaunchFight').click()">ENTER DOJO</button>
+    </div>
+  </div>
+
+  <!-- 4. Grimoire (Frame Data & Moves) Modal -->
+  <div class="modal-overlay" id="modal-grimoire">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">📜 GRIMOIRE: COMBAT FRAME DATA</div>
+        <button class="close-btn" aria-label="Close">&times;</button>
+      </div>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">
+        Frame data specification loaded from <span style="color: var(--gold-light);">grimoire/schema.json</span> at 60 FPS standard.
+      </p>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Attack</th>
+            <th>Input Command</th>
+            <th>Startup</th>
+            <th>Active</th>
+            <th>Recovery</th>
+            <th>On Block</th>
+            <th>Damage</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Jab</strong></td>
+            <td><span class="command-key">F</span></td>
+            <td>6f</td>
+            <td>3f</td>
+            <td>10f</td>
+            <td><span style="color: #4ade80;">+2f</span></td>
+            <td>45 HP</td>
+          </tr>
+          <tr>
+            <td><strong>Heavy Slash</strong></td>
+            <td><span class="command-key">G</span></td>
+            <td>12f</td>
+            <td>4f</td>
+            <td>18f</td>
+            <td><span style="color: #f87171;">-4f</span></td>
+            <td>110 HP</td>
+          </tr>
+          <tr>
+            <td><strong>Crouch Sweep</strong></td>
+            <td><span class="command-key">S + F</span></td>
+            <td>9f</td>
+            <td>4f</td>
+            <td>15f</td>
+            <td><span style="color: #f87171;">-7f</span></td>
+            <td>85 HP (Trip)</td>
+          </tr>
+          <tr>
+            <td><strong>Hellfire Surge</strong></td>
+            <td><span class="command-key">S ➔ D + H</span></td>
+            <td>14f</td>
+            <td>8f</td>
+            <td>22f</td>
+            <td><span style="color: #f87171;">-9f</span></td>
+            <td>180 HP (Burn)</td>
+          </tr>
+          <tr>
+            <td><strong>Shadow Teleport</strong></td>
+            <td><span class="command-key">S ➔ A + H</span></td>
+            <td>10f</td>
+            <td>-</td>
+            <td>12f</td>
+            <td>Neutral</td>
+            <td>0 HP (Evasion)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 5. Settings Modal -->
+  <div class="modal-overlay" id="modal-settings">
+    <div class="modal-card" style="max-width: 600px;">
+      <div class="modal-header">
+        <div class="modal-title">⚙️ SYSTEM SETTINGS</div>
+        <button class="close-btn" aria-label="Close">&times;</button>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 1.5rem; margin-top: 1rem;">
+        <div>
+          <label style="display: block; font-weight: 700; margin-bottom: 0.5rem; color: var(--gold-light);">MASTER AUDIO VOLUME</label>
+          <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="0.7" style="width: 100%; accent-color: var(--gold-glow); cursor: pointer;">
+        </div>
+
+        <div>
+          <label style="display: block; font-weight: 700; margin-bottom: 0.5rem; color: var(--gold-light);">AMBIENT SOUNDTRACK</label>
+          <button class="icon-btn" id="toggleBGM" style="width: 100%; justify-content: center; padding: 0.8rem;">
+            TEMPLE DRONE: OFF (CLICK TO ACTIVATE)
+          </button>
+        </div>
+
+        <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
+          <h4 style="font-family: var(--font-heading); color: #fca5a5; margin-bottom: 0.6rem;">CONTROLLER COMPATIBILITY</h4>
+          <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.5;">
+            Supports Xbox One/Series, DualShock 4/DualSense, and generic USB X-Input fightsticks via browser Gamepad API.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="audio.js"></script>
+  <script src="menu.js"></script>
+</body>
+</html>
