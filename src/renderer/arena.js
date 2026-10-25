@@ -23,10 +23,10 @@ class FighterEntity {
     this.dashSpeed = charId === 'harpy' ? 490 : 400;
     this.jumpVel = charId === 'harpy' ? -760 : -660;
 
-    // Create sprite
+    // Create sprite (scaled to 0.25 for clean 2D fighting game screen proportions)
     const initialTexture = charId === 'harpy' ? 'harpy_sheet_idle' : 'kharon_sprite';
     this.sprite = scene.physics.add.sprite(x, y, initialTexture);
-    this.sprite.setScale(0.35);
+    this.sprite.setScale(0.25);
     this.sprite.setCollideWorldBounds(true);
     this.sprite.body.setSize(340, 800);
     this.sprite.body.setOffset(370, 240);
@@ -119,8 +119,8 @@ class FighterEntity {
     // Apply Damage
     this.hp = Math.max(0, this.hp - attackData.damage);
 
-    // Spawn floating damage text
-    this.scene.spawnDamageNumber(this.sprite.x, this.sprite.y - 120, attackData.damage, attackData.isSpecial);
+    // Spawn floating damage text (adjusted for 0.25 character scale)
+    this.scene.spawnDamageNumber(this.sprite.x, this.sprite.y - 95, attackData.damage, attackData.isSpecial);
 
     // Hit flash
     this.sprite.setTint(0xff2222);
@@ -386,7 +386,7 @@ class ArenaScene extends Phaser.Scene {
 
   preload() {
     // 1. Doctor Strange Mirror Dimension Background
-    this.load.image('arena_bg', 'assets/mirror_dimension.jpg');
+    this.load.image('arena_bg', 'assets/mirror_dimension.png');
     this.load.image('harpy_portrait', '../../assets/characters/harpy/portrait.png');
     this.load.image('kharon_portrait', '../../assets/characters/kharon/portrait.png');
     this.load.image('kharon_sprite', '../../assets/characters/kharon/portrait.png');
