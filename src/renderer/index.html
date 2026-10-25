@@ -125,8 +125,9 @@
           <p id="p1-title" style="font-size: 1.3rem; font-weight: bold; color: #fff; margin: 0;">HARPY</p>
           <p id="p1-archetype" style="font-size: 0.85rem; color: #67e8f9; margin-top: 0.1rem; font-weight: 600;">Sky Terror • Aerial Striker (Rushdown)</p>
           <div id="p1-keys" style="margin-top: 0.8rem; font-size: 0.85rem; color: #a5f3fc; line-height: 1.6;">
-            Move: <span class="command-key">WASD</span><br>
-            Attacks: <span class="command-key">F</span> (5A) <span class="command-key">G</span> (5B) <span class="command-key">H</span> (5C) <span class="command-key">R</span> (Special) <span class="command-key">T</span> (Taunt)
+            Move: <span class="command-key">WASD</span> | Jump: <span class="command-key">SPACE</span><br>
+            Attacks: <span class="command-key">F</span> (5A Light) <span class="command-key">G</span> (5B Med) <span class="command-key">H</span> (5C Heavy)<br>
+            Special: <span class="command-key">R</span> | Super: <span class="command-key">S+H</span> / <span class="command-key">Y</span> | Dash: <span class="command-key">Q</span>
           </div>
         </div>
 
@@ -149,8 +150,9 @@
           <p id="p2-title" style="font-size: 1.3rem; font-weight: bold; color: #fff; margin: 0;">KHARON</p>
           <p id="p2-archetype" style="font-size: 0.85rem; color: #f87171; margin-top: 0.1rem; font-weight: 600;">Pyromancer Ninja • Rushdown</p>
           <div id="p2-keys" style="margin-top: 0.8rem; font-size: 0.85rem; color: var(--gold-light); line-height: 1.6;">
-            Move: <span class="command-key">ARROWS</span><br>
-            Attacks: <span class="command-key">J / NUM1</span> (Jab) <span class="command-key">K / NUM2</span> (Slash) <span class="command-key">L / NUM3</span> (Hellfire)
+            Move: <span class="command-key">ARROWS ↑ ← ↓ →</span><br>
+            Attacks: <span class="command-key">J / NUM1</span> (Light) <span class="command-key">K / NUM2</span> (Med) <span class="command-key">L / NUM3</span> (Heavy)<br>
+            Special: <span class="command-key">U / NUM4</span> | Super: <span class="command-key">↓+L / I</span> | Dash: <span class="command-key">O</span>
           </div>
         </div>
       </div>
@@ -286,25 +288,31 @@
             ⚔️ PLAYER 1 (WASD)
           </h3>
           <table class="data-table" style="margin-top: 0.5rem; font-size: 0.88rem;">
-            <tr><td>Movement / Jump</td><td><span class="command-key">W A S D</span></td></tr>
-            <tr><td>Light Attack</td><td><span class="command-key">F</span></td></tr>
-            <tr><td>Heavy Slash</td><td><span class="command-key">G</span></td></tr>
-            <tr><td>Special Ability</td><td><span class="command-key">H</span></td></tr>
-            <tr><td>Dash / Dodge</td><td>Double Tap <span class="command-key">A</span> / <span class="command-key">D</span></td></tr>
+            <tr><td>Movement / Jump</td><td><span class="command-key">W A S D</span> / <span class="command-key">SPACE</span></td></tr>
+            <tr><td>Light Attack (5A)</td><td><span class="command-key">F</span></td></tr>
+            <tr><td>Medium Attack (5B)</td><td><span class="command-key">G</span></td></tr>
+            <tr><td>Heavy Strike (5C)</td><td><span class="command-key">H</span></td></tr>
+            <tr><td>Special Ability</td><td><span class="command-key">R</span></td></tr>
+            <tr><td>Super Move</td><td><span class="command-key">S + H</span> or <span class="command-key">Y</span></td></tr>
+            <tr><td>Dash / Dodge</td><td><span class="command-key">Q</span></td></tr>
+            <tr><td>Taunt</td><td><span class="command-key">T</span></td></tr>
           </table>
         </div>
 
         <!-- Player 2 -->
         <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.4); padding: 1.2rem; border-radius: 6px;">
           <h3 style="color: #fde047; font-family: var(--font-heading); margin-bottom: 0.8rem; font-size: 1.1rem; border-bottom: 1px solid rgba(245, 158, 11, 0.3); padding-bottom: 0.4rem;">
-            🛡️ PLAYER 2 (ARROWS)
+            🛡️ PLAYER 2 (ARROWS & JKL)
           </h3>
           <table class="data-table" style="margin-top: 0.5rem; font-size: 0.88rem;">
             <tr><td>Movement / Jump</td><td><span class="command-key">↑ ← ↓ →</span></td></tr>
-            <tr><td>Light Attack</td><td><span class="command-key">NUM 1</span></td></tr>
-            <tr><td>Heavy Slash</td><td><span class="command-key">NUM 2</span></td></tr>
-            <tr><td>Special Ability</td><td><span class="command-key">NUM 3</span></td></tr>
-            <tr><td>Dash / Dodge</td><td>Double Tap <span class="command-key">←</span> / <span class="command-key">→</span></td></tr>
+            <tr><td>Light Attack (5A)</td><td><span class="command-key">J</span> or <span class="command-key">NUM 1</span></td></tr>
+            <tr><td>Medium Attack (5B)</td><td><span class="command-key">K</span> or <span class="command-key">NUM 2</span></td></tr>
+            <tr><td>Heavy Strike (5C)</td><td><span class="command-key">L</span> or <span class="command-key">NUM 3</span></td></tr>
+            <tr><td>Special Ability</td><td><span class="command-key">U</span> or <span class="command-key">NUM 4</span></td></tr>
+            <tr><td>Super Move</td><td><span class="command-key">↓ + L</span> or <span class="command-key">I</span> or <span class="command-key">NUM 5</span></td></tr>
+            <tr><td>Dash / Dodge</td><td><span class="command-key">O</span> or <span class="command-key">NUM 0</span></td></tr>
+            <tr><td>Taunt</td><td><span class="command-key">P</span> or <span class="command-key">NUM 6</span></td></tr>
           </table>
         </div>
       </div>

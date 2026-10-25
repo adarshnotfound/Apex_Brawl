@@ -310,8 +310,8 @@ function updatePlayerCardUI(player, charId) {
     }
     if (keys) {
       keys.innerHTML = player === '1' 
-        ? `Move: <span class="command-key">WASD</span><br>Attacks: <span class="command-key">F</span> (5A) <span class="command-key">G</span> (5B) <span class="command-key">H</span> (5C) <span class="command-key">R</span> (Special) <span class="command-key">T</span> (Taunt)`
-        : `Move: <span class="command-key">ARROWS</span><br>Attacks: <span class="command-key">J / NUM1</span> (5A) <span class="command-key">K / NUM2</span> (5B) <span class="command-key">L / NUM3</span> (5C) <span class="command-key">U</span> (Special)`;
+        ? `Move: <span class="command-key">WASD</span> | Jump: <span class="command-key">SPACE</span><br>Attacks: <span class="command-key">F</span> (5A) <span class="command-key">G</span> (5B) <span class="command-key">H</span> (5C)<br>Special: <span class="command-key">R</span> | Super: <span class="command-key">S+H / Y</span> | Dash: <span class="command-key">Q</span>`
+        : `Move: <span class="command-key">ARROWS ↑ ← ↓ →</span><br>Attacks: <span class="command-key">J / NUM1</span> (5A) <span class="command-key">K / NUM2</span> (5B) <span class="command-key">L / NUM3</span> (5C)<br>Special: <span class="command-key">U / NUM4</span> | Super: <span class="command-key">↓+L / I</span> | Dash: <span class="command-key">O</span>`;
     }
   } else {
     card.style.background = 'rgba(220, 38, 38, 0.15)';
@@ -324,8 +324,8 @@ function updatePlayerCardUI(player, charId) {
     }
     if (keys) {
       keys.innerHTML = player === '1'
-        ? `Move: <span class="command-key">WASD</span><br>Attacks: <span class="command-key">F</span> (Jab) <span class="command-key">G</span> (Slash) <span class="command-key">H</span> (Hellfire) <span class="command-key">R</span> (Teleport)`
-        : `Move: <span class="command-key">ARROWS</span><br>Attacks: <span class="command-key">J / NUM1</span> (Jab) <span class="command-key">K / NUM2</span> (Slash) <span class="command-key">L / NUM3</span> (Hellfire)`;
+        ? `Move: <span class="command-key">WASD</span> | Jump: <span class="command-key">SPACE</span><br>Attacks: <span class="command-key">F</span> (Light) <span class="command-key">G</span> (Med) <span class="command-key">H</span> (Heavy)<br>Special: <span class="command-key">R</span> | Super: <span class="command-key">S+H / Y</span> | Dash: <span class="command-key">Q</span>`
+        : `Move: <span class="command-key">ARROWS ↑ ← ↓ →</span><br>Attacks: <span class="command-key">J / NUM1</span> (Light) <span class="command-key">K / NUM2</span> (Med) <span class="command-key">L / NUM3</span> (Heavy)<br>Special: <span class="command-key">U / NUM4</span> | Super: <span class="command-key">↓+L / I</span> | Dash: <span class="command-key">O</span>`;
     }
   }
 }
