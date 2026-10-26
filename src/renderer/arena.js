@@ -89,8 +89,38 @@ class FighterEntity {
     }
   }
 
+  reset(x, y) {
+    this.hp = this.maxHp;
+    this.isAttacking = false;
+    this.isKnockedBack = false;
+    this.isInAir = false;
+    this.hasDealtDamage = false;
+    this.currentAttackData = null;
+    this.currentAction = 'IDLE';
+
+    this.sprite.setPosition(x, y);
+    this.sprite.setVelocity(0, 0);
+
+    if (this.playerNum === 1) {
+      this.sprite.setFlipX(true);
+      this.sprite.clearTint();
+    } else {
+      this.sprite.setFlipX(false);
+      if (this.isMirror) {
+        this.sprite.setTint(0xc4b5fd);
+      } else {
+        this.sprite.clearTint();
+      }
+    }
+
+    if (this.charId === 'harpy') {
+      this.sprite.setTexture('harpy_sheet_idle');
+      this.sprite.play('harpy_anim_idle', true);
+    }
+  }
+
   triggerAttack(actionKey, animKey, attackData) {
-    if (this.isAttacking || this.isKnockedBack || this.hp <= 0) return;
+    if (this.isAttacking || this.isKnockedBack || this.hp <= 0 || (this.scene && this.scene.roundState !== 'FIGHTING')) return;
     this.isAttacking = true;
     this.hasDealtDamage = false;
     this.currentAttackData = attackData;
@@ -114,7 +144,7 @@ class FighterEntity {
   }
 
   takeHit(attackData, attacker) {
-    if (this.hp <= 0) return;
+    if (this.hp <= 0 || (this.scene && this.scene.roundState !== 'FIGHTING')) return;
 
     // Apply Damage
     this.hp = Math.max(0, this.hp - attackData.damage);
@@ -160,8 +190,12 @@ class FighterEntity {
   }
 
   handleControls(input) {
-    if (this.hp <= 0) {
-      this.currentAction = 'DEFEATED (K.O.)';
+    if (this.hp <= 0 || (this.scene && this.scene.roundState !== 'FIGHTING')) {
+      if (this.hp <= 0) {
+        this.currentAction = 'DEFEATED (K.O.)';
+      } else {
+        this.currentAction = 'READY';
+      }
       this.sprite.setVelocityX(0);
       return;
     }
@@ -382,6 +416,17 @@ class ArenaScene extends Phaser.Scene {
     this.p1Keys = {};
     this.p2Keys = {};
     this.isGameOver = false;
+
+    // Best of 3 and Round Timer State
+    this.currentRound = 1;
+    this.p1RoundWins = 0;
+    this.p2RoundWins = 0;
+    this.maxRoundsToWin = 2; // Best of 3 (first to 2 wins)
+    this.roundDurationSec = 120; // 2 minutes per round
+    this.roundTimer = 120;
+    this.timerRemainingMs = 120000;
+    this.roundState = 'INTRO'; // 'INTRO' | 'FIGHTING' | 'ROUND_OVER' | 'MATCH_OVER'
+    this.bannerObjects = [];
   }
 
   preload() {
@@ -418,6 +463,15 @@ class ArenaScene extends Phaser.Scene {
 
   create() {
     this.isGameOver = false;
+    this.currentRound = 1;
+    this.p1RoundWins = 0;
+    this.p2RoundWins = 0;
+    this.roundState = 'INTRO';
+    this.roundTimer = this.roundDurationSec;
+    this.timerRemainingMs = this.roundDurationSec * 1000;
+    this.bannerObjects = [];
+
+    window.activeArenaScene = this;
 
     // 1. World Floor at y = 575 (Directly on Mirror Dimension floating stone platform!)
     this.physics.world.setBounds(0, 0, 1280, 575);
@@ -458,6 +512,9 @@ class ArenaScene extends Phaser.Scene {
 
     // 6. Visual HUD
     this.buildDualPlayerHUD(p1Char, p2Char);
+
+    // 7. Start Round 1
+    this.startRound(1);
   }
 
   registerHarpyAnimations() {
@@ -617,11 +674,62 @@ class ArenaScene extends Phaser.Scene {
     }).setOrigin(1, 0);
 
     // --- Stage Title ---
-    this.add.text(640, 28, '🔮 MIRROR DIMENSION 🔮', {
+    this.add.text(640, 14, '🔮 MIRROR DIMENSION 🔮', {
       fontFamily: 'Cinzel, Georgia, serif',
-      fontSize: '16px',
+      fontSize: '13px',
       fontStyle: 'bold',
       color: '#fde047'
+    }).setOrigin(0.5);
+
+    // --- Current Round Badge ---
+    this.roundBadgeText = this.add.text(640, 31, 'ROUND 1', {
+      fontFamily: 'Cinzel, Georgia, serif',
+      fontSize: '15px',
+      fontStyle: 'bold',
+      color: '#fef08a',
+      stroke: '#000000',
+      strokeThickness: 3
+    }).setOrigin(0.5);
+
+    // --- Central 2-Minute Timer Box (120s down to 0) ---
+    this.timerBoxBg = this.add.rectangle(640, 62, 94, 52, 0x09090b, 0.92);
+    this.timerBoxBg.setStrokeStyle(2, 0xf59e0b, 0.95);
+
+    this.timerNumText = this.add.text(640, 53, '120', {
+      fontFamily: 'Cinzel, Rajdhani, sans-serif',
+      fontSize: '28px',
+      fontStyle: 'bold',
+      color: '#fef08a',
+      stroke: '#000000',
+      strokeThickness: 3
+    }).setOrigin(0.5);
+
+    this.timerClockText = this.add.text(640, 75, '02:00', {
+      fontFamily: 'Rajdhani, sans-serif',
+      fontSize: '11px',
+      fontStyle: 'bold',
+      color: '#a1a1aa'
+    }).setOrigin(0.5);
+
+    // --- Best of 3 Round Win Pips ---
+    // P1 Round Win Pips (Left of Timer)
+    this.p1Pip1 = this.add.circle(548, 62, 7, 0x18181b).setStrokeStyle(2, 0x06b6d4);
+    this.p1Pip2 = this.add.circle(568, 62, 7, 0x18181b).setStrokeStyle(2, 0x06b6d4);
+    this.add.text(558, 77, 'P1 WINS', {
+      fontFamily: 'Rajdhani, sans-serif',
+      fontSize: '9px',
+      fontStyle: 'bold',
+      color: '#67e8f9'
+    }).setOrigin(0.5);
+
+    // P2 Round Win Pips (Right of Timer)
+    this.p2Pip1 = this.add.circle(712, 62, 7, 0x18181b).setStrokeStyle(2, 0xef4444);
+    this.p2Pip2 = this.add.circle(732, 62, 7, 0x18181b).setStrokeStyle(2, 0xef4444);
+    this.add.text(722, 77, 'P2 WINS', {
+      fontFamily: 'Rajdhani, sans-serif',
+      fontSize: '9px',
+      fontStyle: 'bold',
+      color: '#f87171'
     }).setOrigin(0.5);
 
     // --- REQUIREMENT: PROMINENT KEY CONTROLS FOR BOTH PLAYERS ---
@@ -698,6 +806,8 @@ class ArenaScene extends Phaser.Scene {
   }
 
   updateHUD() {
+    if (!this.fighterP1 || !this.fighterP2) return;
+
     const p1Ratio = Math.max(0, this.fighterP1.hp / this.fighterP1.maxHp);
     const p2Ratio = Math.max(0, this.fighterP2.hp / this.fighterP2.maxHp);
 
@@ -708,65 +818,404 @@ class ArenaScene extends Phaser.Scene {
     this.p2HpText.setText(`${this.fighterP2.hp} / ${this.fighterP2.maxHp}`);
 
     if (p1Ratio < 0.25) this.p1BarFill.fillColor = 0xef4444;
+    else this.p1BarFill.fillColor = this.fighterP1.charId === 'harpy' ? 0x06b6d4 : 0xdc2626;
+
     if (p2Ratio < 0.25) this.p2BarFill.fillColor = 0xef4444;
+    else this.p2BarFill.fillColor = this.fighterP2.charId === 'harpy' ? 0x06b6d4 : 0xdc2626;
 
     this.p1ActionText.setText(`ACTION: ${this.fighterP1.currentAction}`);
     this.p2ActionText.setText(`ACTION: ${this.fighterP2.currentAction}`);
 
-    // Check K.O.
-    if (!this.isGameOver) {
-      if (this.fighterP1.hp <= 0) {
-        this.triggerKO('PLAYER 2');
-      } else if (this.fighterP2.hp <= 0) {
-        this.triggerKO('PLAYER 1');
+    // Update Live 2-Minute Timer Display
+    if (this.timerNumText && this.timerClockText) {
+      this.timerNumText.setText(`${this.roundTimer}`);
+
+      const minutes = Math.floor(this.roundTimer / 60);
+      const seconds = this.roundTimer % 60;
+      const formattedClock = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      this.timerClockText.setText(formattedClock);
+
+      // Warning color transitions
+      if (this.roundTimer <= 10) {
+        this.timerNumText.setColor('#ef4444');
+        if (this.timerBoxBg) this.timerBoxBg.setStrokeStyle(2, 0xef4444, 1);
+      } else if (this.roundTimer <= 30) {
+        this.timerNumText.setColor('#f97316');
+        if (this.timerBoxBg) this.timerBoxBg.setStrokeStyle(2, 0xf97316, 0.95);
+      } else {
+        this.timerNumText.setColor('#fef08a');
+        if (this.timerBoxBg) this.timerBoxBg.setStrokeStyle(2, 0xf59e0b, 0.95);
       }
+    }
+
+    // Update Best of 3 Round Win Pips
+    if (this.p1Pip1 && this.p1Pip2) {
+      this.p1Pip1.setFillStyle(this.p1RoundWins >= 1 ? 0x06b6d4 : 0x18181b);
+      this.p1Pip2.setFillStyle(this.p1RoundWins >= 2 ? 0x06b6d4 : 0x18181b);
+    }
+    if (this.p2Pip1 && this.p2Pip2) {
+      this.p2Pip1.setFillStyle(this.p2RoundWins >= 1 ? 0xef4444 : 0x18181b);
+      this.p2Pip2.setFillStyle(this.p2RoundWins >= 2 ? 0xef4444 : 0x18181b);
     }
   }
 
-  triggerKO(winnerName) {
-    this.isGameOver = true;
-    if (window.soundFX) window.soundFX.playStartBoom();
+  startRound(roundNumber) {
+    this.currentRound = roundNumber;
+    this.roundState = 'INTRO';
+    this.roundTimer = this.roundDurationSec;
+    this.timerRemainingMs = this.roundDurationSec * 1000;
+    this.clearBanners();
 
-    this.cameras.main.shake(500, 0.02);
+    // Reset fighters to initial fighting marks
+    this.fighterP1.reset(320, 460);
+    this.fighterP2.reset(960, 460);
 
-    const koBanner = this.add.text(640, 260, 'K.O.', {
+    // Update Round Badge Title
+    const isFinalRound = (this.p1RoundWins === 1 && this.p2RoundWins === 1);
+    const roundTitle = isFinalRound ? 'FINAL ROUND' : `ROUND ${roundNumber}`;
+    if (this.roundBadgeText) {
+      this.roundBadgeText.setText(roundTitle);
+      this.roundBadgeText.setColor(isFinalRound ? '#ef4444' : '#fef08a');
+    }
+
+    this.updateHUD();
+
+    // Round intro announcement sequence
+    const introText = this.add.text(640, 260, roundTitle, {
       fontFamily: 'Cinzel, Georgia, serif',
-      fontSize: '84px',
+      fontSize: '76px',
       fontStyle: 'bold',
-      color: '#ef4444',
+      color: isFinalRound ? '#ef4444' : '#fef08a',
       stroke: '#000000',
       strokeThickness: 8
     }).setOrigin(0.5).setScale(0);
+    this.bannerObjects.push(introText);
 
-    const winText = this.add.text(640, 350, `${winnerName} VICTORIOUS!`, {
+    if (window.soundFX) window.soundFX.playSelect();
+
+    // Zoom in Round Announcement
+    this.tweens.add({
+      targets: introText,
+      scale: 1,
+      duration: 500,
+      ease: 'Back.Out',
+      onComplete: () => {
+        this.time.delayedCall(700, () => {
+          introText.setText('FIGHT!');
+          introText.setColor('#ea580c');
+          introText.setScale(1.3);
+
+          if (window.soundFX) window.soundFX.playStartBoom();
+          this.cameras.main.shake(140, 0.008);
+
+          this.tweens.add({
+            targets: introText,
+            scale: 1,
+            alpha: 0,
+            duration: 600,
+            ease: 'Power2',
+            onComplete: () => {
+              this.clearBanners();
+              this.roundState = 'FIGHTING';
+            }
+          });
+        });
+      }
+    });
+  }
+
+  endRound(reason) {
+    if (this.roundState === 'ROUND_OVER' || this.roundState === 'MATCH_OVER') return;
+    this.roundState = 'ROUND_OVER';
+    this.clearBanners();
+
+    // Freeze fighter velocities immediately
+    this.fighterP1.sprite.setVelocity(0, 0);
+    this.fighterP2.sprite.setVelocity(0, 0);
+
+    let roundWinner = 'DRAW';
+    let mainBannerText = 'K.O.';
+    let mainColor = '#ef4444';
+    let subBannerText = '';
+
+    if (reason === 'TIMEOUT') {
+      mainBannerText = 'TIME OVER';
+      mainColor = '#f59e0b';
+      const p1Hp = this.fighterP1.hp;
+      const p2Hp = this.fighterP2.hp;
+
+      // REQUIREMENT: When timer reaches zero, player with lower health loses!
+      if (p1Hp > p2Hp) {
+        roundWinner = 'PLAYER 1';
+        this.p1RoundWins++;
+        subBannerText = `PLAYER 1 WINS (P1: ${p1Hp} HP vs P2: ${p2Hp} HP)`;
+      } else if (p2Hp > p1Hp) {
+        roundWinner = 'PLAYER 2';
+        this.p2RoundWins++;
+        subBannerText = `PLAYER 2 WINS (P2: ${p2Hp} HP vs P1: ${p1Hp} HP)`;
+      } else {
+        roundWinner = 'DRAW';
+        this.p1RoundWins++;
+        this.p2RoundWins++;
+        subBannerText = `DRAW! EQUAL HEALTH (${p1Hp} HP)`;
+      }
+    } else {
+      // Reason is 'KO'
+      mainBannerText = 'K.O.';
+      mainColor = '#ef4444';
+
+      if (this.fighterP1.hp <= 0 && this.fighterP2.hp <= 0) {
+        roundWinner = 'DRAW';
+        this.p1RoundWins++;
+        this.p2RoundWins++;
+        subBannerText = 'DOUBLE K.O. (DRAW)';
+      } else if (this.fighterP1.hp <= 0) {
+        roundWinner = 'PLAYER 2';
+        this.p2RoundWins++;
+        subBannerText = 'PLAYER 2 TAKES THE ROUND!';
+      } else {
+        roundWinner = 'PLAYER 1';
+        this.p1RoundWins++;
+        subBannerText = 'PLAYER 1 TAKES THE ROUND!';
+      }
+    }
+
+    if (window.soundFX) window.soundFX.playStartBoom();
+    this.cameras.main.shake(reason === 'KO' ? 450 : 300, reason === 'KO' ? 0.018 : 0.012);
+
+    // Update the Round Win Pips visually with scale pulse tween
+    this.updateHUD();
+    this.animatePipUpdate(roundWinner);
+
+    // Display primary banner
+    const banner = this.add.text(640, 260, mainBannerText, {
       fontFamily: 'Cinzel, Georgia, serif',
-      fontSize: '32px',
+      fontSize: '84px',
+      fontStyle: 'bold',
+      color: mainColor,
+      stroke: '#000000',
+      strokeThickness: 8
+    }).setOrigin(0.5).setScale(0);
+    this.bannerObjects.push(banner);
+
+    const subText = this.add.text(640, 350, subBannerText, {
+      fontFamily: 'Cinzel, Georgia, serif',
+      fontSize: '28px',
       fontStyle: 'bold',
       color: '#fef08a',
       stroke: '#000000',
       strokeThickness: 5
     }).setOrigin(0.5).setAlpha(0);
-
-    const subText = this.add.text(640, 400, 'PRESS [ESC] TO RETURN TO THE ALTAR', {
-      fontFamily: 'Rajdhani, sans-serif',
-      fontSize: '18px',
-      color: '#ffffff',
-      fontStyle: 'bold'
-    }).setOrigin(0.5).setAlpha(0);
+    this.bannerObjects.push(subText);
 
     this.tweens.add({
-      targets: koBanner,
+      targets: banner,
       scale: 1,
-      duration: 600,
+      duration: 500,
       ease: 'Back.Out',
       onComplete: () => {
-        this.tweens.add({ targets: [winText, subText], alpha: 1, duration: 400 });
+        this.tweens.add({
+          targets: subText,
+          alpha: 1,
+          duration: 350
+        });
+
+        // Delay to determine next step (Next Round or Match Victory)
+        this.time.delayedCall(2400, () => {
+          if (this.p1RoundWins >= this.maxRoundsToWin || this.p2RoundWins >= this.maxRoundsToWin) {
+            this.triggerMatchOver();
+          } else {
+            // Proceed to next round in Best of 3!
+            this.clearBanners();
+            this.startRound(this.currentRound + 1);
+          }
+        });
       }
     });
   }
 
-  update() {
+  animatePipUpdate(winner) {
+    if (winner === 'PLAYER 1' || winner === 'DRAW') {
+      const pip = this.p1RoundWins === 1 ? this.p1Pip1 : this.p1Pip2;
+      if (pip) {
+        this.tweens.add({
+          targets: pip,
+          scale: 1.7,
+          duration: 250,
+          yoyo: true,
+          repeat: 2
+        });
+      }
+    }
+    if (winner === 'PLAYER 2' || winner === 'DRAW') {
+      const pip = this.p2RoundWins === 1 ? this.p2Pip1 : this.p2Pip2;
+      if (pip) {
+        this.tweens.add({
+          targets: pip,
+          scale: 1.7,
+          duration: 250,
+          yoyo: true,
+          repeat: 2
+        });
+      }
+    }
+  }
+
+  triggerMatchOver() {
+    this.roundState = 'MATCH_OVER';
+    this.isGameOver = true;
+    this.clearBanners();
+
+    let matchChampion = 'PLAYER 1';
+    let championColor = '#06b6d4';
+    if (this.p1RoundWins >= this.maxRoundsToWin && this.p2RoundWins >= this.maxRoundsToWin) {
+      matchChampion = 'DOUBLE APEX CHAMPIONS (TIE)';
+      championColor = '#f59e0b';
+    } else if (this.p2RoundWins >= this.maxRoundsToWin) {
+      matchChampion = 'PLAYER 2';
+      championColor = '#ef4444';
+    }
+
+    if (window.soundFX) window.soundFX.playStartBoom();
+    this.cameras.main.shake(500, 0.02);
+
+    // Dark semi-transparent overlay
+    const overlay = this.add.rectangle(640, 360, 1280, 720, 0x07060a, 0.72);
+    this.bannerObjects.push(overlay);
+
+    const titleText = this.add.text(640, 220, 'MATCH COMPLETE', {
+      fontFamily: 'Cinzel, Georgia, serif',
+      fontSize: '44px',
+      fontStyle: 'bold',
+      color: '#fde047',
+      stroke: '#000000',
+      strokeThickness: 6
+    }).setOrigin(0.5).setScale(0);
+    this.bannerObjects.push(titleText);
+
+    const champText = this.add.text(640, 300, `🏆 ${matchChampion} VICTORIOUS! 🏆`, {
+      fontFamily: 'Cinzel, Georgia, serif',
+      fontSize: '40px',
+      fontStyle: 'bold',
+      color: championColor,
+      stroke: '#000000',
+      strokeThickness: 6
+    }).setOrigin(0.5).setAlpha(0);
+    this.bannerObjects.push(champText);
+
+    const scoreText = this.add.text(640, 365, `FINAL SCORE:  PLAYER 1 [ ${this.p1RoundWins} ]  —  [ ${this.p2RoundWins} ] PLAYER 2`, {
+      fontFamily: 'Rajdhani, sans-serif',
+      fontSize: '22px',
+      fontStyle: 'bold',
+      color: '#ffffff'
+    }).setOrigin(0.5).setAlpha(0);
+    this.bannerObjects.push(scoreText);
+
+    const rematchBox = this.add.rectangle(640, 440, 520, 50, 0x18181b, 0.9);
+    rematchBox.setStrokeStyle(2, 0xf59e0b);
+    rematchBox.setInteractive({ useHandCursor: true });
+    rematchBox.on('pointerdown', () => this.restartMatch());
+    rematchBox.on('pointerover', () => rematchBox.setFillStyle(0x27272a, 1));
+    rematchBox.on('pointerout', () => rematchBox.setFillStyle(0x18181b, 0.9));
+    this.bannerObjects.push(rematchBox);
+
+    const promptText = this.add.text(640, 440, '⚔️ PRESS [ENTER / SPACE] TO REMATCH (OR CLICK HERE)', {
+      fontFamily: 'Rajdhani, sans-serif',
+      fontSize: '17px',
+      fontStyle: 'bold',
+      color: '#fef08a'
+    }).setOrigin(0.5).setAlpha(0);
+    this.bannerObjects.push(promptText);
+
+    const escText = this.add.text(640, 495, 'PRESS [ESC] TO RETURN TO THE ALTAR', {
+      fontFamily: 'Rajdhani, sans-serif',
+      fontSize: '15px',
+      color: '#a1a1aa',
+      fontStyle: 'bold'
+    }).setOrigin(0.5).setAlpha(0);
+    this.bannerObjects.push(escText);
+
+    this.tweens.add({
+      targets: titleText,
+      scale: 1,
+      duration: 600,
+      ease: 'Back.Out',
+      onComplete: () => {
+        this.tweens.add({
+          targets: [champText, scoreText, promptText, escText],
+          alpha: 1,
+          duration: 400
+        });
+      }
+    });
+  }
+
+  restartMatch() {
+    this.clearBanners();
+    this.currentRound = 1;
+    this.p1RoundWins = 0;
+    this.p2RoundWins = 0;
+    this.isGameOver = false;
+    this.startRound(1);
+  }
+
+  clearBanners() {
+    if (this.bannerObjects && this.bannerObjects.length > 0) {
+      this.bannerObjects.forEach(obj => {
+        try {
+          if (obj && obj.destroy) obj.destroy();
+        } catch (e) {}
+      });
+      this.bannerObjects = [];
+    }
+  }
+
+  update(time, delta) {
     if (!this.fighterP1 || !this.fighterP2) return;
+
+    // Check Rematch key press in Match Over state
+    if (this.roundState === 'MATCH_OVER') {
+      const enterKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
+      if (Phaser.Input.Keyboard.JustDown(this.p1Keys.space) || Phaser.Input.Keyboard.JustDown(enterKey)) {
+        this.restartMatch();
+        return;
+      }
+    }
+
+    // Active Timer Countdown during FIGHTING state
+    if (this.roundState === 'FIGHTING') {
+      this.timerRemainingMs = Math.max(0, this.timerRemainingMs - delta);
+      const sec = Math.ceil(this.timerRemainingMs / 1000);
+
+      if (sec !== this.roundTimer) {
+        this.roundTimer = sec;
+
+        // Audible & visual pulse alert when time <= 10s
+        if (this.roundTimer <= 10 && this.roundTimer > 0) {
+          if (window.soundFX && window.soundFX.playTimerTick) {
+            window.soundFX.playTimerTick(true);
+          }
+          if (this.timerNumText) {
+            this.tweens.add({
+              targets: this.timerNumText,
+              scale: 1.25,
+              duration: 120,
+              yoyo: true
+            });
+          }
+        }
+      }
+
+      // Consistent 2-minute timer reached zero!
+      // REQUIREMENT: when it reaches zero player with lower health loses!
+      if (this.timerRemainingMs <= 0) {
+        this.roundTimer = 0;
+        this.timerRemainingMs = 0;
+        this.updateHUD();
+        this.endRound('TIMEOUT');
+        return;
+      }
+    }
 
     // --- PLAYER 1 INPUT (WASD / Space / F / G / H / R / Y / Q / T) ---
     const p1Up = this.p1Keys.w.isDown || this.p1Keys.space.isDown;
@@ -818,16 +1267,24 @@ class ArenaScene extends Phaser.Scene {
     this.fighterP1.handleControls(p1Input);
     this.fighterP2.handleControls(p2Input);
 
-    // Real-Time Hitbox & Combat Interaction Check
-    this.checkHit(this.fighterP1, this.fighterP2);
-    this.checkHit(this.fighterP2, this.fighterP1);
+    // Real-Time Hitbox & Combat Interaction Check (only during active battle)
+    if (this.roundState === 'FIGHTING') {
+      this.checkHit(this.fighterP1, this.fighterP2);
+      this.checkHit(this.fighterP2, this.fighterP1);
 
-    // Update Live Action & Health
+      // Check K.O.
+      if (this.fighterP1.hp <= 0 || this.fighterP2.hp <= 0) {
+        this.endRound('KO');
+        return;
+      }
+    }
+
+    // Update Live Action, Health & Timer HUD
     this.updateHUD();
   }
 }
 
-// Global launchers
+// Global launchers & match control
 window.startPhaserArena = function() {
   const container = document.getElementById('phaser-container');
   const menuWrapper = document.getElementById('menuWrapper');
@@ -857,4 +1314,12 @@ window.exitArenaToMenu = function() {
   if (container) container.style.display = 'none';
   if (arenaUI) arenaUI.style.display = 'none';
   if (menuWrapper) menuWrapper.style.display = 'flex';
+};
+
+window.restartMatch = function() {
+  if (window.activeArenaScene) {
+    window.activeArenaScene.restartMatch();
+  } else if (window.startPhaserArena) {
+    window.startPhaserArena();
+  }
 };

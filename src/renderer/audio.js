@@ -128,6 +128,29 @@ class SoundFX {
     osc.stop(t + 0.9);
   }
 
+  // Precise countdown tick for the 2-minute round timer
+  playTimerTick(isUrgent = false) {
+    this.init();
+    if (this.isMuted) return;
+
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(isUrgent ? 880 : 440, t);
+    osc.frequency.exponentialRampToValueAtTime(isUrgent ? 660 : 330, t + 0.05);
+
+    gain.gain.setValueAtTime(isUrgent ? 0.22 : 0.08, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+
+    osc.start(t);
+    osc.stop(t + 0.05);
+  }
+
   // Ambient Dark Martial Drone (Temple of Kombat)
   toggleAmbientDrone() {
     this.init();

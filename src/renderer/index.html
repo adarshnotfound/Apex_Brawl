@@ -22,6 +22,9 @@
 
   <!-- Arena Top Control & Return Bar -->
   <div id="arenaControlBar" style="display: none; position: fixed; top: 16px; right: 24px; z-index: 100; gap: 0.8rem; align-items: center;">
+    <button class="icon-btn" onclick="window.restartMatch && window.restartMatch()" style="background: rgba(180, 83, 9, 0.85); border-color: #f59e0b; color: #fff; cursor: pointer;">
+      🔄 RESTART MATCH
+    </button>
     <button class="icon-btn" onclick="window.exitArenaToMenu()" style="background: rgba(127, 29, 29, 0.85); border-color: #ef4444; color: #fff; cursor: pointer;">
       🚪 EXIT TO MENU (ESC)
     </button>
@@ -101,9 +104,15 @@
         <button class="close-btn" aria-label="Close">&times;</button>
       </div>
 
-      <p style="text-align: center; color: var(--gold-light); font-size: 0.9rem; margin-top: 0.5rem;">
+      <p style="text-align: center; color: var(--gold-light); font-size: 0.9rem; margin-top: 0.5rem; margin-bottom: 0.4rem;">
         Choose your fighters for both Player 1 and Player 2:
       </p>
+
+      <div style="text-align: center; margin-bottom: 0.8rem;">
+        <span style="display: inline-block; padding: 0.35rem 0.9rem; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.5); border-radius: 20px; font-size: 0.82rem; font-weight: bold; color: #fde047; letter-spacing: 0.05em;">
+          ⚔️ BEST OF 3 ROUNDS &nbsp;|&nbsp; ⏱️ 2 MINUTE TIMER &nbsp;|&nbsp; HEALTH DECISION ON TIMEOUT
+        </span>
+      </div>
 
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; text-align: center; margin: 1.2rem 0;">
         <!-- Player 1: Selectable Card -->

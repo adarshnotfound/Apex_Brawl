@@ -162,9 +162,9 @@ export class StageCamera {
    * @param {CanvasRenderingContext2D} ctx
    * @param {Object} fighter1
    * @param {Object} fighter2
-   * @param {number} [timer=99]
+   * @param {number} [timer=120]
    */
-  renderHUD(ctx, fighter1, fighter2, timer = 99) {
+  renderHUD(ctx, fighter1, fighter2, timer = 120) {
     ctx.save();
     const w = this.viewportWidth;
 
