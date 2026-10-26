@@ -14,6 +14,7 @@ class FighterEntity {
     this.hasDealtDamage = false;
     this.currentAttackData = null;
     this.currentAction = 'IDLE';
+    this.attackTimer = null;
 
     this.hp = charId === 'strange' ? 960 : 920;
     this.maxHp = this.hp;
@@ -74,6 +75,10 @@ class FighterEntity {
         key === 'strange_anim_dash') {
       this.isAttacking = false;
       this.currentAttackData = null;
+      if (this.attackTimer) {
+        this.attackTimer.remove();
+        this.attackTimer = null;
+      }
       this.updateTextureForState();
     } else if (key === 'harpy_anim_knockback' || key === 'strange_anim_knockback') {
       this.isKnockedBack = false;
@@ -127,6 +132,10 @@ class FighterEntity {
     this.hasDealtDamage = false;
     this.currentAttackData = null;
     this.currentAction = 'IDLE';
+    if (this.attackTimer) {
+      this.attackTimer.remove();
+      this.attackTimer = null;
+    }
 
     this.sprite.setPosition(x, y);
     this.sprite.setVelocity(0, 0);
@@ -152,14 +161,24 @@ class FighterEntity {
     }
   }
 
-  triggerAttack(actionKey, animKey, attackData) {
-    if (this.isAttacking || this.isKnockedBack || this.hp <= 0 || (this.scene && this.scene.roundState !== 'FIGHTING')) return;
+  triggerAttack(actionKey, animKey, attackData, duration = 480) {
+    if (this.isKnockedBack || this.hp <= 0 || (this.scene && this.scene.roundState !== 'FIGHTING')) return;
     this.isAttacking = true;
     this.hasDealtDamage = false;
     this.currentAttackData = attackData;
     this.currentAction = actionKey;
 
     this.sprite.play(animKey, true);
+
+    // Guaranteed recovery failsafe: after animation duration, always release attack lock!
+    if (this.attackTimer) this.attackTimer.remove();
+    this.attackTimer = this.scene.time.delayedCall(duration, () => {
+      if (this.isAttacking) {
+        this.isAttacking = false;
+        this.currentAttackData = null;
+        this.updateTextureForState();
+      }
+    });
 
     if (window.soundFX) window.soundFX.playSelect();
   }
@@ -170,8 +189,17 @@ class FighterEntity {
     // Apply Damage
     this.hp = Math.max(0, this.hp - attackData.damage);
 
-    // Spawn floating damage text (adjusted for 0.25 character scale)
-    this.scene.spawnDamageNumber(this.sprite.x, this.sprite.y - 95, attackData.damage, attackData.isSpecial);
+    // Immediately cancel attacking state so player is never locked out
+    this.isAttacking = false;
+    this.currentAttackData = null;
+    if (this.attackTimer) {
+      this.attackTimer.remove();
+      this.attackTimer = null;
+    }
+
+    // Spawn floating damage text (adjusted for character scale)
+    const textY = this.charId === 'strange' ? this.sprite.y - 120 : this.sprite.y - 95;
+    this.scene.spawnDamageNumber(this.sprite.x, textY, attackData.damage, attackData.isSpecial);
 
     // Hit flash
     this.sprite.setTint(0xff2222);
@@ -188,7 +216,6 @@ class FighterEntity {
 
     // REQUIREMENT: Use Sheet8C for Harpy as knockback on special attack!
     if (attackData.isSpecial) {
-      this.isAttacking = false;
       this.isKnockedBack = true;
       this.isInAir = true;
       this.currentAction = 'KNOCKBACK / LAUNCH';
@@ -210,6 +237,7 @@ class FighterEntity {
         this.sprite.setVelocityY(attackData.knockbackY);
         this.isInAir = true;
       }
+      this.updateTextureForState();
     }
   }
 
@@ -224,11 +252,11 @@ class FighterEntity {
       return;
     }
 
-    // Ground Check:
+    // Ground Check: physical contact or world bottom
     const onGround = Boolean(
       this.sprite.body.blocked.down || 
       this.sprite.body.touching.down || 
-      Math.abs(this.sprite.body.velocity.y) < 15
+      this.sprite.body.bottom >= 573
     );
 
     // Landing detection
@@ -475,24 +503,26 @@ class FighterEntity {
 
     if (input.tauntJustDown && onGround) {
       if (this.charId === 'strange') {
-        this.triggerAttack('MYSTIC MEDITATION', 'strange_anim_idle', null);
+        this.triggerAttack('MYSTIC MEDITATION', 'strange_anim_dash', null, 400);
       } else {
-        this.triggerAttack('TAUNT', 'harpy_anim_taunt', null);
+        this.triggerAttack('TAUNT', 'harpy_anim_taunt', null, 500);
       }
       return;
     }
 
-    // 2. Dash & Backdash
+    // 2. Dash & Backdash (fluid movement - does not lock attack input)
     if (input.dashJustDown && onGround && !this.isAttacking) {
       if (this.charId === 'strange') {
-        this.triggerAttack('ASTRAL DASH', 'strange_anim_dash', null);
+        this.currentAction = 'ASTRAL DASH';
+        this.sprite.play('strange_anim_dash', true);
         this.sprite.setTint(0xfde047);
         this.scene.time.delayedCall(180, () => {
           if (this.isMirror) this.sprite.setTint(0xc4b5fd);
           else this.sprite.clearTint();
         });
       } else {
-        this.triggerAttack('FORWARD DASH', 'harpy_anim_dash', null);
+        this.currentAction = 'FORWARD DASH';
+        this.sprite.play('harpy_anim_dash', true);
       }
       this.sprite.setVelocityX(this.sprite.flipX ? this.dashSpeed : -this.dashSpeed);
       return;
@@ -1174,6 +1204,7 @@ class ArenaScene extends Phaser.Scene {
           introText.setText('FIGHT!');
           introText.setColor('#ea580c');
           introText.setScale(1.3);
+          this.roundState = 'FIGHTING'; // Enable fighting inputs immediately on FIGHT!
 
           if (window.soundFX) window.soundFX.playStartBoom();
           this.cameras.main.shake(140, 0.008);
@@ -1186,7 +1217,6 @@ class ArenaScene extends Phaser.Scene {
             ease: 'Power2',
             onComplete: () => {
               this.clearBanners();
-              this.roundState = 'FIGHTING';
             }
           });
         });
@@ -1561,8 +1591,12 @@ window.startPhaserArena = function() {
   const arenaUI = document.getElementById('arenaControlBar');
 
   if (menuWrapper) menuWrapper.style.display = 'none';
-  if (container) container.style.display = 'block';
+  if (container) {
+    container.style.display = 'block';
+    container.focus();
+  }
   if (arenaUI) arenaUI.style.display = 'flex';
+  window.focus();
 
   if (!window.phaserGameInstance) {
     const config = Object.assign({}, GameConfig, {
