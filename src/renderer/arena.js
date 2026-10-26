@@ -24,7 +24,7 @@ class FighterEntity {
     this.jumpVel = charId === 'harpy' ? -760 : -660;
 
     // Create sprite (scaled to 0.25 for clean 2D fighting game screen proportions)
-    const initialTexture = charId === 'harpy' ? 'harpy_sheet_idle' : 'kharon_sprite';
+    const initialTexture = 'harpy_sheet_idle';
     this.sprite = scene.physics.add.sprite(x, y, initialTexture);
     this.sprite.setScale(0.25);
     this.sprite.setCollideWorldBounds(true);
@@ -43,9 +43,7 @@ class FighterEntity {
       }
     }
 
-    if (charId === 'harpy') {
-      this.sprite.play('harpy_anim_idle');
-    }
+    this.sprite.play('harpy_anim_idle');
 
     // Animation completion listener
     this.sprite.on('animationcomplete', (anim) => {
@@ -69,7 +67,6 @@ class FighterEntity {
   }
 
   updateTextureForState() {
-    if (this.charId !== 'harpy') return;
 
     if (this.isKnockedBack) {
       this.currentAction = 'KNOCKBACK / LAUNCH';
@@ -113,10 +110,8 @@ class FighterEntity {
       }
     }
 
-    if (this.charId === 'harpy') {
-      this.sprite.setTexture('harpy_sheet_idle');
-      this.sprite.play('harpy_anim_idle', true);
-    }
+    this.sprite.setTexture('harpy_sheet_idle');
+    this.sprite.play('harpy_anim_idle', true);
   }
 
   triggerAttack(actionKey, animKey, attackData) {
@@ -126,19 +121,7 @@ class FighterEntity {
     this.currentAttackData = attackData;
     this.currentAction = actionKey;
 
-    if (this.charId === 'harpy') {
-      this.sprite.play(animKey, true);
-    } else {
-      // Kharon flash attack visual
-      this.sprite.setTint(0xff8844);
-      this.scene.time.delayedCall(220, () => {
-        this.isAttacking = false;
-        this.currentAttackData = null;
-        if (this.isMirror) this.sprite.setTint(0xc4b5fd);
-        else this.sprite.clearTint();
-        this.currentAction = 'IDLE';
-      });
-    }
+    this.sprite.play(animKey, true);
 
     if (window.soundFX) window.soundFX.playSelect();
   }
@@ -433,8 +416,6 @@ class ArenaScene extends Phaser.Scene {
     // 1. Doctor Strange Mirror Dimension Background
     this.load.image('arena_bg', 'assets/mirror_dimension.png');
     this.load.image('harpy_portrait', '../../assets/characters/harpy/portrait.png');
-    this.load.image('kharon_portrait', '../../assets/characters/kharon/portrait.png');
-    this.load.image('kharon_sprite', '../../assets/characters/kharon/portrait.png');
 
     // 2. Harpy Sprite Sheets
     const hBase = '../../assets/characters/harpy/';
@@ -495,7 +476,7 @@ class ArenaScene extends Phaser.Scene {
 
     // 4. Resolve selected fighters
     const p1Char = window.selectedFighterP1 || 'harpy';
-    const p2Char = window.selectedFighterP2 || 'kharon';
+    const p2Char = window.selectedFighterP2 || 'harpy';
     const isMirror = p1Char === p2Char;
 
     // Spawn Player 1 (Left side, faces right)
@@ -604,9 +585,9 @@ class ArenaScene extends Phaser.Scene {
 
   buildDualPlayerHUD(p1Id, p2Id) {
     // --- PLAYER 1 HUD (Left) ---
-    const p1Color = p1Id === 'harpy' ? 0x06b6d4 : 0xdc2626;
-    const p1Hex = p1Id === 'harpy' ? '#06b6d4' : '#ef4444';
-    const p1PortraitKey = p1Id === 'harpy' ? 'harpy_portrait' : 'kharon_portrait';
+    const p1Color = 0x06b6d4;
+    const p1Hex = '#06b6d4';
+    const p1PortraitKey = 'harpy_portrait';
 
     const p1Card = this.add.rectangle(75, 60, 72, 72, p1Color, 0.4);
     p1Card.setStrokeStyle(2, p1Color);
@@ -639,9 +620,9 @@ class ArenaScene extends Phaser.Scene {
     });
 
     // --- PLAYER 2 HUD (Right) ---
-    const p2Color = p2Id === 'harpy' ? 0x06b6d4 : 0xdc2626;
-    const p2Hex = p2Id === 'harpy' ? '#06b6d4' : '#ef4444';
-    const p2PortraitKey = p2Id === 'harpy' ? 'harpy_portrait' : 'kharon_portrait';
+    const p2Color = 0x06b6d4;
+    const p2Hex = '#06b6d4';
+    const p2PortraitKey = 'harpy_portrait';
 
     const p2Card = this.add.rectangle(1205, 60, 72, 72, p2Color, 0.4);
     p2Card.setStrokeStyle(2, p2Color);

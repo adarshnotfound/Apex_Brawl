@@ -125,9 +125,6 @@
             <button class="char-picker-btn p1-btn active" data-player="1" data-char="harpy" style="cursor: pointer; padding: 0.35rem 0.8rem; background: rgba(6, 182, 212, 0.3); border: 1px solid #f59e0b; color: #fff; border-radius: 3px; font-weight: bold; font-family: var(--font-heading);">
               🦅 HARPY
             </button>
-            <button class="char-picker-btn p1-btn" data-player="1" data-char="kharon" style="cursor: pointer; padding: 0.35rem 0.8rem; background: rgba(220, 38, 38, 0.3); border: 1px solid rgba(255,255,255,0.2); opacity: 0.5; color: #fff; border-radius: 3px; font-weight: bold; font-family: var(--font-heading);">
-              🔥 KHARON
-            </button>
           </div>
 
           <img id="p1-portrait" src="../../assets/characters/harpy/portrait.png" alt="P1" style="width: 90px; height: 90px; border-radius: 50%; border: 2px solid #06b6d4; object-fit: cover; margin-bottom: 0.5rem; box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);">
@@ -141,24 +138,21 @@
         </div>
 
         <!-- Player 2: Selectable Card -->
-        <div id="p2-card" style="background: rgba(220, 38, 38, 0.15); border: 1px solid #dc2626; padding: 1.4rem; border-radius: 6px; display: flex; flex-direction: column; align-items: center; transition: all 0.3s ease;">
+        <div id="p2-card" style="background: rgba(6, 182, 212, 0.15); border: 1px solid #06b6d4; padding: 1.4rem; border-radius: 6px; display: flex; flex-direction: column; align-items: center; transition: all 0.3s ease;">
           <h3 style="color: #fef08a; font-family: var(--font-heading); margin-bottom: 0.6rem; font-size: 1.05rem;">
             PLAYER 2 (DEFENDER)
           </h3>
           <!-- P2 Fighter Selector Buttons -->
           <div style="display: flex; gap: 0.5rem; margin-bottom: 0.8rem;">
-            <button class="char-picker-btn p2-btn active" data-player="2" data-char="kharon" style="cursor: pointer; padding: 0.35rem 0.8rem; background: rgba(220, 38, 38, 0.3); border: 1px solid #f59e0b; color: #fff; border-radius: 3px; font-weight: bold; font-family: var(--font-heading);">
-              🔥 KHARON
-            </button>
-            <button class="char-picker-btn p2-btn" data-player="2" data-char="harpy" style="cursor: pointer; padding: 0.35rem 0.8rem; background: rgba(6, 182, 212, 0.3); border: 1px solid rgba(255,255,255,0.2); opacity: 0.5; color: #fff; border-radius: 3px; font-weight: bold; font-family: var(--font-heading);">
+            <button class="char-picker-btn p2-btn active" data-player="2" data-char="harpy" style="cursor: pointer; padding: 0.35rem 0.8rem; background: rgba(6, 182, 212, 0.3); border: 1px solid #f59e0b; color: #fff; border-radius: 3px; font-weight: bold; font-family: var(--font-heading);">
               🦅 HARPY
             </button>
           </div>
 
-          <img id="p2-portrait" src="../../assets/characters/kharon/portrait.png" alt="P2" style="width: 90px; height: 90px; border-radius: 50%; border: 2px solid #ef4444; object-fit: cover; margin-bottom: 0.5rem; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);">
-          <p id="p2-title" style="font-size: 1.3rem; font-weight: bold; color: #fff; margin: 0;">KHARON</p>
-          <p id="p2-archetype" style="font-size: 0.85rem; color: #f87171; margin-top: 0.1rem; font-weight: 600;">Pyromancer Ninja • Rushdown</p>
-          <div id="p2-keys" style="margin-top: 0.8rem; font-size: 0.85rem; color: var(--gold-light); line-height: 1.6;">
+          <img id="p2-portrait" src="../../assets/characters/harpy/portrait.png" alt="P2" style="width: 90px; height: 90px; border-radius: 50%; border: 2px solid #06b6d4; object-fit: cover; margin-bottom: 0.5rem; box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);">
+          <p id="p2-title" style="font-size: 1.3rem; font-weight: bold; color: #fff; margin: 0;">HARPY</p>
+          <p id="p2-archetype" style="font-size: 0.85rem; color: #67e8f9; margin-top: 0.1rem; font-weight: 600;">Sky Terror • Aerial Striker (Rushdown)</p>
+          <div id="p2-keys" style="margin-top: 0.8rem; font-size: 0.85rem; color: #a5f3fc; line-height: 1.6;">
             Move: <span class="command-key">ARROWS ↑ ← ↓ →</span><br>
             Attacks: <span class="command-key">J / NUM1</span> (Light) <span class="command-key">K / NUM2</span> (Med) <span class="command-key">L / NUM3</span> (Heavy)<br>
             Special: <span class="command-key">U / NUM4</span> | Super: <span class="command-key">↓+L / I</span> | Dash: <span class="command-key">O</span>
@@ -211,12 +205,11 @@
       
       <!-- Character Tabs -->
       <div style="display: flex; gap: 0.8rem; margin: 1.2rem 0 0.8rem 0;">
-        <button class="grimoire-tab-btn active" data-char="kharon" style="cursor: pointer; background: rgba(220, 38, 38, 0.25); border: 1px solid #dc2626; color: #fff; padding: 0.5rem 1.2rem; font-family: var(--font-heading); font-weight: bold; border-radius: 4px; letter-spacing: 0.05em;">🔥 KHARON</button>
-        <button class="grimoire-tab-btn" data-char="harpy" style="cursor: pointer; background: rgba(6, 182, 212, 0.25); border: 1px solid #06b6d4; color: #fff; padding: 0.5rem 1.2rem; font-family: var(--font-heading); font-weight: bold; border-radius: 4px; letter-spacing: 0.05em;">🦅 HARPY</button>
+        <button class="grimoire-tab-btn active" data-char="harpy" style="cursor: pointer; background: rgba(6, 182, 212, 0.25); border: 1px solid #06b6d4; color: #fff; padding: 0.5rem 1.2rem; font-family: var(--font-heading); font-weight: bold; border-radius: 4px; letter-spacing: 0.05em;">🦅 HARPY</button>
       </div>
 
       <p id="grimoire-char-title" style="color: var(--gold-light); font-family: var(--font-heading); font-size: 1.05rem; font-weight: bold; margin-bottom: 0.8rem;">
-        🔥 KHARON THE PYROMANCER (RUSHDOWN)
+        🦅 HARPY THE SKY TERROR (RUSHDOWN / AERIAL)
       </p>
 
       <table class="data-table">
@@ -233,49 +226,32 @@
         </thead>
         <tbody id="grimoire-tbody">
           <tr>
-            <td><strong>Jab</strong></td>
+            <td><strong>Talon Jab (5A)</strong></td>
             <td><span class="command-key">F</span></td>
-            <td>6f</td>
-            <td>3f</td>
-            <td>10f</td>
-            <td><span style="color: #4ade80;">+2f</span></td>
-            <td>45 HP</td>
+            <td>5f</td><td>3f</td><td>8f</td>
+            <td><span style="color: #4ade80;">+3f</span></td>
+            <td>40 HP</td>
           </tr>
           <tr>
-            <td><strong>Heavy Slash</strong></td>
+            <td><strong>Wing Flurry (5B)</strong></td>
             <td><span class="command-key">G</span></td>
-            <td>12f</td>
-            <td>4f</td>
-            <td>18f</td>
-            <td><span style="color: #f87171;">-4f</span></td>
-            <td>110 HP</td>
+            <td>8f</td><td>4f</td><td>12f</td>
+            <td><span style="color: #fde047;">0f</span></td>
+            <td>75 HP</td>
           </tr>
           <tr>
-            <td><strong>Crouch Sweep</strong></td>
-            <td><span class="command-key">S + F</span></td>
-            <td>9f</td>
-            <td>4f</td>
-            <td>15f</td>
-            <td><span style="color: #f87171;">-7f</span></td>
-            <td>85 HP (Trip)</td>
+            <td><strong>Gale Strike (5C)</strong></td>
+            <td><span class="command-key">S + G</span></td>
+            <td>11f</td><td>5f</td><td>17f</td>
+            <td><span style="color: #f87171;">-3f</span></td>
+            <td>120 HP (Wallbounce)</td>
           </tr>
           <tr>
-            <td><strong>Hellfire Surge</strong></td>
+            <td><strong>Tempest Feather Storm</strong></td>
             <td><span class="command-key">S ➔ D + H</span></td>
-            <td>14f</td>
-            <td>8f</td>
-            <td>22f</td>
-            <td><span style="color: #f87171;">-9f</span></td>
-            <td>180 HP (Burn)</td>
-          </tr>
-          <tr>
-            <td><strong>Shadow Teleport</strong></td>
-            <td><span class="command-key">S ➔ A + H</span></td>
-            <td>10f</td>
-            <td>-</td>
-            <td>12f</td>
-            <td>Neutral</td>
-            <td>0 HP (Evasion)</td>
+            <td>12f</td><td>10f</td><td>20f</td>
+            <td><span style="color: #f87171;">-6f</span></td>
+            <td>220 HP (Super)</td>
           </tr>
         </tbody>
       </table>
