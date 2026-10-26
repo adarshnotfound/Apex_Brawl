@@ -87,6 +87,76 @@ export const SAMPLE_MOVES = {
       width: 95,
       height: 35
     }
+  },
+  STRANGE_ELDRITCH_5A: {
+    id: 'strange_eldritch_5a',
+    name: 'Eldritch Strike (5A)',
+    startupFrames: 6,
+    activeFrames: 3,
+    recoveryFrames: 7,
+    damage: 45,
+    chipDamage: 0,
+    hitstunFrames: 15,
+    blockstunFrames: 9,
+    pushbackForce: 160,
+    hitLevel: 'mid',
+    hitbox: { offsetX: 60, offsetY: -150, width: 65, height: 35 }
+  },
+  STRANGE_ASTRAL_5B: {
+    id: 'strange_astral_5b',
+    name: 'Astral Impact (5B)',
+    startupFrames: 8,
+    activeFrames: 4,
+    recoveryFrames: 11,
+    damage: 80,
+    chipDamage: 8,
+    hitstunFrames: 18,
+    blockstunFrames: 10,
+    pushbackForce: 230,
+    hitLevel: 'mid',
+    hitbox: { offsetX: 75, offsetY: -160, width: 80, height: 45 }
+  },
+  STRANGE_FLAMES_5C: {
+    id: 'strange_flames_5c',
+    name: 'Flames of the Faltine (5C)',
+    startupFrames: 12,
+    activeFrames: 6,
+    recoveryFrames: 18,
+    damage: 125,
+    chipDamage: 15,
+    hitstunFrames: 24,
+    blockstunFrames: 14,
+    pushbackForce: 360,
+    hitLevel: 'mid',
+    hitbox: { offsetX: 95, offsetY: -170, width: 110, height: 60 }
+  },
+  STRANGE_CRIMSON_BANDS: {
+    id: 'strange_crimson_bands',
+    name: 'Crimson Bands of Cyttorak (Special Projectile)',
+    startupFrames: 11,
+    activeFrames: 8,
+    recoveryFrames: 19,
+    damage: 155,
+    chipDamage: 25,
+    hitstunFrames: 28,
+    blockstunFrames: 16,
+    pushbackForce: 450,
+    hitLevel: 'mid',
+    hitbox: { offsetX: 120, offsetY: -160, width: 130, height: 70 }
+  },
+  STRANGE_MIRROR_SUPER: {
+    id: 'strange_mirror_super',
+    name: 'Mirror Dimension Shatter (Super)',
+    startupFrames: 10,
+    activeFrames: 12,
+    recoveryFrames: 22,
+    damage: 245,
+    chipDamage: 40,
+    hitstunFrames: 34,
+    blockstunFrames: 18,
+    pushbackForce: 650,
+    hitLevel: 'mid',
+    hitbox: { offsetX: 130, offsetY: -170, width: 150, height: 90 }
   }
 };
 

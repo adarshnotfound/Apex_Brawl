@@ -8,5 +8,15 @@
     "portrait": "assets/characters/harpy/portrait.png",
     "themeColor": "#06b6d4",
     "icon": "🦅"
+  },
+  {
+    "id": "strange",
+    "name": "Doctor Strange",
+    "title": "Master of the Mystic Arts",
+    "archetype": "Zoner / Spellcaster",
+    "file": "grimoire/doctor_strange.json",
+    "portrait": "assets/characters/Dr Strange/portrait.png",
+    "themeColor": "#f59e0b",
+    "icon": "🔮"
   }
 ]

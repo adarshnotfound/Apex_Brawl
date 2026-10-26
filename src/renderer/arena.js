@@ -15,21 +15,28 @@ class FighterEntity {
     this.currentAttackData = null;
     this.currentAction = 'IDLE';
 
-    this.hp = charId === 'harpy' ? 920 : 1000;
+    this.hp = charId === 'strange' ? 960 : 920;
     this.maxHp = this.hp;
 
     // Movement speeds & Jump velocity
-    this.walkSpeed = charId === 'harpy' ? 260 : 230;
-    this.dashSpeed = charId === 'harpy' ? 490 : 400;
-    this.jumpVel = charId === 'harpy' ? -760 : -660;
+    this.walkSpeed = charId === 'strange' ? 215 : 260;
+    this.dashSpeed = charId === 'strange' ? 460 : 490;
+    this.jumpVel = charId === 'strange' ? -720 : -760;
 
-    // Create sprite (scaled to 0.25 for clean 2D fighting game screen proportions)
-    const initialTexture = 'harpy_sheet_idle';
+    // Create sprite
+    const initialTexture = charId === 'strange' ? 'strange_sheet_idle' : 'harpy_sheet_idle';
     this.sprite = scene.physics.add.sprite(x, y, initialTexture);
-    this.sprite.setScale(0.25);
-    this.sprite.setCollideWorldBounds(true);
-    this.sprite.body.setSize(340, 800);
-    this.sprite.body.setOffset(370, 240);
+    if (charId === 'strange') {
+      this.sprite.setScale(0.80);
+      this.sprite.setCollideWorldBounds(true);
+      this.sprite.body.setSize(180, 360);
+      this.sprite.body.setOffset(166, 120);
+    } else {
+      this.sprite.setScale(0.25);
+      this.sprite.setCollideWorldBounds(true);
+      this.sprite.body.setSize(340, 800);
+      this.sprite.body.setOffset(370, 240);
+    }
 
     // Initial orientation:
     // P1 (Left side) faces RIGHT towards P2 -> setFlipX(true)
@@ -43,7 +50,11 @@ class FighterEntity {
       }
     }
 
-    this.sprite.play('harpy_anim_idle');
+    if (charId === 'strange') {
+      this.sprite.play('strange_anim_idle');
+    } else {
+      this.sprite.play('harpy_anim_idle');
+    }
 
     // Animation completion listener
     this.sprite.on('animationcomplete', (anim) => {
@@ -56,17 +67,39 @@ class FighterEntity {
         key.startsWith('harpy_anim_sp_') || 
         key === 'harpy_anim_taunt' || 
         key === 'harpy_anim_dash' || 
-        key === 'harpy_anim_backdash') {
+        key === 'harpy_anim_backdash' ||
+        key.startsWith('strange_anim_atk_') || 
+        key.startsWith('strange_anim_sp_') || 
+        key === 'strange_anim_super' || 
+        key === 'strange_anim_dash') {
       this.isAttacking = false;
       this.currentAttackData = null;
       this.updateTextureForState();
-    } else if (key === 'harpy_anim_knockback') {
+    } else if (key === 'harpy_anim_knockback' || key === 'strange_anim_knockback') {
       this.isKnockedBack = false;
       this.updateTextureForState();
     }
   }
 
   updateTextureForState() {
+    if (this.charId === 'strange') {
+      if (this.isKnockedBack) {
+        this.currentAction = 'KNOCKBACK / LAUNCH';
+        this.sprite.setTexture('strange_sheet_jump');
+        this.sprite.play('strange_anim_knockback', true);
+        return;
+      }
+      if (this.isInAir) {
+        this.currentAction = this.sprite.body.velocity.y < 0 ? 'JUMP / ASCENT' : 'AIR FALL';
+        this.sprite.setTexture('strange_sheet_jump');
+        this.sprite.play('strange_anim_jump', true);
+      } else {
+        this.currentAction = 'IDLE';
+        this.sprite.setTexture('strange_sheet_idle');
+        this.sprite.play('strange_anim_idle', true);
+      }
+      return;
+    }
 
     if (this.isKnockedBack) {
       this.currentAction = 'KNOCKBACK / LAUNCH';
@@ -110,8 +143,13 @@ class FighterEntity {
       }
     }
 
-    this.sprite.setTexture('harpy_sheet_idle');
-    this.sprite.play('harpy_anim_idle', true);
+    if (this.charId === 'strange') {
+      this.sprite.setTexture('strange_sheet_idle');
+      this.sprite.play('strange_anim_idle', true);
+    } else {
+      this.sprite.setTexture('harpy_sheet_idle');
+      this.sprite.play('harpy_anim_idle', true);
+    }
   }
 
   triggerAttack(actionKey, animKey, attackData) {
@@ -158,7 +196,10 @@ class FighterEntity {
       this.sprite.setVelocityX(pushDir * (attackData.knockbackX || 560));
       this.sprite.setVelocityY(attackData.knockbackY || -480);
 
-      if (this.charId === 'harpy') {
+      if (this.charId === 'strange') {
+        this.sprite.setTexture('strange_sheet_jump');
+        this.sprite.play('strange_anim_knockback', true);
+      } else if (this.charId === 'harpy') {
         this.sprite.setTexture('harpy_sheet_8c');
         this.sprite.play('harpy_anim_knockback', true);
       }
@@ -206,128 +247,253 @@ class FighterEntity {
 
     // 1. Attacks (Ground & Air)
     if (input.lightJustDown) {
-      if (this.isInAir) {
-        this.triggerAttack('AIR TALON (8A)', 'harpy_anim_atk_8a', {
-          damage: 45,
-          rangeX: 160,
-          rangeY: 100,
-          knockbackX: 200,
-          knockbackY: 80,
-          isSpecial: false
-        });
+      if (this.charId === 'strange') {
+        if (this.isInAir) {
+          this.triggerAttack('LEVITATION STRIKE (8A)', 'strange_anim_atk_8a', {
+            damage: 50,
+            rangeX: 165,
+            rangeY: 100,
+            knockbackX: 190,
+            knockbackY: 60,
+            isSpecial: false
+          });
+        } else {
+          this.triggerAttack('ELDRITCH STRIKE (5A)', 'strange_anim_atk_5a', {
+            damage: 45,
+            rangeX: 160,
+            rangeY: 80,
+            knockbackX: 180,
+            knockbackY: 0,
+            isSpecial: false
+          });
+        }
       } else {
-        this.triggerAttack('TALON JAB (5A)', 'harpy_anim_atk_5a', {
-          damage: 40,
-          rangeX: 150,
-          rangeY: 80,
-          knockbackX: 180,
-          knockbackY: 0,
-          isSpecial: false
-        });
+        if (this.isInAir) {
+          this.triggerAttack('AIR TALON (8A)', 'harpy_anim_atk_8a', {
+            damage: 45,
+            rangeX: 160,
+            rangeY: 100,
+            knockbackX: 200,
+            knockbackY: 80,
+            isSpecial: false
+          });
+        } else {
+          this.triggerAttack('TALON JAB (5A)', 'harpy_anim_atk_5a', {
+            damage: 40,
+            rangeX: 150,
+            rangeY: 80,
+            knockbackX: 180,
+            knockbackY: 0,
+            isSpecial: false
+          });
+        }
       }
       return;
     }
 
     if (input.mediumJustDown) {
-      if (this.isInAir) {
-        this.triggerAttack('AIR CLEAVE (8C)', 'harpy_anim_atk_8c', {
-          damage: 90,
-          rangeX: 180,
-          rangeY: 110,
-          knockbackX: 260,
-          knockbackY: 120,
-          isSpecial: false
-        });
-      } else if (input.isHoldingForward) {
-        this.triggerAttack('WING BLADE (6B)', 'harpy_anim_atk_6b', {
-          damage: 85,
-          rangeX: 175,
-          rangeY: 90,
-          knockbackX: 240,
-          knockbackY: -50,
-          isSpecial: false
-        });
+      if (this.charId === 'strange') {
+        if (this.isInAir) {
+          this.triggerAttack('ASTRAL CLEAVE (8B)', 'strange_anim_atk_8a', {
+            damage: 85,
+            rangeX: 175,
+            rangeY: 100,
+            knockbackX: 230,
+            knockbackY: 90,
+            isSpecial: false
+          });
+        } else if (input.isHoldingForward) {
+          this.triggerAttack('MYSTIC THRUST (6B)', 'strange_anim_atk_6b', {
+            damage: 95,
+            rangeX: 200,
+            rangeY: 90,
+            knockbackX: 270,
+            knockbackY: -50,
+            isSpecial: false
+          });
+        } else {
+          this.triggerAttack('ASTRAL PUNCH (5B)', 'strange_anim_atk_5b', {
+            damage: 80,
+            rangeX: 175,
+            rangeY: 90,
+            knockbackX: 240,
+            knockbackY: -30,
+            isSpecial: false
+          });
+        }
       } else {
-        this.triggerAttack('WING FLURRY (5B)', 'harpy_anim_atk_5b', {
-          damage: 75,
-          rangeX: 160,
-          rangeY: 90,
-          knockbackX: 220,
-          knockbackY: -40,
-          isSpecial: false
-        });
+        if (this.isInAir) {
+          this.triggerAttack('AIR CLEAVE (8C)', 'harpy_anim_atk_8c', {
+            damage: 90,
+            rangeX: 180,
+            rangeY: 110,
+            knockbackX: 260,
+            knockbackY: 120,
+            isSpecial: false
+          });
+        } else if (input.isHoldingForward) {
+          this.triggerAttack('WING BLADE (6B)', 'harpy_anim_atk_6b', {
+            damage: 85,
+            rangeX: 175,
+            rangeY: 90,
+            knockbackX: 240,
+            knockbackY: -50,
+            isSpecial: false
+          });
+        } else {
+          this.triggerAttack('WING FLURRY (5B)', 'harpy_anim_atk_5b', {
+            damage: 75,
+            rangeX: 160,
+            rangeY: 90,
+            knockbackX: 220,
+            knockbackY: -40,
+            isSpecial: false
+          });
+        }
       }
       return;
     }
 
     if (input.heavyJustDown) {
-      if (this.isInAir) {
-        this.triggerAttack('AIR DIVE (8D)', 'harpy_anim_atk_8d', {
-          damage: 110,
-          rangeX: 190,
-          rangeY: 120,
-          knockbackX: 320,
-          knockbackY: 160,
-          isSpecial: false
-        });
+      if (this.charId === 'strange') {
+        if (this.isInAir) {
+          this.triggerAttack('VAPORS OF VALTORR (8C)', 'strange_anim_atk_8c', {
+            damage: 105,
+            rangeX: 215,
+            rangeY: 120,
+            knockbackX: 300,
+            knockbackY: 140,
+            isSpecial: false
+          });
+        } else {
+          this.triggerAttack('FLAMES OF FALTINE (5C)', 'strange_anim_atk_5c', {
+            damage: 125,
+            rangeX: 240,
+            rangeY: 110,
+            knockbackX: 360,
+            knockbackY: -130,
+            isSpecial: false
+          });
+        }
       } else {
-        this.triggerAttack('GALE STRIKE (5C)', 'harpy_anim_atk_5c', {
-          damage: 120,
-          rangeX: 180,
-          rangeY: 100,
-          knockbackX: 340,
-          knockbackY: -120,
-          isSpecial: false
-        });
+        if (this.isInAir) {
+          this.triggerAttack('AIR DIVE (8D)', 'harpy_anim_atk_8d', {
+            damage: 110,
+            rangeX: 190,
+            rangeY: 120,
+            knockbackX: 320,
+            knockbackY: 160,
+            isSpecial: false
+          });
+        } else {
+          this.triggerAttack('GALE STRIKE (5C)', 'harpy_anim_atk_5c', {
+            damage: 120,
+            rangeX: 180,
+            rangeY: 100,
+            knockbackX: 340,
+            knockbackY: -120,
+            isSpecial: false
+          });
+        }
       }
       return;
     }
 
-    // Special Attack -> Triggers Heavy Knockback using Sheet8C!
+    // Special Attack
     if (input.specialJustDown) {
-      if (input.up) {
-        this.triggerAttack('SKY DRAGON DP (262C)', 'harpy_anim_sp_262c', {
-          damage: 160,
-          rangeX: 230,
-          rangeY: 160,
-          knockbackX: 580,
-          knockbackY: -500,
-          isSpecial: true
-        });
+      if (this.charId === 'strange') {
+        if (input.up) {
+          this.triggerAttack('SHIELD OF SERAPHIM (AA)', 'strange_anim_sp_projectile', {
+            damage: 165,
+            rangeX: 220,
+            rangeY: 170,
+            knockbackX: 240,
+            knockbackY: -520,
+            isSpecial: true
+          });
+        } else {
+          this.triggerAttack('CRIMSON BANDS (PROJECTILE)', 'strange_anim_sp_projectile', {
+            damage: 155,
+            rangeX: 140,
+            rangeY: 100,
+            knockbackX: 450,
+            knockbackY: -280,
+            isSpecial: true
+          });
+          // Summon real traveling mystic projectile!
+          if (this.scene && this.scene.spawnMysticProjectile) {
+            this.scene.spawnMysticProjectile(this);
+          }
+        }
       } else {
-        this.triggerAttack('TEMPEST CYCLONE (235B)', 'harpy_anim_sp_235b', {
-          damage: 150,
-          rangeX: 220,
-          rangeY: 140,
-          knockbackX: 550,
-          knockbackY: -460,
-          isSpecial: true
-        });
+        if (input.up) {
+          this.triggerAttack('SKY DRAGON DP (262C)', 'harpy_anim_sp_262c', {
+            damage: 160,
+            rangeX: 230,
+            rangeY: 160,
+            knockbackX: 580,
+            knockbackY: -500,
+            isSpecial: true
+          });
+        } else {
+          this.triggerAttack('TEMPEST CYCLONE (235B)', 'harpy_anim_sp_235b', {
+            damage: 150,
+            rangeX: 220,
+            rangeY: 140,
+            knockbackX: 550,
+            knockbackY: -460,
+            isSpecial: true
+          });
+        }
       }
       return;
     }
 
     // Super Move -> Massive Knockback!
     if (input.superJustDown) {
-      this.triggerAttack('FEATHER STORM (SUPER)', 'harpy_anim_super', {
-        damage: 240,
-        rangeX: 290,
-        rangeY: 180,
-        knockbackX: 680,
-        knockbackY: -540,
-        isSpecial: true
-      });
+      if (this.charId === 'strange') {
+        this.triggerAttack('MIRROR DIMENSION SHATTER (SUPER)', 'strange_anim_super', {
+          damage: 245,
+          rangeX: 300,
+          rangeY: 190,
+          knockbackX: 700,
+          knockbackY: -550,
+          isSpecial: true
+        });
+      } else {
+        this.triggerAttack('FEATHER STORM (SUPER)', 'harpy_anim_super', {
+          damage: 240,
+          rangeX: 290,
+          rangeY: 180,
+          knockbackX: 680,
+          knockbackY: -540,
+          isSpecial: true
+        });
+      }
       return;
     }
 
     if (input.tauntJustDown && onGround) {
-      this.triggerAttack('TAUNT', 'harpy_anim_taunt', null);
+      if (this.charId === 'strange') {
+        this.triggerAttack('MYSTIC MEDITATION', 'strange_anim_idle', null);
+      } else {
+        this.triggerAttack('TAUNT', 'harpy_anim_taunt', null);
+      }
       return;
     }
 
     // 2. Dash & Backdash
     if (input.dashJustDown && onGround && !this.isAttacking) {
-      this.triggerAttack('FORWARD DASH', 'harpy_anim_dash', null);
+      if (this.charId === 'strange') {
+        this.triggerAttack('ASTRAL DASH', 'strange_anim_dash', null);
+        this.sprite.setTint(0xfde047);
+        this.scene.time.delayedCall(180, () => {
+          if (this.isMirror) this.sprite.setTint(0xc4b5fd);
+          else this.sprite.clearTint();
+        });
+      } else {
+        this.triggerAttack('FORWARD DASH', 'harpy_anim_dash', null);
+      }
       this.sprite.setVelocityX(this.sprite.flipX ? this.dashSpeed : -this.dashSpeed);
       return;
     }
@@ -340,7 +506,10 @@ class FighterEntity {
         this.sprite.setVelocityY(this.jumpVel);
         this.isInAir = true;
         this.currentAction = 'JUMP / ASCENT';
-        if (this.charId === 'harpy') {
+        if (this.charId === 'strange') {
+          this.sprite.setTexture('strange_sheet_jump');
+          this.sprite.play('strange_anim_jump', true);
+        } else {
           this.sprite.setTexture('harpy_sheet_jump');
           this.sprite.play('harpy_anim_jump', true);
         }
@@ -356,14 +525,16 @@ class FighterEntity {
       this.sprite.setFlipX(false); // Faces LEFT
       if (onGround && !input.up) {
         this.currentAction = 'WALK LEFT';
-        if (this.charId === 'harpy') this.sprite.play('harpy_anim_walk', true);
+        if (this.charId === 'strange') this.sprite.play('strange_anim_walk', true);
+        else this.sprite.play('harpy_anim_walk', true);
       }
     } else if (input.right) {
       this.sprite.setVelocityX(this.walkSpeed * airFactor);
       this.sprite.setFlipX(true); // Faces RIGHT
       if (onGround && !input.up) {
         this.currentAction = 'WALK RIGHT';
-        if (this.charId === 'harpy') this.sprite.play('harpy_anim_walk', true);
+        if (this.charId === 'strange') this.sprite.play('strange_anim_walk', true);
+        else this.sprite.play('harpy_anim_walk', true);
       }
     } else {
       if (onGround) {
@@ -376,14 +547,19 @@ class FighterEntity {
       if (input.down) {
         this.sprite.setVelocityX(0);
         this.currentAction = 'CROUCH';
-        if (this.charId === 'harpy') this.sprite.play('harpy_anim_crouch', true);
+        if (this.charId === 'strange') this.sprite.play('strange_anim_crouch', true);
+        else this.sprite.play('harpy_anim_crouch', true);
       } else if (!input.left && !input.right && !input.up && !this.isInAir) {
         this.currentAction = 'IDLE';
-        if (this.charId === 'harpy') this.sprite.play('harpy_anim_idle', true);
+        if (this.charId === 'strange') this.sprite.play('strange_anim_idle', true);
+        else this.sprite.play('harpy_anim_idle', true);
       }
     } else {
       this.currentAction = this.sprite.body.velocity.y < 0 ? 'JUMP / ASCENT' : 'AIR FALL';
-      if (this.charId === 'harpy' && this.sprite.anims.currentAnim?.key !== 'harpy_anim_jump') {
+      if (this.charId === 'strange' && this.sprite.anims.currentAnim?.key !== 'strange_anim_jump') {
+        this.sprite.setTexture('strange_sheet_jump');
+        this.sprite.play('strange_anim_jump', true);
+      } else if (this.charId === 'harpy' && this.sprite.anims.currentAnim?.key !== 'harpy_anim_jump') {
         this.sprite.setTexture('harpy_sheet_jump');
         this.sprite.play('harpy_anim_jump', true);
       }
@@ -413,11 +589,23 @@ class ArenaScene extends Phaser.Scene {
   }
 
   preload() {
-    // 1. Doctor Strange Mirror Dimension Background
+    // 1. Doctor Strange Mirror Dimension Background & Character Portraits
     this.load.image('arena_bg', 'assets/mirror_dimension.png');
     this.load.image('harpy_portrait', '../../assets/characters/harpy/portrait.png');
+    this.load.image('strange_portrait', '../../assets/characters/Dr Strange/portrait.png');
 
-    // 2. Harpy Sprite Sheets
+    // 2. Doctor Strange Sprite Sheets (512x512 Standardized Grid)
+    const sBase = '../../assets/characters/Dr Strange/';
+    this.load.spritesheet('strange_sheet_idle', sBase + 'SheetIdle.png', { frameWidth: 512, frameHeight: 512 });
+    this.load.spritesheet('strange_sheet_walk', sBase + 'SheetWalk.png', { frameWidth: 512, frameHeight: 512 });
+    this.load.spritesheet('strange_sheet_crouch', sBase + 'SheetCrouch.png', { frameWidth: 512, frameHeight: 512 });
+    this.load.spritesheet('strange_sheet_jump', sBase + 'SheetJump.png', { frameWidth: 512, frameHeight: 512 });
+    this.load.spritesheet('strange_sheet_punch', sBase + 'SheetPunch.png', { frameWidth: 512, frameHeight: 512 });
+    this.load.spritesheet('strange_sheet_blast', sBase + 'SheetBlast.png', { frameWidth: 512, frameHeight: 512 });
+    this.load.spritesheet('strange_sheet_power', sBase + 'SheetPower.png', { frameWidth: 512, frameHeight: 512 });
+    this.load.spritesheet('strange_sheet_ultimate', sBase + 'SheetUltimate.png', { frameWidth: 512, frameHeight: 512 });
+
+    // 3. Harpy Sprite Sheets
     const hBase = '../../assets/characters/harpy/';
 
     // Movement & Stances
@@ -473,10 +661,14 @@ class ArenaScene extends Phaser.Scene {
 
     // 3. Register Animations
     this.registerHarpyAnimations();
+    this.registerStrangeAnimations();
+
+    // 3.5. Projectiles Group
+    this.projectiles = this.physics.add.group();
 
     // 4. Resolve selected fighters
     const p1Char = window.selectedFighterP1 || 'harpy';
-    const p2Char = window.selectedFighterP2 || 'harpy';
+    const p2Char = window.selectedFighterP2 || 'strange';
     const isMirror = p1Char === p2Char;
 
     // Spawn Player 1 (Left side, faces right)
@@ -487,6 +679,14 @@ class ArenaScene extends Phaser.Scene {
 
     // Solid pushbox collider between fighters
     this.physics.add.collider(this.fighterP1.sprite, this.fighterP2.sprite);
+
+    // Overlap for projectiles against fighters
+    this.physics.add.overlap(this.projectiles, this.fighterP1.sprite, (proj, targetSprite) => {
+      this.handleProjectileHit(proj, this.fighterP1);
+    });
+    this.physics.add.overlap(this.projectiles, this.fighterP2.sprite, (proj, targetSprite) => {
+      this.handleProjectileHit(proj, this.fighterP2);
+    });
 
     // 5. Input Keys
     this.setupInputKeys();
@@ -539,6 +739,95 @@ class ArenaScene extends Phaser.Scene {
     defineAnim('harpy_anim_super', 'harpy_sheet_super', 0, 10, 12, 0);
   }
 
+  registerStrangeAnimations() {
+    const defineAnim = (key, sheet, start, end, rate = 14, repeat = 0) => {
+      if (!this.anims.exists(key)) {
+        this.anims.create({
+          key,
+          frames: this.anims.generateFrameNumbers(sheet, { start, end }),
+          frameRate: rate,
+          repeat
+        });
+      }
+    };
+
+    // Stances
+    defineAnim('strange_anim_idle', 'strange_sheet_idle', 0, 3, 6, -1);
+    defineAnim('strange_anim_walk', 'strange_sheet_walk', 0, 7, 10, -1);
+    defineAnim('strange_anim_dash', 'strange_sheet_walk', 0, 4, 18, 0);
+    defineAnim('strange_anim_crouch', 'strange_sheet_crouch', 0, 6, 12, 0);
+    defineAnim('strange_anim_jump', 'strange_sheet_jump', 0, 7, 12, 0);
+    defineAnim('strange_anim_knockback', 'strange_sheet_jump', 4, 8, 10, 0);
+
+    // Normal Attacks
+    defineAnim('strange_anim_atk_5a', 'strange_sheet_punch', 0, 4, 16, 0);
+    defineAnim('strange_anim_atk_5b', 'strange_sheet_punch', 2, 7, 14, 0);
+    defineAnim('strange_anim_atk_6b', 'strange_sheet_punch', 3, 9, 14, 0);
+    defineAnim('strange_anim_atk_5c', 'strange_sheet_blast', 0, 14, 14, 0);
+
+    // Air Attacks
+    defineAnim('strange_anim_atk_8a', 'strange_sheet_punch', 0, 4, 15, 0);
+    defineAnim('strange_anim_atk_8c', 'strange_sheet_blast', 6, 14, 14, 0);
+
+    // Special & Super
+    defineAnim('strange_anim_sp_projectile', 'strange_sheet_power', 0, 9, 14, 0);
+    defineAnim('strange_anim_super', 'strange_sheet_ultimate', 0, 15, 12, 0);
+    defineAnim('strange_anim_orb', 'strange_sheet_power', 8, 11, 12, -1);
+  }
+
+  spawnMysticProjectile(caster) {
+    const facingRight = caster.sprite.flipX === true;
+    const spawnX = caster.sprite.x + (facingRight ? 70 : -70);
+    const spawnY = caster.sprite.y - 25;
+
+    const proj = this.physics.add.sprite(spawnX, spawnY, 'strange_sheet_power');
+    proj.setScale(0.55);
+    proj.body.setAllowGravity(false);
+    proj.body.setSize(180, 180);
+    proj.body.setOffset(166, 166);
+    proj.play('strange_anim_orb');
+    proj.caster = caster;
+    proj.setFlipX(!facingRight);
+
+    const speed = 640;
+    proj.setVelocityX(facingRight ? speed : -speed);
+    proj.setTint(0xfde047);
+
+    // Floating myst particles
+    this.tweens.add({
+      targets: proj,
+      alpha: { from: 0.9, to: 1 },
+      duration: 150,
+      yoyo: true,
+      repeat: -1
+    });
+
+    // Auto-destroy after 1.8 seconds
+    this.time.delayedCall(1800, () => {
+      if (proj && proj.active) proj.destroy();
+    });
+
+    this.projectiles.add(proj);
+  }
+
+  handleProjectileHit(proj, target) {
+    if (!proj || !proj.active || !target || target === proj.caster) return;
+    if (target.hp <= 0 || (this.roundState !== 'FIGHTING')) return;
+
+    proj.destroy();
+
+    const atkData = {
+      damage: 155,
+      isSpecial: true,
+      knockbackX: 450,
+      knockbackY: -280
+    };
+
+    target.takeHit(atkData, proj.caster);
+    this.cameras.main.shake(240, 0.018);
+    if (window.soundFX) window.soundFX.playStartBoom();
+  }
+
   setupInputKeys() {
     // PLAYER 1: WASD / Space / F / G / H / R / Y / Q / T
     this.p1Keys = this.input.keyboard.addKeys({
@@ -585,9 +874,9 @@ class ArenaScene extends Phaser.Scene {
 
   buildDualPlayerHUD(p1Id, p2Id) {
     // --- PLAYER 1 HUD (Left) ---
-    const p1Color = 0x06b6d4;
-    const p1Hex = '#06b6d4';
-    const p1PortraitKey = 'harpy_portrait';
+    const p1Color = p1Id === 'strange' ? 0xf59e0b : 0x06b6d4;
+    const p1Hex = p1Id === 'strange' ? '#f59e0b' : '#06b6d4';
+    const p1PortraitKey = p1Id === 'strange' ? 'strange_portrait' : 'harpy_portrait';
 
     const p1Card = this.add.rectangle(75, 60, 72, 72, p1Color, 0.4);
     p1Card.setStrokeStyle(2, p1Color);
@@ -620,9 +909,9 @@ class ArenaScene extends Phaser.Scene {
     });
 
     // --- PLAYER 2 HUD (Right) ---
-    const p2Color = 0x06b6d4;
-    const p2Hex = '#06b6d4';
-    const p2PortraitKey = 'harpy_portrait';
+    const p2Color = p2Id === 'strange' ? 0xf59e0b : 0x06b6d4;
+    const p2Hex = p2Id === 'strange' ? '#f59e0b' : '#06b6d4';
+    const p2PortraitKey = p2Id === 'strange' ? 'strange_portrait' : 'harpy_portrait';
 
     const p2Card = this.add.rectangle(1205, 60, 72, 72, p2Color, 0.4);
     p2Card.setStrokeStyle(2, p2Color);
@@ -799,10 +1088,10 @@ class ArenaScene extends Phaser.Scene {
     this.p2HpText.setText(`${this.fighterP2.hp} / ${this.fighterP2.maxHp}`);
 
     if (p1Ratio < 0.25) this.p1BarFill.fillColor = 0xef4444;
-    else this.p1BarFill.fillColor = this.fighterP1.charId === 'harpy' ? 0x06b6d4 : 0xdc2626;
+    else this.p1BarFill.fillColor = this.fighterP1.charId === 'strange' ? 0xf59e0b : 0x06b6d4;
 
     if (p2Ratio < 0.25) this.p2BarFill.fillColor = 0xef4444;
-    else this.p2BarFill.fillColor = this.fighterP2.charId === 'harpy' ? 0x06b6d4 : 0xdc2626;
+    else this.p2BarFill.fillColor = this.fighterP2.charId === 'strange' ? 0xf59e0b : 0x06b6d4;
 
     this.p1ActionText.setText(`ACTION: ${this.fighterP1.currentAction}`);
     this.p2ActionText.setText(`ACTION: ${this.fighterP2.currentAction}`);

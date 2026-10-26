@@ -125,6 +125,9 @@
             <button class="char-picker-btn p1-btn active" data-player="1" data-char="harpy" style="cursor: pointer; padding: 0.35rem 0.8rem; background: rgba(6, 182, 212, 0.3); border: 1px solid #f59e0b; color: #fff; border-radius: 3px; font-weight: bold; font-family: var(--font-heading);">
               🦅 HARPY
             </button>
+            <button class="char-picker-btn p1-btn" data-player="1" data-char="strange" style="cursor: pointer; padding: 0.35rem 0.8rem; background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 3px; font-weight: bold; font-family: var(--font-heading); opacity: 0.65;">
+              🔮 DR. STRANGE
+            </button>
           </div>
 
           <img id="p1-portrait" src="../../assets/characters/harpy/portrait.png" alt="P1" style="width: 90px; height: 90px; border-radius: 50%; border: 2px solid #06b6d4; object-fit: cover; margin-bottom: 0.5rem; box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);">
@@ -144,18 +147,21 @@
           </h3>
           <!-- P2 Fighter Selector Buttons -->
           <div style="display: flex; gap: 0.5rem; margin-bottom: 0.8rem;">
-            <button class="char-picker-btn p2-btn active" data-player="2" data-char="harpy" style="cursor: pointer; padding: 0.35rem 0.8rem; background: rgba(6, 182, 212, 0.3); border: 1px solid #f59e0b; color: #fff; border-radius: 3px; font-weight: bold; font-family: var(--font-heading);">
+            <button class="char-picker-btn p2-btn" data-player="2" data-char="harpy" style="cursor: pointer; padding: 0.35rem 0.8rem; background: rgba(6, 182, 212, 0.2); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 3px; font-weight: bold; font-family: var(--font-heading); opacity: 0.65;">
               🦅 HARPY
+            </button>
+            <button class="char-picker-btn p2-btn active" data-player="2" data-char="strange" style="cursor: pointer; padding: 0.35rem 0.8rem; background: rgba(245, 158, 11, 0.35); border: 1px solid #f59e0b; color: #fff; border-radius: 3px; font-weight: bold; font-family: var(--font-heading); opacity: 1;">
+              🔮 DR. STRANGE
             </button>
           </div>
 
-          <img id="p2-portrait" src="../../assets/characters/harpy/portrait.png" alt="P2" style="width: 90px; height: 90px; border-radius: 50%; border: 2px solid #06b6d4; object-fit: cover; margin-bottom: 0.5rem; box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);">
-          <p id="p2-title" style="font-size: 1.3rem; font-weight: bold; color: #fff; margin: 0;">HARPY</p>
-          <p id="p2-archetype" style="font-size: 0.85rem; color: #67e8f9; margin-top: 0.1rem; font-weight: 600;">Sky Terror • Aerial Striker (Rushdown)</p>
-          <div id="p2-keys" style="margin-top: 0.8rem; font-size: 0.85rem; color: #a5f3fc; line-height: 1.6;">
+          <img id="p2-portrait" src="../../assets/characters/Dr Strange/portrait.png" alt="P2" style="width: 90px; height: 90px; border-radius: 50%; border: 2px solid #f59e0b; object-fit: cover; margin-bottom: 0.5rem; box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);">
+          <p id="p2-title" style="font-size: 1.3rem; font-weight: bold; color: #fff; margin: 0;">DR. STRANGE</p>
+          <p id="p2-archetype" style="font-size: 0.85rem; color: #fde047; margin-top: 0.1rem; font-weight: 600;">Sorcerer Supreme • Mystic Arts (Zoner / Spells)</p>
+          <div id="p2-keys" style="margin-top: 0.8rem; font-size: 0.85rem; color: #fef08a; line-height: 1.6;">
             Move: <span class="command-key">ARROWS ↑ ← ↓ →</span><br>
             Attacks: <span class="command-key">J / NUM1</span> (Light) <span class="command-key">K / NUM2</span> (Med) <span class="command-key">L / NUM3</span> (Heavy)<br>
-            Special: <span class="command-key">U / NUM4</span> | Super: <span class="command-key">↓+L / I</span> | Dash: <span class="command-key">O</span>
+            Special: <span class="command-key">U / NUM4</span> (Projectile) | Super: <span class="command-key">↓+L / I</span> | Dash: <span class="command-key">O</span>
           </div>
         </div>
       </div>
@@ -206,6 +212,7 @@
       <!-- Character Tabs -->
       <div style="display: flex; gap: 0.8rem; margin: 1.2rem 0 0.8rem 0;">
         <button class="grimoire-tab-btn active" data-char="harpy" style="cursor: pointer; background: rgba(6, 182, 212, 0.25); border: 1px solid #06b6d4; color: #fff; padding: 0.5rem 1.2rem; font-family: var(--font-heading); font-weight: bold; border-radius: 4px; letter-spacing: 0.05em;">🦅 HARPY</button>
+        <button class="grimoire-tab-btn" data-char="strange" style="cursor: pointer; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 0.5rem 1.2rem; font-family: var(--font-heading); font-weight: bold; border-radius: 4px; letter-spacing: 0.05em; opacity: 0.75;">🔮 DR. STRANGE</button>
       </div>
 
       <p id="grimoire-char-title" style="color: var(--gold-light); font-family: var(--font-heading); font-size: 1.05rem; font-weight: bold; margin-bottom: 0.8rem;">

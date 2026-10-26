@@ -263,7 +263,7 @@ function initModals() {
 }
 
 window.selectedFighterP1 = 'harpy';
-window.selectedFighterP2 = 'harpy';
+window.selectedFighterP2 = 'strange';
 
 function initCharacterSelection() {
   document.querySelectorAll('.char-picker-btn').forEach(btn => {
@@ -299,18 +299,36 @@ function updatePlayerCardUI(player, charId) {
 
   if (!card) return;
 
-  card.style.background = 'rgba(6, 182, 212, 0.15)';
-  card.style.borderColor = '#06b6d4';
-  if (portrait) portrait.src = '../../assets/characters/harpy/portrait.png';
-  if (title) title.textContent = 'HARPY';
-  if (archetype) {
-    archetype.textContent = 'Sky Terror • Aerial Striker (Rushdown)';
-    archetype.style.color = '#67e8f9';
-  }
-  if (keys) {
-    keys.innerHTML = player === '1' 
-      ? `Move: <span class="command-key">WASD</span> | Jump: <span class="command-key">SPACE</span><br>Attacks: <span class="command-key">F</span> (5A) <span class="command-key">G</span> (5B) <span class="command-key">H</span> (5C)<br>Special: <span class="command-key">R</span> | Super: <span class="command-key">S+H / Y</span> | Dash: <span class="command-key">Q</span>`
-      : `Move: <span class="command-key">ARROWS ↑ ← ↓ →</span><br>Attacks: <span class="command-key">J / NUM1</span> (5A) <span class="command-key">K / NUM2</span> (5B) <span class="command-key">L / NUM3</span> (5C)<br>Special: <span class="command-key">U / NUM4</span> | Super: <span class="command-key">↓+L / I</span> | Dash: <span class="command-key">O</span>`;
+  if (charId === 'strange') {
+    card.style.background = 'rgba(245, 158, 11, 0.15)';
+    card.style.borderColor = '#f59e0b';
+    if (portrait) portrait.src = '../../assets/characters/Dr Strange/portrait.png';
+    if (portrait) portrait.style.borderColor = '#f59e0b';
+    if (title) title.textContent = 'DR. STRANGE';
+    if (archetype) {
+      archetype.textContent = 'Sorcerer Supreme • Mystic Arts (Zoner / Spells)';
+      archetype.style.color = '#fde047';
+    }
+    if (keys) {
+      keys.innerHTML = player === '1' 
+        ? `Move: <span class="command-key">WASD</span> | Jump: <span class="command-key">SPACE</span><br>Attacks: <span class="command-key">F</span> (5A) <span class="command-key">G</span> (5B) <span class="command-key">H</span> (5C)<br>Special: <span class="command-key">R</span> (Mystic Orb) | Super: <span class="command-key">S+H / Y</span> | Dash: <span class="command-key">Q</span>`
+        : `Move: <span class="command-key">ARROWS ↑ ← ↓ →</span><br>Attacks: <span class="command-key">J / NUM1</span> (5A) <span class="command-key">K / NUM2</span> (5B) <span class="command-key">L / NUM3</span> (5C)<br>Special: <span class="command-key">U / NUM4</span> (Mystic Orb) | Super: <span class="command-key">↓+L / I</span> | Dash: <span class="command-key">O</span>`;
+    }
+  } else {
+    card.style.background = 'rgba(6, 182, 212, 0.15)';
+    card.style.borderColor = '#06b6d4';
+    if (portrait) portrait.src = '../../assets/characters/harpy/portrait.png';
+    if (portrait) portrait.style.borderColor = '#06b6d4';
+    if (title) title.textContent = 'HARPY';
+    if (archetype) {
+      archetype.textContent = 'Sky Terror • Aerial Striker (Rushdown)';
+      archetype.style.color = '#67e8f9';
+    }
+    if (keys) {
+      keys.innerHTML = player === '1' 
+        ? `Move: <span class="command-key">WASD</span> | Jump: <span class="command-key">SPACE</span><br>Attacks: <span class="command-key">F</span> (5A) <span class="command-key">G</span> (5B) <span class="command-key">H</span> (5C)<br>Special: <span class="command-key">R</span> | Super: <span class="command-key">S+H / Y</span> | Dash: <span class="command-key">Q</span>`
+        : `Move: <span class="command-key">ARROWS ↑ ← ↓ →</span><br>Attacks: <span class="command-key">J / NUM1</span> (5A) <span class="command-key">K / NUM2</span> (5B) <span class="command-key">L / NUM3</span> (5C)<br>Special: <span class="command-key">U / NUM4</span> | Super: <span class="command-key">↓+L / I</span> | Dash: <span class="command-key">O</span>`;
+    }
   }
 }
 
@@ -333,37 +351,85 @@ function switchGrimoireCharacter(charId) {
   const title = document.getElementById('grimoire-char-title');
   if (!tbody) return;
 
-  if (title) title.textContent = '🦅 HARPY THE SKY TERROR (RUSHDOWN / AERIAL)';
-  tbody.innerHTML = `
-    <tr>
-      <td><strong>Talon Jab (5A)</strong></td>
-      <td><span class="command-key">F</span></td>
-      <td>5f</td><td>3f</td><td>8f</td>
-      <td><span style="color: #4ade80;">+3f</span></td>
-      <td>40 HP</td>
-    </tr>
-    <tr>
-      <td><strong>Wing Flurry (5B)</strong></td>
-      <td><span class="command-key">G</span></td>
-      <td>8f</td><td>4f</td><td>12f</td>
-      <td><span style="color: #fde047;">0f</span></td>
-      <td>75 HP</td>
-    </tr>
-    <tr>
-      <td><strong>Gale Strike (5C)</strong></td>
-      <td><span class="command-key">S + G</span></td>
-      <td>11f</td><td>5f</td><td>17f</td>
-      <td><span style="color: #f87171;">-3f</span></td>
-      <td>120 HP (Wallbounce)</td>
-    </tr>
-    <tr>
-      <td><strong>Tempest Feather Storm</strong></td>
-      <td><span class="command-key">S ➔ D + H</span></td>
-      <td>12f</td><td>10f</td><td>20f</td>
-      <td><span style="color: #f87171;">-6f</span></td>
-      <td>220 HP (Super)</td>
-    </tr>
-  `;
+  if (charId === 'strange') {
+    if (title) title.textContent = '🔮 DOCTOR STRANGE (ZONER / MYSTIC ARTS)';
+    tbody.innerHTML = `
+      <tr>
+        <td><strong>Eldritch Strike (5A)</strong></td>
+        <td><span class="command-key">F / J</span></td>
+        <td>6f</td><td>3f</td><td>7f</td>
+        <td><span style="color: #4ade80;">+2f</span></td>
+        <td>45 HP</td>
+      </tr>
+      <tr>
+        <td><strong>Astral Punch (5B)</strong></td>
+        <td><span class="command-key">G / K</span></td>
+        <td>8f</td><td>4f</td><td>11f</td>
+        <td><span style="color: #4ade80;">+1f</span></td>
+        <td>80 HP</td>
+      </tr>
+      <tr>
+        <td><strong>Flames of the Faltine (5C)</strong></td>
+        <td><span class="command-key">H / L</span></td>
+        <td>12f</td><td>6f</td><td>18f</td>
+        <td><span style="color: #f87171;">-2f</span></td>
+        <td>125 HP (Wallbounce)</td>
+      </tr>
+      <tr>
+        <td><strong>Crimson Bands (Special Projectile)</strong></td>
+        <td><span class="command-key">R / U</span></td>
+        <td>11f</td><td>8f</td><td>19f</td>
+        <td><span style="color: #f87171;">-2f</span></td>
+        <td>155 HP (Orb Missile)</td>
+      </tr>
+      <tr>
+        <td><strong>Mirror Dimension Shatter</strong></td>
+        <td><span class="command-key">S+H / Y / ↓+L / I</span></td>
+        <td>10f</td><td>12f</td><td>22f</td>
+        <td><span style="color: #f87171;">-5f</span></td>
+        <td>245 HP (Super)</td>
+      </tr>
+    `;
+  } else {
+    if (title) title.textContent = '🦅 HARPY THE SKY TERROR (RUSHDOWN / AERIAL)';
+    tbody.innerHTML = `
+      <tr>
+        <td><strong>Talon Jab (5A)</strong></td>
+        <td><span class="command-key">F / J</span></td>
+        <td>5f</td><td>3f</td><td>8f</td>
+        <td><span style="color: #4ade80;">+3f</span></td>
+        <td>40 HP</td>
+      </tr>
+      <tr>
+        <td><strong>Wing Flurry (5B)</strong></td>
+        <td><span class="command-key">G / K</span></td>
+        <td>8f</td><td>4f</td><td>12f</td>
+        <td><span style="color: #fde047;">0f</span></td>
+        <td>75 HP</td>
+      </tr>
+      <tr>
+        <td><strong>Gale Strike (5C)</strong></td>
+        <td><span class="command-key">H / L</span></td>
+        <td>11f</td><td>5f</td><td>17f</td>
+        <td><span style="color: #f87171;">-3f</span></td>
+        <td>120 HP (Wallbounce)</td>
+      </tr>
+      <tr>
+        <td><strong>Tempest Cyclone (Special)</strong></td>
+        <td><span class="command-key">R / U</span></td>
+        <td>10f</td><td>6f</td><td>16f</td>
+        <td><span style="color: #f87171;">-4f</span></td>
+        <td>150 HP</td>
+      </tr>
+      <tr>
+        <td><strong>Tempest Feather Storm</strong></td>
+        <td><span class="command-key">S+H / Y / ↓+L / I</span></td>
+        <td>12f</td><td>10f</td><td>20f</td>
+        <td><span style="color: #f87171;">-6f</span></td>
+        <td>220 HP (Super)</td>
+      </tr>
+    `;
+  }
 }
 
 function openModal(id) {
