@@ -18,5 +18,15 @@
     "portrait": "assets/characters/Dr Strange/portrait.png",
     "themeColor": "#f59e0b",
     "icon": "🔮"
+  },
+  {
+    "id": "chunli",
+    "name": "Chun-Li",
+    "title": "Strongest Woman in the World",
+    "archetype": "Rushdown",
+    "file": "grimoire/chunli.json",
+    "portrait": "assets/characters/ChunLi/portrait.png",
+    "themeColor": "#0284c7",
+    "icon": "⚡"
   }
 ]
