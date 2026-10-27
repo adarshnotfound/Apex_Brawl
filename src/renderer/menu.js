@@ -422,25 +422,18 @@ function switchGrimoireCharacter(charId) {
         <td>42 HP</td>
       </tr>
       <tr>
-        <td><strong>Hyakuretsukyaku (5B / Lightning Legs)</strong></td>
+        <td><strong>Hyakuretsukyaku (5B / 6B Lightning Legs)</strong></td>
         <td><span class="command-key">G / K</span></td>
         <td>7f</td><td>5f</td><td>11f</td>
         <td><span style="color: #4ade80;">+1f</span></td>
-        <td>82 HP</td>
+        <td>85 HP</td>
       </tr>
       <tr>
-        <td><strong>Spinning Bird Kick (6B)</strong></td>
-        <td><span class="command-key">D+G / →+K</span></td>
-        <td>8f</td><td>6f</td><td>13f</td>
-        <td><span style="color: #fde047;">-1f</span></td>
-        <td>95 HP</td>
-      </tr>
-      <tr>
-        <td><strong>Fierce Qi Strike (5C)</strong></td>
+        <td><strong>Spinning Bird Kick (5C Heavy)</strong></td>
         <td><span class="command-key">H / L</span></td>
-        <td>10f</td><td>5f</td><td>16f</td>
-        <td><span style="color: #f87171;">-2f</span></td>
-        <td>120 HP (Wallbounce)</td>
+        <td>9f</td><td>6f</td><td>14f</td>
+        <td><span style="color: #fde047;">-1f</span></td>
+        <td>125 HP (Air Cleave)</td>
       </tr>
       <tr>
         <td><strong>Kikoken (Special Projectile)</strong></td>
@@ -449,13 +442,7 @@ function switchGrimoireCharacter(charId) {
         <td><span style="color: #f87171;">-2f</span></td>
         <td>150 HP (3D Cyan Plasma)</td>
       </tr>
-      <tr>
-        <td><strong>Spinning Bird Kick (Anti-Air Special)</strong></td>
-        <td><span class="command-key">W+R / ↑+U</span></td>
-        <td>7f</td><td>8f</td><td>19f</td>
-        <td><span style="color: #f87171;">-6f</span></td>
-        <td>165 HP (Whirlwind)</td>
-      </tr>
+
       <tr>
         <td><strong>Hoyoku-sen (Super Art Finisher)</strong></td>
         <td><span class="command-key">S+H / Y / ↓+L / I</span></td>
