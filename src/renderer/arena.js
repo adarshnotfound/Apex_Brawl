@@ -16,22 +16,27 @@ class FighterEntity {
     this.currentAction = 'IDLE';
     this.attackTimer = null;
 
-    this.hp = charId === 'strange' ? 960 : 920;
+    this.hp = charId === 'strange' ? 960 : (charId === 'chunli' ? 950 : 920);
     this.maxHp = this.hp;
 
     // Movement speeds & Jump velocity
-    this.walkSpeed = charId === 'strange' ? 215 : 260;
-    this.dashSpeed = charId === 'strange' ? 460 : 490;
-    this.jumpVel = charId === 'strange' ? -720 : -760;
+    this.walkSpeed = charId === 'strange' ? 215 : (charId === 'chunli' ? 250 : 260);
+    this.dashSpeed = charId === 'strange' ? 460 : (charId === 'chunli' ? 480 : 490);
+    this.jumpVel = charId === 'strange' ? -720 : (charId === 'chunli' ? -740 : -760);
 
     // Create sprite
-    const initialTexture = charId === 'strange' ? 'strange_sheet_idle' : 'harpy_sheet_idle';
+    const initialTexture = charId === 'strange' ? 'strange_sheet_idle' : (charId === 'chunli' ? 'chunli_sheet_idle' : 'harpy_sheet_idle');
     this.sprite = scene.physics.add.sprite(x, y, initialTexture);
     if (charId === 'strange') {
       this.sprite.setScale(0.80);
       this.sprite.setCollideWorldBounds(true);
       this.sprite.body.setSize(180, 360);
       this.sprite.body.setOffset(166, 120);
+    } else if (charId === 'chunli') {
+      this.sprite.setScale(1.05);
+      this.sprite.setCollideWorldBounds(true);
+      this.sprite.body.setSize(130, 220);
+      this.sprite.body.setOffset(63, 34);
     } else {
       this.sprite.setScale(0.25);
       this.sprite.setCollideWorldBounds(true);
@@ -53,6 +58,8 @@ class FighterEntity {
 
     if (charId === 'strange') {
       this.sprite.play('strange_anim_idle');
+    } else if (charId === 'chunli') {
+      this.sprite.play('chunli_anim_idle');
     } else {
       this.sprite.play('harpy_anim_idle');
     }
@@ -72,7 +79,11 @@ class FighterEntity {
         key.startsWith('strange_anim_atk_') || 
         key.startsWith('strange_anim_sp_') || 
         key === 'strange_anim_super' || 
-        key === 'strange_anim_dash') {
+        key === 'strange_anim_dash' ||
+        key.startsWith('chunli_anim_atk_') ||
+        key.startsWith('chunli_anim_sp_') ||
+        key === 'chunli_anim_super' ||
+        key === 'chunli_anim_dash') {
       this.isAttacking = false;
       this.currentAttackData = null;
       if (this.attackTimer) {
@@ -80,7 +91,7 @@ class FighterEntity {
         this.attackTimer = null;
       }
       this.updateTextureForState();
-    } else if (key === 'harpy_anim_knockback' || key === 'strange_anim_knockback') {
+    } else if (key === 'harpy_anim_knockback' || key === 'strange_anim_knockback' || key === 'chunli_anim_knockback') {
       this.isKnockedBack = false;
       this.updateTextureForState();
     }
@@ -102,6 +113,25 @@ class FighterEntity {
         this.currentAction = 'IDLE';
         this.sprite.setTexture('strange_sheet_idle');
         this.sprite.play('strange_anim_idle', true);
+      }
+      return;
+    }
+
+    if (this.charId === 'chunli') {
+      if (this.isKnockedBack) {
+        this.currentAction = 'KNOCKBACK / LAUNCH';
+        this.sprite.setTexture('chunli_sheet_hit');
+        this.sprite.play('chunli_anim_knockback', true);
+        return;
+      }
+      if (this.isInAir) {
+        this.currentAction = this.sprite.body.velocity.y < 0 ? 'JUMP / ASCENT' : 'AIR FALL';
+        this.sprite.setTexture('chunli_sheet_jump');
+        this.sprite.play('chunli_anim_jump', true);
+      } else {
+        this.currentAction = 'IDLE';
+        this.sprite.setTexture('chunli_sheet_idle');
+        this.sprite.play('chunli_anim_idle', true);
       }
       return;
     }
@@ -155,6 +185,9 @@ class FighterEntity {
     if (this.charId === 'strange') {
       this.sprite.setTexture('strange_sheet_idle');
       this.sprite.play('strange_anim_idle', true);
+    } else if (this.charId === 'chunli') {
+      this.sprite.setTexture('chunli_sheet_idle');
+      this.sprite.play('chunli_anim_idle', true);
     } else {
       this.sprite.setTexture('harpy_sheet_idle');
       this.sprite.play('harpy_anim_idle', true);
@@ -198,7 +231,7 @@ class FighterEntity {
     }
 
     // Spawn floating damage text (adjusted for character scale)
-    const textY = this.charId === 'strange' ? this.sprite.y - 120 : this.sprite.y - 95;
+    const textY = this.charId === 'strange' ? this.sprite.y - 120 : (this.charId === 'chunli' ? this.sprite.y - 110 : this.sprite.y - 95);
     this.scene.spawnDamageNumber(this.sprite.x, textY, attackData.damage, attackData.isSpecial);
 
     // Hit flash
@@ -226,6 +259,9 @@ class FighterEntity {
       if (this.charId === 'strange') {
         this.sprite.setTexture('strange_sheet_jump');
         this.sprite.play('strange_anim_knockback', true);
+      } else if (this.charId === 'chunli') {
+        this.sprite.setTexture('chunli_sheet_hit');
+        this.sprite.play('chunli_anim_knockback', true);
       } else if (this.charId === 'harpy') {
         this.sprite.setTexture('harpy_sheet_8c');
         this.sprite.play('harpy_anim_knockback', true);
@@ -273,6 +309,9 @@ class FighterEntity {
     // If knocked back through the air, allow momentum to play out
     if (this.isKnockedBack) return;
 
+    // Prevent attack inputs from interrupting or restarting an ongoing attack animation
+    if (this.isAttacking) return;
+
     // 1. Attacks (Ground & Air)
     if (input.lightJustDown) {
       if (this.charId === 'strange') {
@@ -294,6 +333,26 @@ class FighterEntity {
             knockbackY: 0,
             isSpecial: false
           });
+        }
+      } else if (this.charId === 'chunli') {
+        if (this.isInAir) {
+          this.triggerAttack('AIR TENSHOKYAKU (8A)', 'chunli_anim_atk_8a', {
+            damage: 48,
+            rangeX: 160,
+            rangeY: 90,
+            knockbackX: 180,
+            knockbackY: 50,
+            isSpecial: false
+          }, 1250);
+        } else {
+          this.triggerAttack('BASIC STRIKE (5A)', 'chunli_anim_atk_5a', {
+            damage: 42,
+            rangeX: 165,
+            rangeY: 80,
+            knockbackX: 170,
+            knockbackY: 0,
+            isSpecial: false
+          }, 2100);
         }
       } else {
         if (this.isInAir) {
@@ -349,6 +408,41 @@ class FighterEntity {
             isSpecial: false
           });
         }
+      } else if (this.charId === 'chunli') {
+        if (this.isInAir) {
+          this.triggerAttack('AIR SPINNING KICK (8B)', 'chunli_anim_atk_8c', {
+            damage: 85,
+            rangeX: 180,
+            rangeY: 100,
+            knockbackX: 230,
+            knockbackY: 80,
+            isSpecial: false
+          }, 1900);
+        } else if (input.isHoldingForward) {
+          this.triggerAttack('SPINNING BIRD KICK (6B)', 'chunli_anim_atk_6b', {
+            damage: 95,
+            rangeX: 195,
+            rangeY: 90,
+            knockbackX: 270,
+            knockbackY: -60,
+            isSpecial: false
+          }, 2750);
+          if (this.scene && this.scene.spawnSpinningBirdVFX) {
+            this.scene.spawnSpinningBirdVFX(this);
+          }
+        } else {
+          this.triggerAttack('HYAKURETSUKYAKU (5B)', 'chunli_anim_atk_5b', {
+            damage: 82,
+            rangeX: 180,
+            rangeY: 90,
+            knockbackX: 230,
+            knockbackY: -30,
+            isSpecial: false
+          }, 2750);
+          if (this.scene && this.scene.spawnLightningLegsVFX) {
+            this.scene.spawnLightningLegsVFX(this);
+          }
+        }
       } else {
         if (this.isInAir) {
           this.triggerAttack('AIR CLEAVE (8C)', 'harpy_anim_atk_8c', {
@@ -403,6 +497,26 @@ class FighterEntity {
             isSpecial: false
           });
         }
+      } else if (this.charId === 'chunli') {
+        if (this.isInAir) {
+          this.triggerAttack('AIR FLYING KICK (8C)', 'chunli_anim_atk_8c', {
+            damage: 108,
+            rangeX: 200,
+            rangeY: 110,
+            knockbackX: 290,
+            knockbackY: 130,
+            isSpecial: false
+          }, 1900);
+        } else {
+          this.triggerAttack('FIERCE QI STRIKE (5C)', 'chunli_anim_atk_5c', {
+            damage: 120,
+            rangeX: 220,
+            rangeY: 100,
+            knockbackX: 350,
+            knockbackY: -120,
+            isSpecial: false
+          }, 2100);
+        }
       } else {
         if (this.isInAir) {
           this.triggerAttack('AIR DIVE (8D)', 'harpy_anim_atk_8d', {
@@ -453,6 +567,35 @@ class FighterEntity {
             this.scene.spawnMysticProjectile(this);
           }
         }
+      } else if (this.charId === 'chunli') {
+        if (input.up) {
+          this.triggerAttack('SPINNING BIRD KICK (AA)', 'chunli_anim_sp_spinning_bird', {
+            damage: 165,
+            rangeX: 220,
+            rangeY: 160,
+            knockbackX: 250,
+            knockbackY: -500,
+            isSpecial: true
+          }, 2750);
+          if (this.scene && this.scene.spawnSpinningBirdVFX) {
+            this.scene.spawnSpinningBirdVFX(this);
+          }
+        } else {
+          this.triggerAttack('KIKOKEN (PROJECTILE)', 'chunli_anim_sp_kikoken', {
+            damage: 150,
+            rangeX: 140,
+            rangeY: 100,
+            knockbackX: 460,
+            knockbackY: -270,
+            isSpecial: true
+          }, 2100);
+          // Frame 9-11 spawn Kikoken projectile (at ~1250ms with 8 FPS)
+          this.scene.time.delayedCall(1250, () => {
+            if (this.scene && this.scene.spawnKikokenProjectile) {
+              this.scene.spawnKikokenProjectile(this);
+            }
+          });
+        }
       } else {
         if (input.up) {
           this.triggerAttack('SKY DRAGON DP (262C)', 'harpy_anim_sp_262c', {
@@ -488,6 +631,18 @@ class FighterEntity {
           knockbackY: -550,
           isSpecial: true
         });
+      } else if (this.charId === 'chunli') {
+        this.triggerAttack('HOYOKU-SEN (SUPER)', 'chunli_anim_super', {
+          damage: 250,
+          rangeX: 300,
+          rangeY: 190,
+          knockbackX: 680,
+          knockbackY: -540,
+          isSpecial: true
+        }, 2750);
+        if (this.scene && this.scene.spawnHoyokuSenVFX) {
+          this.scene.spawnHoyokuSenVFX(this);
+        }
       } else {
         this.triggerAttack('FEATHER STORM (SUPER)', 'harpy_anim_super', {
           damage: 240,
@@ -504,6 +659,8 @@ class FighterEntity {
     if (input.tauntJustDown && onGround) {
       if (this.charId === 'strange') {
         this.triggerAttack('MYSTIC MEDITATION', 'strange_anim_dash', null, 400);
+      } else if (this.charId === 'chunli') {
+        this.triggerAttack('GREETING BOW', 'chunli_anim_idle', null, 2000);
       } else {
         this.triggerAttack('TAUNT', 'harpy_anim_taunt', null, 500);
       }
@@ -516,6 +673,14 @@ class FighterEntity {
         this.currentAction = 'ASTRAL DASH';
         this.sprite.play('strange_anim_dash', true);
         this.sprite.setTint(0xfde047);
+        this.scene.time.delayedCall(180, () => {
+          if (this.isMirror) this.sprite.setTint(0xc4b5fd);
+          else this.sprite.clearTint();
+        });
+      } else if (this.charId === 'chunli') {
+        this.currentAction = 'LIGHTNING DASH';
+        this.sprite.play('chunli_anim_dash', true);
+        this.sprite.setTint(0x38bdf8);
         this.scene.time.delayedCall(180, () => {
           if (this.isMirror) this.sprite.setTint(0xc4b5fd);
           else this.sprite.clearTint();
@@ -539,6 +704,9 @@ class FighterEntity {
         if (this.charId === 'strange') {
           this.sprite.setTexture('strange_sheet_jump');
           this.sprite.play('strange_anim_jump', true);
+        } else if (this.charId === 'chunli') {
+          this.sprite.setTexture('chunli_sheet_jump');
+          this.sprite.play('chunli_anim_jump', true);
         } else {
           this.sprite.setTexture('harpy_sheet_jump');
           this.sprite.play('harpy_anim_jump', true);
@@ -556,6 +724,7 @@ class FighterEntity {
       if (onGround && !input.up) {
         this.currentAction = 'WALK LEFT';
         if (this.charId === 'strange') this.sprite.play('strange_anim_walk', true);
+        else if (this.charId === 'chunli') this.sprite.play('chunli_anim_walk', true);
         else this.sprite.play('harpy_anim_walk', true);
       }
     } else if (input.right) {
@@ -564,6 +733,7 @@ class FighterEntity {
       if (onGround && !input.up) {
         this.currentAction = 'WALK RIGHT';
         if (this.charId === 'strange') this.sprite.play('strange_anim_walk', true);
+        else if (this.charId === 'chunli') this.sprite.play('chunli_anim_walk', true);
         else this.sprite.play('harpy_anim_walk', true);
       }
     } else {
@@ -578,10 +748,12 @@ class FighterEntity {
         this.sprite.setVelocityX(0);
         this.currentAction = 'CROUCH';
         if (this.charId === 'strange') this.sprite.play('strange_anim_crouch', true);
+        else if (this.charId === 'chunli') this.sprite.play('chunli_anim_crouch', true);
         else this.sprite.play('harpy_anim_crouch', true);
       } else if (!input.left && !input.right && !input.up && !this.isInAir) {
         this.currentAction = 'IDLE';
         if (this.charId === 'strange') this.sprite.play('strange_anim_idle', true);
+        else if (this.charId === 'chunli') this.sprite.play('chunli_anim_idle', true);
         else this.sprite.play('harpy_anim_idle', true);
       }
     } else {
@@ -589,6 +761,9 @@ class FighterEntity {
       if (this.charId === 'strange' && this.sprite.anims.currentAnim?.key !== 'strange_anim_jump') {
         this.sprite.setTexture('strange_sheet_jump');
         this.sprite.play('strange_anim_jump', true);
+      } else if (this.charId === 'chunli' && this.sprite.anims.currentAnim?.key !== 'chunli_anim_jump') {
+        this.sprite.setTexture('chunli_sheet_jump');
+        this.sprite.play('chunli_anim_jump', true);
       } else if (this.charId === 'harpy' && this.sprite.anims.currentAnim?.key !== 'harpy_anim_jump') {
         this.sprite.setTexture('harpy_sheet_jump');
         this.sprite.play('harpy_anim_jump', true);
@@ -623,6 +798,7 @@ class ArenaScene extends Phaser.Scene {
     this.load.image('arena_bg', 'assets/mirror_dimension.png');
     this.load.image('harpy_portrait', '../../assets/characters/harpy/portrait.png');
     this.load.image('strange_portrait', '../../assets/characters/Dr Strange/portrait.png');
+    this.load.image('chunli_portrait', '../../assets/characters/ChunLi/portrait.png');
 
     // 2. Doctor Strange Sprite Sheets (512x512 Standardized Grid)
     const sBase = '../../assets/characters/Dr Strange/';
@@ -658,6 +834,26 @@ class ArenaScene extends Phaser.Scene {
     this.load.spritesheet('harpy_sheet_235b', hBase + 'Sheet235B.png', { frameWidth: 1200, frameHeight: 1080 });
     this.load.spritesheet('harpy_sheet_262c', hBase + 'Sheet262C.png', { frameWidth: 1080, frameHeight: 1190 });
     this.load.spritesheet('harpy_sheet_super', hBase + 'Sheet236236C.png', { frameWidth: 1200, frameHeight: 1080 });
+
+    // 4. Chun-Li 3D Sprite Sheets & VFX (Section 1 of Guide)
+    const cBase = '../../assets/characters/ChunLi/ChunLi_3D_Sprites/';
+    this.load.spritesheet('chunli_sheet_idle', cBase + '01_ChunLi_Idle.png', { frameWidth: 256, frameHeight: 256 });
+    this.load.spritesheet('chunli_sheet_walk', cBase + '02_ChunLi_Walk.png', { frameWidth: 256, frameHeight: 256 });
+    this.load.spritesheet('chunli_sheet_jump', cBase + '03_ChunLi_Jump.png', { frameWidth: 256, frameHeight: 256 });
+    this.load.spritesheet('chunli_sheet_crouch', cBase + '04_ChunLi_Crouch.png', { frameWidth: 300, frameHeight: 298 });
+    this.load.spritesheet('chunli_sheet_hit', cBase + '05_ChunLi_HitReaction.png', { frameWidth: 300, frameHeight: 298 });
+    this.load.spritesheet('chunli_sheet_basic_strike', cBase + '06_ChunLi_BasicStrike.png', { frameWidth: 256, frameHeight: 256 });
+    this.load.spritesheet('chunli_sheet_lightning', cBase + '07_ChunLi_LightningLegs.png', { frameWidth: 256, frameHeight: 256 });
+    this.load.spritesheet('chunli_sheet_spinning_bird', cBase + '08_ChunLi_SpinningBirdKick.png', { frameWidth: 256, frameHeight: 256 });
+    this.load.spritesheet('chunli_sheet_kikoken', cBase + '09_ChunLi_Kikoken.png', { frameWidth: 256, frameHeight: 256 });
+    this.load.spritesheet('chunli_sheet_hoyoku', cBase + '10_ChunLi_HoyokuSen.png', { frameWidth: 256, frameHeight: 256 });
+
+    // 3D VFX & Projectile Sheets
+    this.load.spritesheet('chunli_sheet_projectile', cBase + '11_Kikoken_Projectile.png', { frameWidth: 256, frameHeight: 256 });
+    this.load.spritesheet('chunli_sheet_impact', cBase + '12_Kikoken_Impact.png', { frameWidth: 256, frameHeight: 256 });
+    this.load.spritesheet('chunli_sheet_vfx_lightning', cBase + '13_LightningLegs_VFX.png', { frameWidth: 256, frameHeight: 256 });
+    this.load.spritesheet('chunli_sheet_vfx_spinning_bird', cBase + '14_SpinningBird_VFX.png', { frameWidth: 256, frameHeight: 256 });
+    this.load.spritesheet('chunli_sheet_vfx_hoyoku', cBase + '15_HoyokuSen_Finisher_VFX.png', { frameWidth: 256, frameHeight: 256 });
   }
 
   create() {
@@ -692,6 +888,7 @@ class ArenaScene extends Phaser.Scene {
     // 3. Register Animations
     this.registerHarpyAnimations();
     this.registerStrangeAnimations();
+    this.registerChunLiAnimations();
 
     // 3.5. Projectiles Group
     this.projectiles = this.physics.add.group();
@@ -805,6 +1002,49 @@ class ArenaScene extends Phaser.Scene {
     defineAnim('strange_anim_orb', 'strange_sheet_power', 8, 11, 12, -1);
   }
 
+  registerChunLiAnimations() {
+    const defineAnim = (key, sheet, start, end, rate = 12, repeat = 0) => {
+      if (!this.anims.exists(key)) {
+        this.anims.create({
+          key,
+          frames: this.anims.generateFrameNumbers(sheet, { start, end }),
+          frameRate: rate,
+          repeat
+        });
+      }
+    };
+
+    // Movement & Stances (Clean, natural pacing)
+    defineAnim('chunli_anim_idle', 'chunli_sheet_idle', 0, 15, 8, -1);
+    defineAnim('chunli_anim_walk', 'chunli_sheet_walk', 0, 15, 10, -1);
+    defineAnim('chunli_anim_dash', 'chunli_sheet_walk', 0, 7, 13, 0);
+    defineAnim('chunli_anim_crouch', 'chunli_sheet_crouch', 0, 11, 10, 0);
+    defineAnim('chunli_anim_jump', 'chunli_sheet_jump', 0, 15, 10, 0);
+    defineAnim('chunli_anim_knockback', 'chunli_sheet_hit', 0, 11, 10, 0);
+
+    // Normal Attacks
+    defineAnim('chunli_anim_atk_5a', 'chunli_sheet_basic_strike', 0, 15, 8, 0);
+    defineAnim('chunli_anim_atk_5b', 'chunli_sheet_lightning', 0, 15, 6, 0);
+    defineAnim('chunli_anim_atk_6b', 'chunli_sheet_spinning_bird', 0, 15, 6, 0);
+    defineAnim('chunli_anim_atk_5c', 'chunli_sheet_kikoken', 0, 15, 8, 0);
+
+    // Air Attacks
+    defineAnim('chunli_anim_atk_8a', 'chunli_sheet_jump', 4, 10, 6, 0);
+    defineAnim('chunli_anim_atk_8c', 'chunli_sheet_spinning_bird', 2, 12, 6, 0);
+
+    // Specials & Super (Section 2 of Guide)
+    defineAnim('chunli_anim_sp_kikoken', 'chunli_sheet_kikoken', 0, 15, 8, 0);
+    defineAnim('chunli_anim_sp_spinning_bird', 'chunli_sheet_spinning_bird', 0, 15, 6, 0);
+    defineAnim('chunli_anim_super', 'chunli_sheet_hoyoku', 0, 15, 6, 0);
+
+    // Projectiles & 3D VFX Overlays (Section 1 & 2 of Guide)
+    defineAnim('chunli_anim_projectile', 'chunli_sheet_projectile', 0, 15, 10, -1);
+    defineAnim('chunli_anim_impact', 'chunli_sheet_impact', 0, 15, 10, 0);
+    defineAnim('chunli_anim_vfx_lightning', 'chunli_sheet_vfx_lightning', 0, 15, 6, 0);
+    defineAnim('chunli_anim_vfx_spinning_bird', 'chunli_sheet_vfx_spinning_bird', 0, 15, 6, 0);
+    defineAnim('chunli_anim_vfx_hoyoku', 'chunli_sheet_vfx_hoyoku', 0, 15, 6, 0);
+  }
+
   spawnMysticProjectile(caster) {
     const facingRight = caster.sprite.flipX === true;
     const spawnX = caster.sprite.x + (facingRight ? 70 : -70);
@@ -840,17 +1080,103 @@ class ArenaScene extends Phaser.Scene {
     this.projectiles.add(proj);
   }
 
+  spawnKikokenProjectile(caster) {
+    const facingRight = caster.sprite.flipX === true;
+    const spawnX = caster.sprite.x + (facingRight ? 80 : -80);
+    const spawnY = caster.sprite.y - 15;
+
+    const proj = this.physics.add.sprite(spawnX, spawnY, 'chunli_sheet_projectile');
+    proj.setScale(0.75);
+    proj.body.setAllowGravity(false);
+    proj.body.setSize(140, 140);
+    proj.body.setOffset(58, 58);
+    proj.play('chunli_anim_projectile');
+    proj.caster = caster;
+    proj.isKikoken = true;
+    proj.setFlipX(!facingRight);
+
+    const speed = 680;
+    proj.setVelocityX(facingRight ? speed : -speed);
+
+    // Rotating cyan glow
+    this.tweens.add({
+      targets: proj,
+      alpha: { from: 0.85, to: 1 },
+      duration: 120,
+      yoyo: true,
+      repeat: -1
+    });
+
+    // Auto-destroy after 1.8 seconds
+    this.time.delayedCall(1800, () => {
+      if (proj && proj.active) proj.destroy();
+    });
+
+    this.projectiles.add(proj);
+  }
+
+  spawnKikokenImpact(x, y) {
+    const impact = this.add.sprite(x, y, 'chunli_sheet_impact');
+    impact.setScale(0.85);
+    impact.play('chunli_anim_impact');
+    impact.on('animationcomplete', () => impact.destroy());
+  }
+
+  spawnLightningLegsVFX(caster) {
+    const facingRight = caster.sprite.flipX === true;
+    const vfxX = caster.sprite.x + (facingRight ? 70 : -70);
+    const vfxY = caster.sprite.y - 10;
+
+    const vfx = this.add.sprite(vfxX, vfxY, 'chunli_sheet_vfx_lightning');
+    vfx.setScale(0.85);
+    vfx.setFlipX(!facingRight);
+    vfx.play('chunli_anim_vfx_lightning');
+    vfx.on('animationcomplete', () => vfx.destroy());
+  }
+
+  spawnSpinningBirdVFX(caster) {
+    const facingRight = caster.sprite.flipX === true;
+    const vfxX = caster.sprite.x + (facingRight ? 30 : -30);
+    const vfxY = caster.sprite.y - 15;
+
+    const vfx = this.add.sprite(vfxX, vfxY, 'chunli_sheet_vfx_spinning_bird');
+    vfx.setScale(0.9);
+    vfx.setFlipX(!facingRight);
+    vfx.play('chunli_anim_vfx_spinning_bird');
+    vfx.on('animationcomplete', () => vfx.destroy());
+  }
+
+  spawnHoyokuSenVFX(caster) {
+    const facingRight = caster.sprite.flipX === true;
+    const vfxX = caster.sprite.x + (facingRight ? 85 : -85);
+    const vfxY = caster.sprite.y - 30;
+
+    const vfx = this.add.sprite(vfxX, vfxY, 'chunli_sheet_vfx_hoyoku');
+    vfx.setScale(1.05);
+    vfx.setFlipX(!facingRight);
+    vfx.play('chunli_anim_vfx_hoyoku');
+    vfx.on('animationcomplete', () => vfx.destroy());
+  }
+
   handleProjectileHit(proj, target) {
     if (!proj || !proj.active || !target || target === proj.caster) return;
     if (target.hp <= 0 || (this.roundState !== 'FIGHTING')) return;
 
+    const hitX = proj.x;
+    const hitY = proj.y;
+    const isKikoken = Boolean(proj.isKikoken);
+
     proj.destroy();
 
+    if (isKikoken) {
+      this.spawnKikokenImpact(hitX, hitY);
+    }
+
     const atkData = {
-      damage: 155,
+      damage: isKikoken ? 150 : 155,
       isSpecial: true,
-      knockbackX: 450,
-      knockbackY: -280
+      knockbackX: isKikoken ? 460 : 450,
+      knockbackY: isKikoken ? -270 : -280
     };
 
     target.takeHit(atkData, proj.caster);
@@ -904,16 +1230,17 @@ class ArenaScene extends Phaser.Scene {
 
   buildDualPlayerHUD(p1Id, p2Id) {
     // --- PLAYER 1 HUD (Left) ---
-    const p1Color = p1Id === 'strange' ? 0xf59e0b : 0x06b6d4;
-    const p1Hex = p1Id === 'strange' ? '#f59e0b' : '#06b6d4';
-    const p1PortraitKey = p1Id === 'strange' ? 'strange_portrait' : 'harpy_portrait';
+    const p1Color = p1Id === 'strange' ? 0xf59e0b : (p1Id === 'chunli' ? 0x0284c7 : 0x06b6d4);
+    const p1Hex = p1Id === 'strange' ? '#f59e0b' : (p1Id === 'chunli' ? '#38bdf8' : '#06b6d4');
+    const p1PortraitKey = p1Id === 'strange' ? 'strange_portrait' : (p1Id === 'chunli' ? 'chunli_portrait' : 'harpy_portrait');
+    const p1DisplayName = p1Id === 'chunli' ? 'CHUN-LI' : p1Id.toUpperCase();
 
     const p1Card = this.add.rectangle(75, 60, 72, 72, p1Color, 0.4);
     p1Card.setStrokeStyle(2, p1Color);
     const p1Img = this.add.image(75, 60, p1PortraitKey);
     p1Img.setDisplaySize(68, 68);
 
-    this.p1Name = this.add.text(125, 34, `P1: ${p1Id.toUpperCase()}`, {
+    this.p1Name = this.add.text(125, 34, `P1: ${p1DisplayName}`, {
       fontFamily: 'Cinzel, Georgia, serif',
       fontSize: '18px',
       fontStyle: 'bold',
@@ -939,16 +1266,17 @@ class ArenaScene extends Phaser.Scene {
     });
 
     // --- PLAYER 2 HUD (Right) ---
-    const p2Color = p2Id === 'strange' ? 0xf59e0b : 0x06b6d4;
-    const p2Hex = p2Id === 'strange' ? '#f59e0b' : '#06b6d4';
-    const p2PortraitKey = p2Id === 'strange' ? 'strange_portrait' : 'harpy_portrait';
+    const p2Color = p2Id === 'strange' ? 0xf59e0b : (p2Id === 'chunli' ? 0x0284c7 : 0x06b6d4);
+    const p2Hex = p2Id === 'strange' ? '#f59e0b' : (p2Id === 'chunli' ? '#38bdf8' : '#06b6d4');
+    const p2PortraitKey = p2Id === 'strange' ? 'strange_portrait' : (p2Id === 'chunli' ? 'chunli_portrait' : 'harpy_portrait');
+    const p2DisplayName = p2Id === 'chunli' ? 'CHUN-LI' : p2Id.toUpperCase();
 
     const p2Card = this.add.rectangle(1205, 60, 72, 72, p2Color, 0.4);
     p2Card.setStrokeStyle(2, p2Color);
     const p2Img = this.add.image(1205, 60, p2PortraitKey);
     p2Img.setDisplaySize(68, 68);
 
-    this.p2Name = this.add.text(1155, 34, `P2: ${p2Id.toUpperCase()}`, {
+    this.p2Name = this.add.text(1155, 34, `P2: ${p2DisplayName}`, {
       fontFamily: 'Cinzel, Georgia, serif',
       fontSize: '18px',
       fontStyle: 'bold',
@@ -1118,10 +1446,10 @@ class ArenaScene extends Phaser.Scene {
     this.p2HpText.setText(`${this.fighterP2.hp} / ${this.fighterP2.maxHp}`);
 
     if (p1Ratio < 0.25) this.p1BarFill.fillColor = 0xef4444;
-    else this.p1BarFill.fillColor = this.fighterP1.charId === 'strange' ? 0xf59e0b : 0x06b6d4;
+    else this.p1BarFill.fillColor = this.fighterP1.charId === 'strange' ? 0xf59e0b : (this.fighterP1.charId === 'chunli' ? 0x0284c7 : 0x06b6d4);
 
     if (p2Ratio < 0.25) this.p2BarFill.fillColor = 0xef4444;
-    else this.p2BarFill.fillColor = this.fighterP2.charId === 'strange' ? 0xf59e0b : 0x06b6d4;
+    else this.p2BarFill.fillColor = this.fighterP2.charId === 'strange' ? 0xf59e0b : (this.fighterP2.charId === 'chunli' ? 0x0284c7 : 0x06b6d4);
 
     this.p1ActionText.setText(`ACTION: ${this.fighterP1.currentAction}`);
     this.p2ActionText.setText(`ACTION: ${this.fighterP2.currentAction}`);
