@@ -309,6 +309,9 @@ class FighterEntity {
     // If knocked back through the air, allow momentum to play out
     if (this.isKnockedBack) return;
 
+    // Prevent attack inputs from interrupting or restarting an ongoing attack animation
+    if (this.isAttacking) return;
+
     // 1. Attacks (Ground & Air)
     if (input.lightJustDown) {
       if (this.charId === 'strange') {
@@ -340,7 +343,7 @@ class FighterEntity {
             knockbackX: 180,
             knockbackY: 50,
             isSpecial: false
-          }, 600);
+          }, 1250);
         } else {
           this.triggerAttack('BASIC STRIKE (5A)', 'chunli_anim_atk_5a', {
             damage: 42,
@@ -349,7 +352,7 @@ class FighterEntity {
             knockbackX: 170,
             knockbackY: 0,
             isSpecial: false
-          }, 1330);
+          }, 2100);
         }
       } else {
         if (this.isInAir) {
@@ -414,7 +417,7 @@ class FighterEntity {
             knockbackX: 230,
             knockbackY: 80,
             isSpecial: false
-          }, 950);
+          }, 1900);
         } else if (input.isHoldingForward) {
           this.triggerAttack('SPINNING BIRD KICK (6B)', 'chunli_anim_atk_6b', {
             damage: 95,
@@ -423,7 +426,7 @@ class FighterEntity {
             knockbackX: 270,
             knockbackY: -60,
             isSpecial: false
-          }, 1330);
+          }, 2750);
           if (this.scene && this.scene.spawnSpinningBirdVFX) {
             this.scene.spawnSpinningBirdVFX(this);
           }
@@ -435,7 +438,7 @@ class FighterEntity {
             knockbackX: 230,
             knockbackY: -30,
             isSpecial: false
-          }, 1150);
+          }, 2750);
           if (this.scene && this.scene.spawnLightningLegsVFX) {
             this.scene.spawnLightningLegsVFX(this);
           }
@@ -503,7 +506,7 @@ class FighterEntity {
             knockbackX: 290,
             knockbackY: 130,
             isSpecial: false
-          }, 950);
+          }, 1900);
         } else {
           this.triggerAttack('FIERCE QI STRIKE (5C)', 'chunli_anim_atk_5c', {
             damage: 120,
@@ -512,7 +515,7 @@ class FighterEntity {
             knockbackX: 350,
             knockbackY: -120,
             isSpecial: false
-          }, 1450);
+          }, 2100);
         }
       } else {
         if (this.isInAir) {
@@ -573,7 +576,7 @@ class FighterEntity {
             knockbackX: 250,
             knockbackY: -500,
             isSpecial: true
-          }, 1250);
+          }, 2750);
           if (this.scene && this.scene.spawnSpinningBirdVFX) {
             this.scene.spawnSpinningBirdVFX(this);
           }
@@ -585,9 +588,9 @@ class FighterEntity {
             knockbackX: 460,
             knockbackY: -270,
             isSpecial: true
-          }, 1450);
-          // Frame 9-11 spawn Kikoken projectile (at ~750ms with 11 FPS)
-          this.scene.time.delayedCall(750, () => {
+          }, 2100);
+          // Frame 9-11 spawn Kikoken projectile (at ~1250ms with 8 FPS)
+          this.scene.time.delayedCall(1250, () => {
             if (this.scene && this.scene.spawnKikokenProjectile) {
               this.scene.spawnKikokenProjectile(this);
             }
@@ -636,7 +639,7 @@ class FighterEntity {
           knockbackX: 680,
           knockbackY: -540,
           isSpecial: true
-        }, 1400);
+        }, 2750);
         if (this.scene && this.scene.spawnHoyokuSenVFX) {
           this.scene.spawnHoyokuSenVFX(this);
         }
@@ -657,7 +660,7 @@ class FighterEntity {
       if (this.charId === 'strange') {
         this.triggerAttack('MYSTIC MEDITATION', 'strange_anim_dash', null, 400);
       } else if (this.charId === 'chunli') {
-        this.triggerAttack('GREETING BOW', 'chunli_anim_idle', null, 1600);
+        this.triggerAttack('GREETING BOW', 'chunli_anim_idle', null, 2000);
       } else {
         this.triggerAttack('TAUNT', 'harpy_anim_taunt', null, 500);
       }
@@ -1020,26 +1023,26 @@ class ArenaScene extends Phaser.Scene {
     defineAnim('chunli_anim_knockback', 'chunli_sheet_hit', 0, 11, 10, 0);
 
     // Normal Attacks
-    defineAnim('chunli_anim_atk_5a', 'chunli_sheet_basic_strike', 0, 15, 12, 0);
-    defineAnim('chunli_anim_atk_5b', 'chunli_sheet_lightning', 0, 15, 14, 0);
-    defineAnim('chunli_anim_atk_6b', 'chunli_sheet_spinning_bird', 0, 15, 12, 0);
-    defineAnim('chunli_anim_atk_5c', 'chunli_sheet_kikoken', 0, 15, 11, 0);
+    defineAnim('chunli_anim_atk_5a', 'chunli_sheet_basic_strike', 0, 15, 8, 0);
+    defineAnim('chunli_anim_atk_5b', 'chunli_sheet_lightning', 0, 15, 6, 0);
+    defineAnim('chunli_anim_atk_6b', 'chunli_sheet_spinning_bird', 0, 15, 6, 0);
+    defineAnim('chunli_anim_atk_5c', 'chunli_sheet_kikoken', 0, 15, 8, 0);
 
     // Air Attacks
-    defineAnim('chunli_anim_atk_8a', 'chunli_sheet_jump', 4, 10, 12, 0);
-    defineAnim('chunli_anim_atk_8c', 'chunli_sheet_spinning_bird', 2, 12, 12, 0);
+    defineAnim('chunli_anim_atk_8a', 'chunli_sheet_jump', 4, 10, 6, 0);
+    defineAnim('chunli_anim_atk_8c', 'chunli_sheet_spinning_bird', 2, 12, 6, 0);
 
     // Specials & Super (Section 2 of Guide)
-    defineAnim('chunli_anim_sp_kikoken', 'chunli_sheet_kikoken', 0, 15, 11, 0);
-    defineAnim('chunli_anim_sp_spinning_bird', 'chunli_sheet_spinning_bird', 0, 15, 13, 0);
-    defineAnim('chunli_anim_super', 'chunli_sheet_hoyoku', 0, 15, 12, 0);
+    defineAnim('chunli_anim_sp_kikoken', 'chunli_sheet_kikoken', 0, 15, 8, 0);
+    defineAnim('chunli_anim_sp_spinning_bird', 'chunli_sheet_spinning_bird', 0, 15, 6, 0);
+    defineAnim('chunli_anim_super', 'chunli_sheet_hoyoku', 0, 15, 6, 0);
 
     // Projectiles & 3D VFX Overlays (Section 1 & 2 of Guide)
-    defineAnim('chunli_anim_projectile', 'chunli_sheet_projectile', 0, 15, 14, -1);
-    defineAnim('chunli_anim_impact', 'chunli_sheet_impact', 0, 15, 14, 0);
-    defineAnim('chunli_anim_vfx_lightning', 'chunli_sheet_vfx_lightning', 0, 15, 14, 0);
-    defineAnim('chunli_anim_vfx_spinning_bird', 'chunli_sheet_vfx_spinning_bird', 0, 15, 14, 0);
-    defineAnim('chunli_anim_vfx_hoyoku', 'chunli_sheet_vfx_hoyoku', 0, 15, 12, 0);
+    defineAnim('chunli_anim_projectile', 'chunli_sheet_projectile', 0, 15, 10, -1);
+    defineAnim('chunli_anim_impact', 'chunli_sheet_impact', 0, 15, 10, 0);
+    defineAnim('chunli_anim_vfx_lightning', 'chunli_sheet_vfx_lightning', 0, 15, 6, 0);
+    defineAnim('chunli_anim_vfx_spinning_bird', 'chunli_sheet_vfx_spinning_bird', 0, 15, 6, 0);
+    defineAnim('chunli_anim_vfx_hoyoku', 'chunli_sheet_vfx_hoyoku', 0, 15, 6, 0);
   }
 
   spawnMysticProjectile(caster) {
