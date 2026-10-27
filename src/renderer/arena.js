@@ -19,10 +19,10 @@ class FighterEntity {
     this.hp = charId === 'strange' ? 960 : (charId === 'chunli' ? 950 : 920);
     this.maxHp = this.hp;
 
-    // Movement speeds & Jump velocity
-    this.walkSpeed = charId === 'strange' ? 215 : (charId === 'chunli' ? 250 : 260);
-    this.dashSpeed = charId === 'strange' ? 460 : (charId === 'chunli' ? 480 : 490);
-    this.jumpVel = charId === 'strange' ? -720 : (charId === 'chunli' ? -740 : -760);
+    // Movement speeds & Jump velocity (polishing Chun-Li to match Harpy's agility)
+    this.walkSpeed = charId === 'strange' ? 215 : (charId === 'chunli' ? 260 : 260);
+    this.dashSpeed = charId === 'strange' ? 460 : (charId === 'chunli' ? 495 : 490);
+    this.jumpVel = charId === 'strange' ? -720 : (charId === 'chunli' ? -760 : -760);
 
     // Create sprite
     const initialTexture = charId === 'strange' ? 'strange_sheet_idle' : (charId === 'chunli' ? 'chunli_sheet_idle' : 'harpy_sheet_idle');
@@ -33,10 +33,12 @@ class FighterEntity {
       this.sprite.body.setSize(180, 360);
       this.sprite.body.setOffset(166, 120);
     } else if (charId === 'chunli') {
-      this.sprite.setScale(1.05);
+      // Scale 0.79 scales Chun-Li's 234px idle sprite to ~185px, perfectly matching Harpy's 185px visual height!
+      this.sprite.setScale(0.79);
       this.sprite.setCollideWorldBounds(true);
-      this.sprite.body.setSize(130, 220);
-      this.sprite.body.setOffset(63, 34);
+      this.sprite.setDisplayOrigin(128, 128);
+      this.sprite.body.setSize(100, 230);
+      this.sprite.body.setOffset(78, 22);
     } else {
       this.sprite.setScale(0.25);
       this.sprite.setCollideWorldBounds(true);
@@ -45,15 +47,11 @@ class FighterEntity {
     }
 
     // Initial orientation:
-    // P1 (Left side) faces RIGHT towards P2 -> setFlipX(true)
-    // P2 (Right side) faces LEFT towards P1 -> setFlipX(false)
-    if (playerNum === 1) {
-      this.sprite.setFlipX(true);
-    } else {
-      this.sprite.setFlipX(false);
-      if (isMirror) {
-        this.sprite.setTint(0xc4b5fd);
-      }
+    // P1 (Left side) faces RIGHT towards P2 -> facingDir = 1
+    // P2 (Right side) faces LEFT towards P1 -> facingDir = -1
+    this.setFacingDir(playerNum === 1 ? 1 : -1);
+    if (playerNum !== 1 && isMirror) {
+      this.sprite.setTint(0xc4b5fd);
     }
 
     if (charId === 'strange') {
@@ -68,6 +66,24 @@ class FighterEntity {
     this.sprite.on('animationcomplete', (anim) => {
       this.onAnimationComplete(anim.key);
     });
+  }
+
+  getFacingDir() {
+    // Chun-Li's 3D sprites are authored facing RIGHT by default (flipX = false).
+    // Harpy & Strange are authored facing LEFT by default (flipX = false).
+    if (this.charId === 'chunli') {
+      return this.sprite.flipX ? -1 : 1;
+    }
+    return this.sprite.flipX ? 1 : -1;
+  }
+
+  setFacingDir(dir) {
+    // dir: 1 = facing RIGHT, -1 = facing LEFT
+    if (this.charId === 'chunli') {
+      this.sprite.setFlipX(dir === -1);
+    } else {
+      this.sprite.setFlipX(dir === 1);
+    }
   }
 
   onAnimationComplete(key) {
@@ -90,9 +106,19 @@ class FighterEntity {
         this.attackTimer.remove();
         this.attackTimer = null;
       }
+      if (this.charId === 'chunli') {
+        this.sprite.setDisplayOrigin(128, 128);
+        this.sprite.body.setSize(100, 230);
+        this.sprite.body.setOffset(78, 22);
+      }
       this.updateTextureForState();
     } else if (key === 'harpy_anim_knockback' || key === 'strange_anim_knockback' || key === 'chunli_anim_knockback') {
       this.isKnockedBack = false;
+      if (this.charId === 'chunli') {
+        this.sprite.setDisplayOrigin(128, 128);
+        this.sprite.body.setSize(100, 230);
+        this.sprite.body.setOffset(78, 22);
+      }
       this.updateTextureForState();
     }
   }
@@ -121,9 +147,15 @@ class FighterEntity {
       if (this.isKnockedBack) {
         this.currentAction = 'KNOCKBACK / LAUNCH';
         this.sprite.setTexture('chunli_sheet_hit');
+        this.sprite.setDisplayOrigin(150, 169);
+        this.sprite.body.setSize(100, 210);
+        this.sprite.body.setOffset(100, 82);
         this.sprite.play('chunli_anim_knockback', true);
         return;
       }
+      this.sprite.setDisplayOrigin(128, 128);
+      this.sprite.body.setSize(100, 230);
+      this.sprite.body.setOffset(78, 22);
       if (this.isInAir) {
         this.currentAction = this.sprite.body.velocity.y < 0 ? 'JUMP / ASCENT' : 'AIR FALL';
         this.sprite.setTexture('chunli_sheet_jump');
@@ -170,11 +202,11 @@ class FighterEntity {
     this.sprite.setPosition(x, y);
     this.sprite.setVelocity(0, 0);
 
+    // Initial facing: P1 faces right (1), P2 faces left (-1)
+    this.setFacingDir(this.playerNum === 1 ? 1 : -1);
     if (this.playerNum === 1) {
-      this.sprite.setFlipX(true);
       this.sprite.clearTint();
     } else {
-      this.sprite.setFlipX(false);
       if (this.isMirror) {
         this.sprite.setTint(0xc4b5fd);
       } else {
@@ -186,6 +218,9 @@ class FighterEntity {
       this.sprite.setTexture('strange_sheet_idle');
       this.sprite.play('strange_anim_idle', true);
     } else if (this.charId === 'chunli') {
+      this.sprite.setDisplayOrigin(128, 128);
+      this.sprite.body.setSize(100, 230);
+      this.sprite.body.setOffset(78, 22);
       this.sprite.setTexture('chunli_sheet_idle');
       this.sprite.play('chunli_anim_idle', true);
     } else {
@@ -200,6 +235,12 @@ class FighterEntity {
     this.hasDealtDamage = false;
     this.currentAttackData = attackData;
     this.currentAction = actionKey;
+
+    if (this.charId === 'chunli') {
+      this.sprite.setDisplayOrigin(128, 128);
+      this.sprite.body.setSize(100, 230);
+      this.sprite.body.setOffset(78, 22);
+    }
 
     this.sprite.play(animKey, true);
 
@@ -231,7 +272,7 @@ class FighterEntity {
     }
 
     // Spawn floating damage text (adjusted for character scale)
-    const textY = this.charId === 'strange' ? this.sprite.y - 120 : (this.charId === 'chunli' ? this.sprite.y - 110 : this.sprite.y - 95);
+    const textY = this.charId === 'strange' ? this.sprite.y - 120 : this.sprite.y - 95;
     this.scene.spawnDamageNumber(this.sprite.x, textY, attackData.damage, attackData.isSpecial);
 
     // Hit flash
@@ -245,7 +286,8 @@ class FighterEntity {
     });
 
     // Knockback direction: away from attacker
-    const pushDir = this.sprite.x >= attacker.sprite.x ? 1 : -1;
+    const attackerX = (attacker && attacker.sprite) ? attacker.sprite.x : (this.sprite.x - this.getFacingDir() * 100);
+    const pushDir = this.sprite.x >= attackerX ? 1 : -1;
 
     // REQUIREMENT: Use Sheet8C for Harpy as knockback on special attack!
     if (attackData.isSpecial) {
@@ -261,6 +303,9 @@ class FighterEntity {
         this.sprite.play('strange_anim_knockback', true);
       } else if (this.charId === 'chunli') {
         this.sprite.setTexture('chunli_sheet_hit');
+        this.sprite.setDisplayOrigin(150, 169);
+        this.sprite.body.setSize(100, 210);
+        this.sprite.body.setOffset(100, 82);
         this.sprite.play('chunli_anim_knockback', true);
       } else if (this.charId === 'harpy') {
         this.sprite.setTexture('harpy_sheet_8c');
@@ -278,6 +323,7 @@ class FighterEntity {
   }
 
   handleControls(input) {
+    if (!this.sprite || !this.sprite.body) return;
     if (this.hp <= 0 || (this.scene && this.scene.roundState !== 'FIGHTING')) {
       if (this.hp <= 0) {
         this.currentAction = 'DEFEATED (K.O.)';
@@ -343,7 +389,7 @@ class FighterEntity {
             knockbackX: 180,
             knockbackY: 50,
             isSpecial: false
-          }, 1250);
+          }, 450);
         } else {
           this.triggerAttack('BASIC STRIKE (5A)', 'chunli_anim_atk_5a', {
             damage: 42,
@@ -352,7 +398,7 @@ class FighterEntity {
             knockbackX: 170,
             knockbackY: 0,
             isSpecial: false
-          }, 2100);
+          }, 460);
         }
       } else {
         if (this.isInAir) {
@@ -417,7 +463,7 @@ class FighterEntity {
             knockbackX: 230,
             knockbackY: 80,
             isSpecial: false
-          }, 1900);
+          }, 520);
         } else if (input.isHoldingForward) {
           this.triggerAttack('SPINNING BIRD KICK (6B)', 'chunli_anim_atk_6b', {
             damage: 95,
@@ -426,7 +472,7 @@ class FighterEntity {
             knockbackX: 270,
             knockbackY: -60,
             isSpecial: false
-          }, 2750);
+          }, 650);
           if (this.scene && this.scene.spawnSpinningBirdVFX) {
             this.scene.spawnSpinningBirdVFX(this);
           }
@@ -438,7 +484,7 @@ class FighterEntity {
             knockbackX: 230,
             knockbackY: -30,
             isSpecial: false
-          }, 2750);
+          }, 620);
           if (this.scene && this.scene.spawnLightningLegsVFX) {
             this.scene.spawnLightningLegsVFX(this);
           }
@@ -506,7 +552,7 @@ class FighterEntity {
             knockbackX: 290,
             knockbackY: 130,
             isSpecial: false
-          }, 1900);
+          }, 520);
         } else {
           this.triggerAttack('FIERCE QI STRIKE (5C)', 'chunli_anim_atk_5c', {
             damage: 120,
@@ -515,7 +561,7 @@ class FighterEntity {
             knockbackX: 350,
             knockbackY: -120,
             isSpecial: false
-          }, 2100);
+          }, 580);
         }
       } else {
         if (this.isInAir) {
@@ -576,7 +622,7 @@ class FighterEntity {
             knockbackX: 250,
             knockbackY: -500,
             isSpecial: true
-          }, 2750);
+          }, 700);
           if (this.scene && this.scene.spawnSpinningBirdVFX) {
             this.scene.spawnSpinningBirdVFX(this);
           }
@@ -588,9 +634,9 @@ class FighterEntity {
             knockbackX: 460,
             knockbackY: -270,
             isSpecial: true
-          }, 2100);
-          // Frame 9-11 spawn Kikoken projectile (at ~1250ms with 8 FPS)
-          this.scene.time.delayedCall(1250, () => {
+          }, 650);
+          // Frame 9-11 palm extension release sync (~280ms at 16 FPS)
+          this.scene.time.delayedCall(280, () => {
             if (this.scene && this.scene.spawnKikokenProjectile) {
               this.scene.spawnKikokenProjectile(this);
             }
@@ -639,7 +685,7 @@ class FighterEntity {
           knockbackX: 680,
           knockbackY: -540,
           isSpecial: true
-        }, 2750);
+        }, 1000);
         if (this.scene && this.scene.spawnHoyokuSenVFX) {
           this.scene.spawnHoyokuSenVFX(this);
         }
@@ -660,7 +706,7 @@ class FighterEntity {
       if (this.charId === 'strange') {
         this.triggerAttack('MYSTIC MEDITATION', 'strange_anim_dash', null, 400);
       } else if (this.charId === 'chunli') {
-        this.triggerAttack('GREETING BOW', 'chunli_anim_idle', null, 2000);
+        this.triggerAttack('GREETING BOW', 'chunli_anim_idle', null, 600);
       } else {
         this.triggerAttack('TAUNT', 'harpy_anim_taunt', null, 500);
       }
@@ -679,6 +725,9 @@ class FighterEntity {
         });
       } else if (this.charId === 'chunli') {
         this.currentAction = 'LIGHTNING DASH';
+        this.sprite.setDisplayOrigin(128, 128);
+        this.sprite.body.setSize(100, 230);
+        this.sprite.body.setOffset(78, 22);
         this.sprite.play('chunli_anim_dash', true);
         this.sprite.setTint(0x38bdf8);
         this.scene.time.delayedCall(180, () => {
@@ -689,7 +738,7 @@ class FighterEntity {
         this.currentAction = 'FORWARD DASH';
         this.sprite.play('harpy_anim_dash', true);
       }
-      this.sprite.setVelocityX(this.sprite.flipX ? this.dashSpeed : -this.dashSpeed);
+      this.sprite.setVelocityX(this.getFacingDir() * this.dashSpeed);
       return;
     }
 
@@ -705,8 +754,11 @@ class FighterEntity {
           this.sprite.setTexture('strange_sheet_jump');
           this.sprite.play('strange_anim_jump', true);
         } else if (this.charId === 'chunli') {
+          this.sprite.setDisplayOrigin(128, 128);
+          this.sprite.body.setSize(100, 230);
+          this.sprite.body.setOffset(78, 22);
           this.sprite.setTexture('chunli_sheet_jump');
-          this.sprite.play('chunli_anim_jump', true);
+          this.sprite.play('chunli_anim_jump');
         } else {
           this.sprite.setTexture('harpy_sheet_jump');
           this.sprite.play('harpy_anim_jump', true);
@@ -720,21 +772,29 @@ class FighterEntity {
 
     if (input.left) {
       this.sprite.setVelocityX(-this.walkSpeed * airFactor);
-      this.sprite.setFlipX(false); // Faces LEFT
+      this.setFacingDir(-1); // Faces LEFT
       if (onGround && !input.up) {
         this.currentAction = 'WALK LEFT';
         if (this.charId === 'strange') this.sprite.play('strange_anim_walk', true);
-        else if (this.charId === 'chunli') this.sprite.play('chunli_anim_walk', true);
-        else this.sprite.play('harpy_anim_walk', true);
+        else if (this.charId === 'chunli') {
+          this.sprite.setDisplayOrigin(128, 128);
+          this.sprite.body.setSize(100, 230);
+          this.sprite.body.setOffset(78, 22);
+          this.sprite.play('chunli_anim_walk', true);
+        } else this.sprite.play('harpy_anim_walk', true);
       }
     } else if (input.right) {
       this.sprite.setVelocityX(this.walkSpeed * airFactor);
-      this.sprite.setFlipX(true); // Faces RIGHT
+      this.setFacingDir(1); // Faces RIGHT
       if (onGround && !input.up) {
         this.currentAction = 'WALK RIGHT';
         if (this.charId === 'strange') this.sprite.play('strange_anim_walk', true);
-        else if (this.charId === 'chunli') this.sprite.play('chunli_anim_walk', true);
-        else this.sprite.play('harpy_anim_walk', true);
+        else if (this.charId === 'chunli') {
+          this.sprite.setDisplayOrigin(128, 128);
+          this.sprite.body.setSize(100, 230);
+          this.sprite.body.setOffset(78, 22);
+          this.sprite.play('chunli_anim_walk', true);
+        } else this.sprite.play('harpy_anim_walk', true);
       }
     } else {
       if (onGround) {
@@ -742,19 +802,27 @@ class FighterEntity {
       }
     }
 
-    // 5. Crouch & Idle
+    // 5. Crouch & Idle (Chun-Li compact defensive crouch stance holds low while input.down is pressed)
     if (onGround) {
       if (input.down) {
         this.sprite.setVelocityX(0);
         this.currentAction = 'CROUCH';
         if (this.charId === 'strange') this.sprite.play('strange_anim_crouch', true);
-        else if (this.charId === 'chunli') this.sprite.play('chunli_anim_crouch', true);
-        else this.sprite.play('harpy_anim_crouch', true);
+        else if (this.charId === 'chunli') {
+          this.sprite.setDisplayOrigin(150, 170);
+          this.sprite.body.setSize(100, 160);
+          this.sprite.body.setOffset(100, 133);
+          this.sprite.play('chunli_anim_crouch', true);
+        } else this.sprite.play('harpy_anim_crouch', true);
       } else if (!input.left && !input.right && !input.up && !this.isInAir) {
         this.currentAction = 'IDLE';
         if (this.charId === 'strange') this.sprite.play('strange_anim_idle', true);
-        else if (this.charId === 'chunli') this.sprite.play('chunli_anim_idle', true);
-        else this.sprite.play('harpy_anim_idle', true);
+        else if (this.charId === 'chunli') {
+          this.sprite.setDisplayOrigin(128, 128);
+          this.sprite.body.setSize(100, 230);
+          this.sprite.body.setOffset(78, 22);
+          this.sprite.play('chunli_anim_idle', true);
+        } else this.sprite.play('harpy_anim_idle', true);
       }
     } else {
       this.currentAction = this.sprite.body.velocity.y < 0 ? 'JUMP / ASCENT' : 'AIR FALL';
@@ -762,6 +830,9 @@ class FighterEntity {
         this.sprite.setTexture('strange_sheet_jump');
         this.sprite.play('strange_anim_jump', true);
       } else if (this.charId === 'chunli' && this.sprite.anims.currentAnim?.key !== 'chunli_anim_jump') {
+        this.sprite.setDisplayOrigin(128, 128);
+        this.sprite.body.setSize(100, 230);
+        this.sprite.body.setOffset(78, 22);
         this.sprite.setTexture('chunli_sheet_jump');
         this.sprite.play('chunli_anim_jump', true);
       } else if (this.charId === 'harpy' && this.sprite.anims.currentAnim?.key !== 'harpy_anim_jump') {
@@ -908,10 +979,12 @@ class ArenaScene extends Phaser.Scene {
     this.physics.add.collider(this.fighterP1.sprite, this.fighterP2.sprite);
 
     // Overlap for projectiles against fighters
-    this.physics.add.overlap(this.projectiles, this.fighterP1.sprite, (proj, targetSprite) => {
+    this.physics.add.overlap(this.projectiles, this.fighterP1.sprite, (obj1, obj2) => {
+      const proj = (obj1 === this.fighterP1.sprite) ? obj2 : obj1;
       this.handleProjectileHit(proj, this.fighterP1);
     });
-    this.physics.add.overlap(this.projectiles, this.fighterP2.sprite, (proj, targetSprite) => {
+    this.physics.add.overlap(this.projectiles, this.fighterP2.sprite, (obj1, obj2) => {
+      const proj = (obj1 === this.fighterP2.sprite) ? obj2 : obj1;
       this.handleProjectileHit(proj, this.fighterP2);
     });
 
@@ -1003,7 +1076,7 @@ class ArenaScene extends Phaser.Scene {
   }
 
   registerChunLiAnimations() {
-    const defineAnim = (key, sheet, start, end, rate = 12, repeat = 0) => {
+    const defineAnim = (key, sheet, start, end, rate = 16, repeat = 0) => {
       if (!this.anims.exists(key)) {
         this.anims.create({
           key,
@@ -1014,39 +1087,43 @@ class ArenaScene extends Phaser.Scene {
       }
     };
 
-    // Movement & Stances (Clean, natural pacing)
-    defineAnim('chunli_anim_idle', 'chunli_sheet_idle', 0, 15, 8, -1);
-    defineAnim('chunli_anim_walk', 'chunli_sheet_walk', 0, 15, 10, -1);
-    defineAnim('chunli_anim_dash', 'chunli_sheet_walk', 0, 7, 13, 0);
-    defineAnim('chunli_anim_crouch', 'chunli_sheet_crouch', 0, 11, 10, 0);
-    defineAnim('chunli_anim_jump', 'chunli_sheet_jump', 0, 15, 10, 0);
-    defineAnim('chunli_anim_knockback', 'chunli_sheet_hit', 0, 11, 10, 0);
+    // Movement & Stances (Polished wushu frame rates & smooth fluid motion)
+    defineAnim('chunli_anim_idle', 'chunli_sheet_idle', 0, 15, 14, -1);
+    defineAnim('chunli_anim_walk', 'chunli_sheet_walk', 0, 15, 16, -1);
+    defineAnim('chunli_anim_dash', 'chunli_sheet_walk', 0, 7, 18, 0);
+    // Crouch: plays progressive crouch (frames 0-6) and holds compact low defensive stance on frame 6 while holding down
+    defineAnim('chunli_anim_crouch', 'chunli_sheet_crouch', 0, 6, 16, 0);
+    // Jump: plays launch, apex tuck (frames 6-8) and descent pose (frame 10), then holds freefall pose until touching ground
+    defineAnim('chunli_anim_jump', 'chunli_sheet_jump', 0, 10, 14, 0);
+    defineAnim('chunli_anim_knockback', 'chunli_sheet_hit', 0, 11, 15, 0);
 
-    // Normal Attacks
-    defineAnim('chunli_anim_atk_5a', 'chunli_sheet_basic_strike', 0, 15, 8, 0);
-    defineAnim('chunli_anim_atk_5b', 'chunli_sheet_lightning', 0, 15, 6, 0);
-    defineAnim('chunli_anim_atk_6b', 'chunli_sheet_spinning_bird', 0, 15, 6, 0);
-    defineAnim('chunli_anim_atk_5c', 'chunli_sheet_kikoken', 0, 15, 8, 0);
+    // Normal Attacks (Crisp, snappy fighting-game frame data matching Harpy's responsiveness)
+    defineAnim('chunli_anim_atk_5a', 'chunli_sheet_basic_strike', 0, 15, 18, 0);
+    defineAnim('chunli_anim_atk_5b', 'chunli_sheet_lightning', 0, 15, 20, 0);
+    defineAnim('chunli_anim_atk_6b', 'chunli_sheet_spinning_bird', 0, 15, 18, 0);
+    defineAnim('chunli_anim_atk_5c', 'chunli_sheet_kikoken', 0, 15, 16, 0);
 
     // Air Attacks
-    defineAnim('chunli_anim_atk_8a', 'chunli_sheet_jump', 4, 10, 6, 0);
-    defineAnim('chunli_anim_atk_8c', 'chunli_sheet_spinning_bird', 2, 12, 6, 0);
+    defineAnim('chunli_anim_atk_8a', 'chunli_sheet_jump', 4, 10, 16, 0);
+    defineAnim('chunli_anim_atk_8c', 'chunli_sheet_spinning_bird', 2, 12, 18, 0);
 
     // Specials & Super (Section 2 of Guide)
-    defineAnim('chunli_anim_sp_kikoken', 'chunli_sheet_kikoken', 0, 15, 8, 0);
-    defineAnim('chunli_anim_sp_spinning_bird', 'chunli_sheet_spinning_bird', 0, 15, 6, 0);
-    defineAnim('chunli_anim_super', 'chunli_sheet_hoyoku', 0, 15, 6, 0);
+    defineAnim('chunli_anim_sp_kikoken', 'chunli_sheet_kikoken', 0, 15, 16, 0);
+    defineAnim('chunli_anim_sp_spinning_bird', 'chunli_sheet_spinning_bird', 0, 15, 18, 0);
+    defineAnim('chunli_anim_super', 'chunli_sheet_hoyoku', 0, 15, 18, 0);
 
     // Projectiles & 3D VFX Overlays (Section 1 & 2 of Guide)
-    defineAnim('chunli_anim_projectile', 'chunli_sheet_projectile', 0, 15, 10, -1);
-    defineAnim('chunli_anim_impact', 'chunli_sheet_impact', 0, 15, 10, 0);
-    defineAnim('chunli_anim_vfx_lightning', 'chunli_sheet_vfx_lightning', 0, 15, 6, 0);
-    defineAnim('chunli_anim_vfx_spinning_bird', 'chunli_sheet_vfx_spinning_bird', 0, 15, 6, 0);
-    defineAnim('chunli_anim_vfx_hoyoku', 'chunli_sheet_vfx_hoyoku', 0, 15, 6, 0);
+    defineAnim('chunli_anim_projectile', 'chunli_sheet_projectile', 0, 15, 16, -1);
+    defineAnim('chunli_anim_impact', 'chunli_sheet_impact', 0, 15, 20, 0);
+    defineAnim('chunli_anim_vfx_lightning', 'chunli_sheet_vfx_lightning', 0, 15, 20, 0);
+    defineAnim('chunli_anim_vfx_spinning_bird', 'chunli_sheet_vfx_spinning_bird', 0, 15, 18, 0);
+    defineAnim('chunli_anim_vfx_hoyoku', 'chunli_sheet_vfx_hoyoku', 0, 15, 18, 0);
   }
 
   spawnMysticProjectile(caster) {
-    const facingRight = caster.sprite.flipX === true;
+    if (!caster || !caster.sprite) return;
+    const facingDir = caster.getFacingDir ? caster.getFacingDir() : (caster.sprite.flipX ? 1 : -1);
+    const facingRight = facingDir === 1;
     const spawnX = caster.sprite.x + (facingRight ? 70 : -70);
     const spawnY = caster.sprite.y - 25;
 
@@ -1081,21 +1158,23 @@ class ArenaScene extends Phaser.Scene {
   }
 
   spawnKikokenProjectile(caster) {
-    const facingRight = caster.sprite.flipX === true;
-    const spawnX = caster.sprite.x + (facingRight ? 80 : -80);
-    const spawnY = caster.sprite.y - 15;
+    if (!caster || !caster.sprite) return;
+    const facingDir = caster.getFacingDir ? caster.getFacingDir() : 1;
+    const facingRight = facingDir === 1;
+    const spawnX = caster.sprite.x + (facingRight ? 65 : -65);
+    const spawnY = caster.sprite.y - 12;
 
     const proj = this.physics.add.sprite(spawnX, spawnY, 'chunli_sheet_projectile');
-    proj.setScale(0.75);
+    proj.setScale(0.65);
     proj.body.setAllowGravity(false);
-    proj.body.setSize(140, 140);
-    proj.body.setOffset(58, 58);
+    proj.body.setSize(120, 120);
+    proj.body.setOffset(68, 68);
     proj.play('chunli_anim_projectile');
     proj.caster = caster;
     proj.isKikoken = true;
     proj.setFlipX(!facingRight);
 
-    const speed = 680;
+    const speed = 700;
     proj.setVelocityX(facingRight ? speed : -speed);
 
     // Rotating cyan glow
@@ -1117,56 +1196,72 @@ class ArenaScene extends Phaser.Scene {
 
   spawnKikokenImpact(x, y) {
     const impact = this.add.sprite(x, y, 'chunli_sheet_impact');
-    impact.setScale(0.85);
+    impact.setScale(0.75);
     impact.play('chunli_anim_impact');
     impact.on('animationcomplete', () => impact.destroy());
+    this.time.delayedCall(600, () => { if (impact && impact.active) impact.destroy(); });
   }
 
   spawnLightningLegsVFX(caster) {
-    const facingRight = caster.sprite.flipX === true;
-    const vfxX = caster.sprite.x + (facingRight ? 70 : -70);
+    if (!caster || !caster.sprite) return;
+    const facingDir = caster.getFacingDir ? caster.getFacingDir() : 1;
+    const facingRight = facingDir === 1;
+    const vfxX = caster.sprite.x + (facingRight ? 55 : -55);
     const vfxY = caster.sprite.y - 10;
 
     const vfx = this.add.sprite(vfxX, vfxY, 'chunli_sheet_vfx_lightning');
-    vfx.setScale(0.85);
+    vfx.setScale(0.75);
     vfx.setFlipX(!facingRight);
     vfx.play('chunli_anim_vfx_lightning');
-    vfx.on('animationcomplete', () => vfx.destroy());
+    vfx.on('animationcomplete', () => { if (vfx.active) vfx.destroy(); });
+    this.time.delayedCall(1000, () => { if (vfx && vfx.active) vfx.destroy(); });
   }
 
   spawnSpinningBirdVFX(caster) {
-    const facingRight = caster.sprite.flipX === true;
-    const vfxX = caster.sprite.x + (facingRight ? 30 : -30);
-    const vfxY = caster.sprite.y - 15;
+    if (!caster || !caster.sprite) return;
+    const facingDir = caster.getFacingDir ? caster.getFacingDir() : 1;
+    const facingRight = facingDir === 1;
+    const vfxX = caster.sprite.x + (facingRight ? 25 : -25);
+    const vfxY = caster.sprite.y - 12;
 
     const vfx = this.add.sprite(vfxX, vfxY, 'chunli_sheet_vfx_spinning_bird');
-    vfx.setScale(0.9);
+    vfx.setScale(0.78);
     vfx.setFlipX(!facingRight);
     vfx.play('chunli_anim_vfx_spinning_bird');
-    vfx.on('animationcomplete', () => vfx.destroy());
+    vfx.on('animationcomplete', () => { if (vfx.active) vfx.destroy(); });
+    this.time.delayedCall(1000, () => { if (vfx && vfx.active) vfx.destroy(); });
   }
 
   spawnHoyokuSenVFX(caster) {
-    const facingRight = caster.sprite.flipX === true;
-    const vfxX = caster.sprite.x + (facingRight ? 85 : -85);
-    const vfxY = caster.sprite.y - 30;
+    if (!caster || !caster.sprite) return;
+    const facingDir = caster.getFacingDir ? caster.getFacingDir() : 1;
+    const facingRight = facingDir === 1;
+    const vfxX = caster.sprite.x + (facingRight ? 65 : -65);
+    const vfxY = caster.sprite.y - 25;
 
     const vfx = this.add.sprite(vfxX, vfxY, 'chunli_sheet_vfx_hoyoku');
-    vfx.setScale(1.05);
+    vfx.setScale(0.80);
     vfx.setFlipX(!facingRight);
     vfx.play('chunli_anim_vfx_hoyoku');
-    vfx.on('animationcomplete', () => vfx.destroy());
+    vfx.on('animationcomplete', () => { if (vfx.active) vfx.destroy(); });
+    this.time.delayedCall(1500, () => { if (vfx && vfx.active) vfx.destroy(); });
   }
 
   handleProjectileHit(proj, target) {
-    if (!proj || !proj.active || !target || target === proj.caster) return;
+    if (!proj || !target || !target.sprite) return;
+    // Guard: Ensure proj is actually an active projectile and not accidentally a fighter sprite
+    if (proj === target.sprite || (this.fighterP1 && proj === this.fighterP1.sprite) || (this.fighterP2 && proj === this.fighterP2.sprite)) return;
+    if (!proj.active || target === proj.caster) return;
     if (target.hp <= 0 || (this.roundState !== 'FIGHTING')) return;
 
     const hitX = proj.x;
     const hitY = proj.y;
     const isKikoken = Boolean(proj.isKikoken);
+    const caster = proj.caster;
 
-    proj.destroy();
+    if (proj.active) {
+      proj.destroy();
+    }
 
     if (isKikoken) {
       this.spawnKikokenImpact(hitX, hitY);
@@ -1179,7 +1274,7 @@ class ArenaScene extends Phaser.Scene {
       knockbackY: isKikoken ? -270 : -280
     };
 
-    target.takeHit(atkData, proj.caster);
+    target.takeHit(atkData, caster);
     this.cameras.main.shake(240, 0.018);
     if (window.soundFX) window.soundFX.playStartBoom();
   }
@@ -1202,7 +1297,7 @@ class ArenaScene extends Phaser.Scene {
       esc: Phaser.Input.Keyboard.KeyCodes.ESC
     });
 
-    // PLAYER 2: Arrow Keys / J / K / L / U / I / O / P / Numpad
+    // PLAYER 2: Arrow Keys / J / K / L / U / I / O / P / Numpad / Number Row
     this.p2Keys = this.input.keyboard.addKeys({
       up: Phaser.Input.Keyboard.KeyCodes.UP,
       down: Phaser.Input.Keyboard.KeyCodes.DOWN,
@@ -1220,7 +1315,13 @@ class ArenaScene extends Phaser.Scene {
       num3: Phaser.Input.Keyboard.KeyCodes.NUMPAD_THREE,
       num4: Phaser.Input.Keyboard.KeyCodes.NUMPAD_FOUR,
       num5: Phaser.Input.Keyboard.KeyCodes.NUMPAD_FIVE,
-      num0: Phaser.Input.Keyboard.KeyCodes.NUMPAD_ZERO
+      num0: Phaser.Input.Keyboard.KeyCodes.NUMPAD_ZERO,
+      one: Phaser.Input.Keyboard.KeyCodes.ONE,
+      two: Phaser.Input.Keyboard.KeyCodes.TWO,
+      three: Phaser.Input.Keyboard.KeyCodes.THREE,
+      four: Phaser.Input.Keyboard.KeyCodes.FOUR,
+      five: Phaser.Input.Keyboard.KeyCodes.FIVE,
+      zero: Phaser.Input.Keyboard.KeyCodes.ZERO
     });
 
     this.p1Keys.esc.on('down', () => {
@@ -1402,6 +1503,7 @@ class ArenaScene extends Phaser.Scene {
   }
 
   checkHit(attacker, defender) {
+    if (!attacker || !defender || !attacker.sprite || !defender.sprite) return;
     if (!attacker.isAttacking || attacker.hasDealtDamage || !attacker.currentAttackData) {
       return;
     }
@@ -1413,10 +1515,10 @@ class ArenaScene extends Phaser.Scene {
     const dx = dSprite.x - aSprite.x;
     const dy = Math.abs(dSprite.y - aSprite.y);
 
-    // Verify attacker is facing towards defender
-    const facingRight = aSprite.flipX === true;
-    const isInFront = (facingRight && dx > -20 && dx <= atkData.rangeX) ||
-                      (!facingRight && dx < 20 && dx >= -atkData.rangeX);
+    // Verify attacker is facing towards defender using character-accurate facing logic
+    const facingDir = attacker.getFacingDir();
+    const isInFront = (facingDir === 1 && dx > -20 && dx <= atkData.rangeX) ||
+                      (facingDir === -1 && dx < 20 && dx >= -atkData.rangeX);
 
     if (isInFront && dy <= atkData.rangeY) {
       attacker.hasDealtDamage = true;
@@ -1858,7 +1960,7 @@ class ArenaScene extends Phaser.Scene {
       down: p1Down,
       left: p1Left,
       right: p1Right,
-      isHoldingForward: this.fighterP1.sprite.flipX ? p1Right : p1Left,
+      isHoldingForward: this.fighterP1.getFacingDir() === 1 ? p1Right : p1Left,
       lightJustDown: Phaser.Input.Keyboard.JustDown(this.p1Keys.f),
       mediumJustDown: Phaser.Input.Keyboard.JustDown(this.p1Keys.g),
       heavyJustDown: Phaser.Input.Keyboard.JustDown(this.p1Keys.h),
@@ -1868,7 +1970,7 @@ class ArenaScene extends Phaser.Scene {
       tauntJustDown: Phaser.Input.Keyboard.JustDown(this.p1Keys.t)
     };
 
-    // --- PLAYER 2 INPUT (Arrows / J / K / L / U / I / O / P / Numpad) ---
+    // --- PLAYER 2 INPUT (Arrows / J / K / L / U / I / O / P / Numpad / Number Row) ---
     const p2Up = this.p2Keys.up.isDown;
     const p2UpJustDown = Phaser.Input.Keyboard.JustDown(this.p2Keys.up);
     const p2Left = this.p2Keys.left.isDown;
@@ -1881,13 +1983,13 @@ class ArenaScene extends Phaser.Scene {
       down: p2Down,
       left: p2Left,
       right: p2Right,
-      isHoldingForward: this.fighterP2.sprite.flipX ? p2Right : p2Left,
-      lightJustDown: Phaser.Input.Keyboard.JustDown(this.p2Keys.j) || Phaser.Input.Keyboard.JustDown(this.p2Keys.num1),
-      mediumJustDown: Phaser.Input.Keyboard.JustDown(this.p2Keys.k) || Phaser.Input.Keyboard.JustDown(this.p2Keys.num2),
-      heavyJustDown: Phaser.Input.Keyboard.JustDown(this.p2Keys.l) || Phaser.Input.Keyboard.JustDown(this.p2Keys.num3),
-      specialJustDown: Phaser.Input.Keyboard.JustDown(this.p2Keys.u) || Phaser.Input.Keyboard.JustDown(this.p2Keys.num4),
-      superJustDown: (p2Down && Phaser.Input.Keyboard.JustDown(this.p2Keys.l)) || Phaser.Input.Keyboard.JustDown(this.p2Keys.i) || Phaser.Input.Keyboard.JustDown(this.p2Keys.num5),
-      dashJustDown: Phaser.Input.Keyboard.JustDown(this.p2Keys.o) || Phaser.Input.Keyboard.JustDown(this.p2Keys.num0),
+      isHoldingForward: this.fighterP2.getFacingDir() === 1 ? p2Right : p2Left,
+      lightJustDown: Phaser.Input.Keyboard.JustDown(this.p2Keys.j) || Phaser.Input.Keyboard.JustDown(this.p2Keys.num1) || (this.p2Keys.one && Phaser.Input.Keyboard.JustDown(this.p2Keys.one)),
+      mediumJustDown: Phaser.Input.Keyboard.JustDown(this.p2Keys.k) || Phaser.Input.Keyboard.JustDown(this.p2Keys.num2) || (this.p2Keys.two && Phaser.Input.Keyboard.JustDown(this.p2Keys.two)),
+      heavyJustDown: Phaser.Input.Keyboard.JustDown(this.p2Keys.l) || Phaser.Input.Keyboard.JustDown(this.p2Keys.num3) || (this.p2Keys.three && Phaser.Input.Keyboard.JustDown(this.p2Keys.three)),
+      specialJustDown: Phaser.Input.Keyboard.JustDown(this.p2Keys.u) || Phaser.Input.Keyboard.JustDown(this.p2Keys.num4) || (this.p2Keys.four && Phaser.Input.Keyboard.JustDown(this.p2Keys.four)),
+      superJustDown: (p2Down && (Phaser.Input.Keyboard.JustDown(this.p2Keys.l) || Phaser.Input.Keyboard.JustDown(this.p2Keys.num3) || (this.p2Keys.three && Phaser.Input.Keyboard.JustDown(this.p2Keys.three)))) || Phaser.Input.Keyboard.JustDown(this.p2Keys.i) || Phaser.Input.Keyboard.JustDown(this.p2Keys.num5) || (this.p2Keys.five && Phaser.Input.Keyboard.JustDown(this.p2Keys.five)),
+      dashJustDown: Phaser.Input.Keyboard.JustDown(this.p2Keys.o) || Phaser.Input.Keyboard.JustDown(this.p2Keys.num0) || (this.p2Keys.zero && Phaser.Input.Keyboard.JustDown(this.p2Keys.zero)),
       tauntJustDown: Phaser.Input.Keyboard.JustDown(this.p2Keys.p)
     };
 
