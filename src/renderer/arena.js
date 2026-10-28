@@ -283,6 +283,9 @@ class FighterEntity {
     } else if (this.charId === 'mewtwo') {
       this.sprite.y = 479.84;
     } else if (this.charId === 'chunli') {
+      this.sprite.setDisplayOrigin(128, 128);
+      this.sprite.body.setSize(100, 230);
+      this.sprite.body.setOffset(78, 22);
       this.sprite.y = 477.04;
     } else if (this.charId === 'strange') {
       this.sprite.y = 395.80;
@@ -345,13 +348,19 @@ class FighterEntity {
         return;
       }
       if (this.isInAir) {
-        this.sprite.setOrigin(0.5, 0.5);
+        this.sprite.setDisplayOrigin(128, 128);
+        this.sprite.body.setSize(100, 230);
+        this.sprite.body.setOffset(78, 22);
         this.currentAction = this.sprite.body.velocity.y < 0 ? 'JUMP / ASCENT' : 'AIR FALL';
         this.sprite.setTexture('chunli_sheet_jump');
         this.sprite.play('chunli_anim_jump', true);
       } else {
+        this.sprite.setDisplayOrigin(128, 128);
+        this.sprite.body.setSize(100, 230);
+        this.sprite.body.setOffset(78, 22);
         if (this.isCrouching) {
           this.currentAction = 'CROUCH';
+          this.sprite.setTexture('chunli_sheet_crouch');
           this.sprite.play('chunli_anim_crouch_hold', true);
         } else {
           this.currentAction = 'IDLE';
@@ -689,6 +698,9 @@ class FighterEntity {
     this.attackTimer = this.scene.time.delayedCall(duration, () => {
       if (this.isAttacking) {
         if (this.charId === 'chunli' && this.sprite && this.sprite.body) {
+          this.sprite.setDisplayOrigin(128, 128);
+          this.sprite.body.setSize(100, 230);
+          this.sprite.body.setOffset(78, 22);
           this.sprite.body.setAllowGravity(true);
         } else if (this.charId === 'mewtwo' && this.sprite && this.sprite.body) {
           this.sprite.setScale(0.78);
@@ -825,6 +837,10 @@ class FighterEntity {
         this.isStunned = false;
         this.stunTimer = null;
         this.updateTextureForState();
+        if (this.sprite && this.sprite.body && (this.sprite.body.blocked.down || this.sprite.y >= (this.charId === 'strange' ? 392 : 472))) {
+          this.isInAir = false;
+          this.snapToGround();
+        }
       });
       this.updateTextureForState();
     }
@@ -853,7 +869,8 @@ class FighterEntity {
       this.isCrouching ||
       this.sprite.body.blocked.down ||
       this.sprite.body.touching.down ||
-      this.sprite.body.bottom >= 568
+      this.sprite.body.bottom >= 568 ||
+      (this.sprite.y >= (this.charId === 'strange' ? 392 : 472))
     );
 
     // Landing detection: ONLY when falling downward (velocity.y >= 0) and not during active launch ascent!
@@ -869,6 +886,9 @@ class FighterEntity {
         this.isAttacking = false;
         this.currentAttackData = null;
         if (this.charId === 'chunli' && this.sprite && this.sprite.body) {
+          this.sprite.setDisplayOrigin(128, 128);
+          this.sprite.body.setSize(100, 230);
+          this.sprite.body.setOffset(78, 22);
           this.sprite.body.setAllowGravity(true);
         }
         this.updateTextureForState();
@@ -1470,7 +1490,9 @@ class FighterEntity {
           this.sprite.setTexture('strange_sheet_jump');
           this.sprite.play('strange_anim_jump', true);
         } else if (this.charId === 'chunli') {
-          this.sprite.setOrigin(0.5, 0.5);
+          this.sprite.setDisplayOrigin(128, 128);
+          this.sprite.body.setSize(100, 230);
+          this.sprite.body.setOffset(78, 22);
           this.sprite.setTexture('chunli_sheet_jump');
           this.sprite.play('chunli_anim_jump');
         } else if (this.charId === 'mewtwo') {
@@ -1515,7 +1537,12 @@ class FighterEntity {
           if (this.charId === 'strange') {
             this.sprite.play('strange_anim_crouch_down').chain('strange_anim_crouch_hold');
           } else if (this.charId === 'chunli') {
+            this.sprite.setDisplayOrigin(128, 128);
+            this.sprite.body.setSize(100, 230);
+            this.sprite.body.setOffset(78, 22);
+            this.sprite.setTexture('chunli_sheet_crouch');
             this.sprite.play('chunli_anim_crouch_down').chain('chunli_anim_crouch_hold');
+            this.snapToGround();
           } else if (this.charId === 'mewtwo') {
             this.sprite.setScale(0.68);
             this.sprite.setOrigin(0.462, 0.504);
@@ -1540,8 +1567,12 @@ class FighterEntity {
           this.isCrouching = false;
           if (this.sprite && this.sprite.chain) this.sprite.chain();
           if (this.charId === 'chunli') {
+            this.sprite.setDisplayOrigin(128, 128);
+            this.sprite.body.setSize(100, 230);
+            this.sprite.body.setOffset(78, 22);
             this.sprite.setTexture('chunli_sheet_idle');
             this.sprite.play('chunli_anim_idle', true);
+            this.snapToGround();
           } else if (this.charId === 'mewtwo') {
             this.sprite.setScale(0.78);
             this.sprite.setOrigin(0.479, 0.5);
@@ -1568,7 +1599,10 @@ class FighterEntity {
             this.currentAction = 'WALK LEFT';
             if (this.charId === 'strange') this.sprite.play('strange_anim_walk', true);
             else if (this.charId === 'chunli') {
-              this.sprite.setOrigin(0.5, 0.5);
+              this.sprite.setDisplayOrigin(128, 128);
+              this.sprite.body.setSize(100, 230);
+              this.sprite.body.setOffset(78, 22);
+              this.sprite.setTexture('chunli_sheet_walk');
               this.sprite.play('chunli_anim_walk', true);
             } else if (this.charId === 'mewtwo') {
               this.sprite.setScale(0.78);
@@ -1591,7 +1625,10 @@ class FighterEntity {
             this.currentAction = 'WALK RIGHT';
             if (this.charId === 'strange') this.sprite.play('strange_anim_walk', true);
             else if (this.charId === 'chunli') {
-              this.sprite.setOrigin(0.5, 0.5);
+              this.sprite.setDisplayOrigin(128, 128);
+              this.sprite.body.setSize(100, 230);
+              this.sprite.body.setOffset(78, 22);
+              this.sprite.setTexture('chunli_sheet_walk');
               this.sprite.play('chunli_anim_walk', true);
             } else if (this.charId === 'mewtwo') {
               this.sprite.setScale(0.78);
@@ -1613,8 +1650,12 @@ class FighterEntity {
             this.currentAction = 'IDLE';
             if (this.charId === 'strange') this.sprite.play('strange_anim_idle', true);
             else if (this.charId === 'chunli') {
-              this.sprite.setOrigin(0.5, 0.5);
+              this.sprite.setDisplayOrigin(128, 128);
+              this.sprite.body.setSize(100, 230);
+              this.sprite.body.setOffset(78, 22);
+              this.sprite.setTexture('chunli_sheet_idle');
               this.sprite.play('chunli_anim_idle', true);
+              this.snapToGround();
             } else if (this.charId === 'mewtwo') {
               this.sprite.setScale(0.78);
               this.sprite.setOrigin(0.479, 0.5);
@@ -1656,7 +1697,7 @@ class FighterEntity {
       if (this.charId === 'strange' && this.sprite.anims.currentAnim?.key !== 'strange_anim_jump') {
         this.sprite.setTexture('strange_sheet_jump');
         this.sprite.play('strange_anim_jump', true);
-      } else if (this.charId === 'chunli' && this.sprite.anims.currentAnim?.key !== 'chunli_anim_jump') {
+      } else if (this.charId === 'chunli' && !onGround && this.sprite.anims.currentAnim?.key !== 'chunli_anim_jump') {
         this.sprite.setDisplayOrigin(128, 128);
         this.sprite.body.setSize(100, 230);
         this.sprite.body.setOffset(78, 22);
