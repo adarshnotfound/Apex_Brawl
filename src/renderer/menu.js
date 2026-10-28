@@ -112,9 +112,14 @@ function initMenuNavigation() {
 
   // Keyboard navigation
   window.addEventListener('keydown', (e) => {
-    // If arena is active, ignore menu key events completely!
+    // If arena or loading screen is active, ignore menu key events completely!
     const phaserContainer = document.getElementById('phaser-container');
     if (phaserContainer && phaserContainer.style.display !== 'none') {
+      return;
+    }
+
+    const vsLoading = document.getElementById('vs-loading-screen');
+    if (vsLoading && vsLoading.classList.contains('active')) {
       return;
     }
 
@@ -243,15 +248,15 @@ function initModals() {
   const fightBtn = document.getElementById('btnLaunchFight');
   if (fightBtn) {
     fightBtn.addEventListener('click', () => {
-      if (window.soundFX) window.soundFX.playStartBoom();
-      fightBtn.textContent = 'ENTERING THE ARENA...';
-      setTimeout(() => {
-        closeAllModals();
-        fightBtn.textContent = 'ENTER ARENA & KOMBAT';
-        if (window.startPhaserArena) {
-          window.startPhaserArena();
-        }
-      }, 500);
+      closeAllModals();
+      if (window.startMatchWithLoadingScreen) {
+        window.startMatchWithLoadingScreen({
+          p1Char: window.selectedFighterP1,
+          p2Char: window.selectedFighterP2
+        });
+      } else if (window.startPhaserArena) {
+        window.startPhaserArena();
+      }
     });
   }
 
@@ -270,7 +275,7 @@ function initCharacterSelection() {
     btn.addEventListener('click', () => {
       const player = btn.dataset.player; // "1" or "2"
       const charId = btn.dataset.char;   // "harpy"
-      
+
       document.querySelectorAll(`.char-picker-btn[data-player="${player}"]`).forEach(b => {
         b.style.opacity = '0.5';
         b.style.borderColor = 'rgba(255,255,255,0.2)';
@@ -310,7 +315,7 @@ function updatePlayerCardUI(player, charId) {
       archetype.style.color = '#fde047';
     }
     if (keys) {
-      keys.innerHTML = player === '1' 
+      keys.innerHTML = player === '1'
         ? `Move: <span class="command-key">WASD</span> | Jump: <span class="command-key">SPACE</span><br>Attacks: <span class="command-key">F</span> (5A) <span class="command-key">G</span> (5B) <span class="command-key">H</span> (5C)<br>Special: <span class="command-key">R</span> (Mystic Orb) | Super: <span class="command-key">S+H / Y</span> | Dash: <span class="command-key">Q</span>`
         : `Move: <span class="command-key">ARROWS ↑ ← ↓ →</span><br>Attacks: <span class="command-key">J / NUM1</span> (5A) <span class="command-key">K / NUM2</span> (5B) <span class="command-key">L / NUM3</span> (5C)<br>Special: <span class="command-key">U / NUM4</span> (Mystic Orb) | Super: <span class="command-key">↓+L / I</span> | Dash: <span class="command-key">O</span>`;
     }
@@ -325,7 +330,7 @@ function updatePlayerCardUI(player, charId) {
       archetype.style.color = '#38bdf8';
     }
     if (keys) {
-      keys.innerHTML = player === '1' 
+      keys.innerHTML = player === '1'
         ? `Move: <span class="command-key">WASD</span> | Jump: <span class="command-key">SPACE</span><br>Attacks: <span class="command-key">F</span> (5A) <span class="command-key">G</span> (5B) <span class="command-key">H</span> (5C)<br>Special: <span class="command-key">R</span> (Kikoken) | Super: <span class="command-key">S+H / Y</span> | Dash: <span class="command-key">Q</span>`
         : `Move: <span class="command-key">ARROWS ↑ ← ↓ →</span><br>Attacks: <span class="command-key">J / NUM1</span> (5A) <span class="command-key">K / NUM2</span> (5B) <span class="command-key">L / NUM3</span> (5C)<br>Special: <span class="command-key">U / NUM4</span> (Kikoken) | Super: <span class="command-key">↓+L / I</span> | Dash: <span class="command-key">O</span>`;
     }
@@ -340,7 +345,7 @@ function updatePlayerCardUI(player, charId) {
       archetype.style.color = '#67e8f9';
     }
     if (keys) {
-      keys.innerHTML = player === '1' 
+      keys.innerHTML = player === '1'
         ? `Move: <span class="command-key">WASD</span> | Jump: <span class="command-key">SPACE</span><br>Attacks: <span class="command-key">F</span> (5A) <span class="command-key">G</span> (5B) <span class="command-key">H</span> (5C)<br>Special: <span class="command-key">R</span> | Super: <span class="command-key">S+H / Y</span> | Dash: <span class="command-key">Q</span>`
         : `Move: <span class="command-key">ARROWS ↑ ← ↓ →</span><br>Attacks: <span class="command-key">J / NUM1</span> (5A) <span class="command-key">K / NUM2</span> (5B) <span class="command-key">L / NUM3</span> (5C)<br>Special: <span class="command-key">U / NUM4</span> | Super: <span class="command-key">↓+L / I</span> | Dash: <span class="command-key">O</span>`;
     }
@@ -510,9 +515,9 @@ function toggleFullscreen() {
     window.electronAPI.toggleFullscreen();
   } else {
     if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(() => {});
+      document.documentElement.requestFullscreen().catch(() => { });
     } else {
-      document.exitFullscreen().catch(() => {});
+      document.exitFullscreen().catch(() => { });
     }
   }
 }
