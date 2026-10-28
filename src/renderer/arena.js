@@ -24,7 +24,9 @@ class FighterEntity {
     this.shadowBallFired = false;
     this.tntFired = false;
     this.isStunned = false;
+    this.isCaptured = false;
     this.stunTimer = null;
+    this.knockbackLaunchTime = 0;
 
     this.hp = charId === 'strange' ? 960 : (charId === 'chunli' ? 950 : (charId === 'mewtwo' ? 940 : (charId === 'steve' ? 980 : 920)));
     this.maxHp = this.hp;
@@ -498,6 +500,8 @@ class FighterEntity {
       this.activeShadowBallChargeVFX = null;
     }
     this.isStunned = false;
+    this.isCaptured = false;
+    this.knockbackLaunchTime = 0;
     if (this.stunTimer) {
       this.stunTimer.remove();
       this.stunTimer = null;
@@ -508,7 +512,7 @@ class FighterEntity {
 
     this.sprite.setPosition(x, y);
     this.sprite.setVelocity(0, 0);
-    if (this.charId === 'chunli' && this.sprite && this.sprite.body) {
+    if (this.sprite && this.sprite.body) {
       this.sprite.body.setAllowGravity(true);
     }
 
@@ -717,9 +721,10 @@ class FighterEntity {
     // Immediately cancel attacking and crouching state so player is never locked out
     this.isAttacking = false;
     this.isCrouching = false;
+    this.isCaptured = false;
     if (this.sprite && this.sprite.chain) this.sprite.chain();
     this.currentAttackData = null;
-    if (this.charId === 'chunli' && this.sprite && this.sprite.body) {
+    if (this.sprite && this.sprite.body) {
       this.sprite.body.setAllowGravity(true);
     }
     if (this.attackTimer) {
@@ -769,8 +774,15 @@ class FighterEntity {
       this.isInAir = true;
       this.currentAction = 'KNOCKBACK / LAUNCH';
 
-      this.sprite.setVelocityX(pushDir * (attackData.knockbackX || 560));
-      this.sprite.setVelocityY(attackData.knockbackY || -480);
+      this.sprite.setVelocityX(pushDir * (attackData.knockbackX || 500));
+      this.sprite.setVelocityY(attackData.knockbackY || -380);
+
+      if (this.sprite.body) {
+        this.sprite.body.blocked.down = false;
+        this.sprite.body.touching.down = false;
+      }
+      this.sprite.y = Math.min(this.sprite.y, 465);
+      this.knockbackLaunchTime = (this.scene && this.scene.time) ? this.scene.time.now : Date.now();
 
       if (this.charId === 'strange') {
         this.sprite.setTexture('strange_sheet_jump');
@@ -806,16 +818,14 @@ class FighterEntity {
         this.sprite.setVelocityY(attackData.knockbackY);
         this.isInAir = true;
       }
-      if (attackData.isStun) {
-        this.isStunned = true;
-        this.currentAction = 'STUNNED / RECOIL';
-        if (this.stunTimer) this.stunTimer.remove();
-        this.stunTimer = this.scene.time.delayedCall(attackData.stunDuration || 340, () => {
-          this.isStunned = false;
-          this.stunTimer = null;
-          this.updateTextureForState();
-        });
-      }
+      this.isStunned = true;
+      this.currentAction = 'STUNNED / RECOIL';
+      if (this.stunTimer) this.stunTimer.remove();
+      this.stunTimer = this.scene.time.delayedCall(attackData.stunDuration || 140, () => {
+        this.isStunned = false;
+        this.stunTimer = null;
+        this.updateTextureForState();
+      });
       this.updateTextureForState();
     }
   }
@@ -833,6 +843,11 @@ class FighterEntity {
       return;
     }
 
+    // A fighter in launch momentum (moving upward or recently launched) cannot land yet
+    const currentTime = (this.scene && this.scene.time) ? this.scene.time.now : Date.now();
+    const isRecentlyLaunched = this.isKnockedBack && (this.knockbackLaunchTime && (currentTime - this.knockbackLaunchTime < 180));
+    const isMovingUpward = this.sprite.body.velocity.y < 0;
+
     // Ground Check: physical contact or world bottom
     const onGround = Boolean(
       this.isCrouching ||
@@ -841,8 +856,8 @@ class FighterEntity {
       this.sprite.body.bottom >= 568
     );
 
-    // Landing detection
-    if (onGround && (this.isInAir || this.isKnockedBack)) {
+    // Landing detection: ONLY when falling downward (velocity.y >= 0) and not during active launch ascent!
+    if (onGround && !isMovingUpward && !isRecentlyLaunched && (this.isInAir || this.isKnockedBack)) {
       if (this.isAttacking) {
         // Do not abort active attack animation upon ground contact
         this.isInAir = false;
@@ -859,7 +874,7 @@ class FighterEntity {
         this.updateTextureForState();
         this.snapToGround();
       }
-    } else if (!onGround) {
+    } else if (!onGround || isMovingUpward || isRecentlyLaunched) {
       this.isInAir = true;
     }
 
@@ -1136,9 +1151,9 @@ class FighterEntity {
             damage: 125,
             rangeX: 240,
             rangeY: 110,
-            knockbackX: 360,
-            knockbackY: -130,
-            isSpecial: false
+            knockbackX: 440,
+            knockbackY: -300,
+            isSpecial: true
           });
         }
       } else if (this.charId === 'chunli') {
@@ -1147,9 +1162,9 @@ class FighterEntity {
             damage: 110,
             rangeX: 200,
             rangeY: 110,
-            knockbackX: 290,
-            knockbackY: 130,
-            isSpecial: false
+            knockbackX: 380,
+            knockbackY: 140,
+            isSpecial: true
           }, 550);
           if (this.scene && this.scene.spawnSpinningBirdVFX) {
             this.scene.spawnSpinningBirdVFX(this);
@@ -1159,9 +1174,9 @@ class FighterEntity {
             damage: 125,
             rangeX: 220,
             rangeY: 100,
-            knockbackX: 350,
-            knockbackY: -120,
-            isSpecial: false
+            knockbackX: 420,
+            knockbackY: -290,
+            isSpecial: true
           }, 650);
           if (this.scene && this.scene.spawnSpinningBirdVFX) {
             this.scene.spawnSpinningBirdVFX(this);
@@ -1182,9 +1197,9 @@ class FighterEntity {
             damage: 125,
             rangeX: 230,
             rangeY: 100,
-            knockbackX: 360,
-            knockbackY: -120,
-            isSpecial: false
+            knockbackX: 440,
+            knockbackY: -300,
+            isSpecial: true
           }, 750);
           if (this.scene && this.scene.executeTeleportStrike) {
             this.scene.executeTeleportStrike(this);
@@ -1205,9 +1220,9 @@ class FighterEntity {
             damage: 128,
             rangeX: 220,
             rangeY: 100,
-            knockbackX: 350,
-            knockbackY: -130,
-            isSpecial: false
+            knockbackX: 420,
+            knockbackY: -320,
+            isSpecial: true
           }, 850);
         }
       } else {
@@ -1225,9 +1240,9 @@ class FighterEntity {
             damage: 120,
             rangeX: 180,
             rangeY: 100,
-            knockbackX: 340,
-            knockbackY: -120,
-            isSpecial: false
+            knockbackX: 420,
+            knockbackY: -280,
+            isSpecial: true
           });
         }
       }
@@ -1242,8 +1257,8 @@ class FighterEntity {
             damage: 165,
             rangeX: 220,
             rangeY: 170,
-            knockbackX: 240,
-            knockbackY: -520,
+            knockbackX: 320,
+            knockbackY: -540,
             isSpecial: true
           });
         } else {
@@ -1251,8 +1266,8 @@ class FighterEntity {
             damage: 155,
             rangeX: 140,
             rangeY: 100,
-            knockbackX: 450,
-            knockbackY: -280,
+            knockbackX: 480,
+            knockbackY: -340,
             isSpecial: true
           });
           // Summon real traveling mystic projectile!
@@ -1265,8 +1280,8 @@ class FighterEntity {
           damage: 150,
           rangeX: 140,
           rangeY: 100,
-          knockbackX: 460,
-          knockbackY: -270,
+          knockbackX: 500,
+          knockbackY: -350,
           isSpecial: true
         }, 1200);
       } else if (this.charId === 'mewtwo') {
@@ -1274,8 +1289,8 @@ class FighterEntity {
           damage: 155,
           rangeX: 140,
           rangeY: 100,
-          knockbackX: 470,
-          knockbackY: -270,
+          knockbackX: 520,
+          knockbackY: -360,
           isSpecial: true
         }, 1100);
         if (this.scene && this.scene.spawnShadowBallChargeVFX) {
@@ -1286,8 +1301,8 @@ class FighterEntity {
           damage: 150,
           rangeX: 140,
           rangeY: 100,
-          knockbackX: 450,
-          knockbackY: -260,
+          knockbackX: 540,
+          knockbackY: -380,
           isSpecial: true
         }, 1000);
       } else {
@@ -1346,6 +1361,7 @@ class FighterEntity {
           knockbackY: -560,
           isSpecial: true
         }, 2200);
+        this.hasDealtDamage = true; // Damage applies only when the Psystrike energy ball explodes upon the opponent!
         if (this.scene && this.scene.spawnPsystrikeVFX) {
           this.scene.spawnPsystrikeVFX(this);
         }
@@ -2351,7 +2367,9 @@ class ArenaScene extends Phaser.Scene {
     defineAnim('mewtwo_anim_vfx_disappear', 'mewtwo_sheet_vfx_disappear', 0, 14, 20, 0);
     defineAnim('mewtwo_anim_vfx_reappear', 'mewtwo_sheet_vfx_reappear', 0, 14, 20, 0);
     defineAnim('mewtwo_anim_vfx_forcefield', 'mewtwo_sheet_vfx_forcefield', 0, 14, 18, 0);
-    defineAnim('mewtwo_anim_vfx_psystrike', 'mewtwo_sheet_vfx_psystrike', 0, 23, 14, 0);
+    defineAnim('mewtwo_anim_vfx_psystrike', 'mewtwo_sheet_vfx_psystrike', 0, 23, 16, 0);
+    defineAnim('mewtwo_anim_vfx_psystrike_ball', 'mewtwo_sheet_vfx_psystrike', 0, 5, 14, -1);
+    defineAnim('mewtwo_anim_vfx_psystrike_explosion', 'mewtwo_sheet_vfx_psystrike', 0, 22, 16, 0);
   }
 
   registerSteveAnimations() {
@@ -2414,6 +2432,7 @@ class ArenaScene extends Phaser.Scene {
     proj.body.setOffset(166, 166);
     proj.play('strange_anim_orb');
     proj.caster = caster;
+    proj.isMystic = true;
     proj.setFlipX(!facingRight);
 
     const speed = 640;
@@ -2599,6 +2618,11 @@ class ArenaScene extends Phaser.Scene {
 
   spawnShadowBallChargeVFX(caster) {
     if (!caster || !caster.sprite) return;
+    if (caster.activeShadowBallChargeVFX && caster.activeShadowBallChargeVFX.active) {
+      caster.activeShadowBallChargeVFX.destroy();
+      caster.activeShadowBallChargeVFX = null;
+    }
+
     const facingDir = caster.getFacingDir ? caster.getFacingDir() : 1;
     const facingRight = facingDir === 1;
     const chargeX = caster.sprite.x + (facingRight ? 52 : -52);
@@ -2607,12 +2631,38 @@ class ArenaScene extends Phaser.Scene {
     const charge = this.add.sprite(chargeX, chargeY, 'mewtwo_sheet_vfx_charge');
     charge.setDepth(25);
     charge.setScale(0.42);
+    charge.setFlipX(!facingRight);
     charge.play('mewtwo_anim_vfx_charge');
     caster.activeShadowBallChargeVFX = charge;
 
-    this.time.delayedCall(500, () => {
-      if (charge && charge.active) charge.destroy();
-      if (caster.activeShadowBallChargeVFX === charge) caster.activeShadowBallChargeVFX = null;
+    // Follow Mewtwo in real-time as he moves, jumps, or faces the opponent
+    const onUpdate = () => {
+      if (charge && charge.active && caster && caster.sprite) {
+        const dir = caster.getFacingDir ? caster.getFacingDir() : 1;
+        const isRight = dir === 1;
+        charge.setPosition(
+          caster.sprite.x + (isRight ? 52 : -52),
+          caster.sprite.y - 18
+        );
+        charge.setFlipX(!isRight);
+      }
+    };
+    this.events.on('update', onUpdate);
+
+    const cleanup = () => {
+      this.events.off('update', onUpdate);
+      if (caster && caster.activeShadowBallChargeVFX === charge) {
+        caster.activeShadowBallChargeVFX = null;
+      }
+    };
+
+    charge.once('destroy', cleanup);
+
+    // Failsafe cleanup (charges are released or destroyed on shot/hit)
+    this.time.delayedCall(1200, () => {
+      if (charge && charge.active) {
+        charge.destroy();
+      }
     });
   }
 
@@ -2843,8 +2893,8 @@ class ArenaScene extends Phaser.Scene {
                 target.takeHit({
                   damage: 105,
                   isSpecial: true,
-                  knockbackX: 200,
-                  knockbackY: -220
+                  knockbackX: 360,
+                  knockbackY: -340
                 }, caster);
               }
             });
@@ -2954,13 +3004,13 @@ class ArenaScene extends Phaser.Scene {
       proj.setDepth(26);
       proj.setScale(1.15);
       proj.setFlipX(!facingRight);
-      proj.play('mewtwo_anim_vfx_psystrike');
+      proj.play('mewtwo_anim_vfx_psystrike_ball');
 
       proj.body.allowGravity = false;
       proj.body.setAllowGravity(false);
       proj.body.gravity.y = 0;
-      proj.body.setSize(180, 160);
-      proj.body.setOffset(15, 26);
+      proj.body.setSize(140, 140);
+      proj.body.setOffset(35, 36);
 
       proj.caster = caster;
       proj.isPsystrike = true;
@@ -2980,14 +3030,100 @@ class ArenaScene extends Phaser.Scene {
     });
   }
 
-  spawnPsystrikeExplosion(x, y) {
-    const explosion = this.add.sprite(x, y, 'mewtwo_sheet_vfx_psystrike');
+  spawnPsystrikeExplosion(target, caster, hitX, hitY) {
+    if (!target || !target.sprite) return;
+
+    // 1. Engulf and capture opponent in place while the cosmic energy ball gathers for detonation
+    target.isCaptured = true;
+    target.isStunned = true;
+    target.isAttacking = false;
+    target.isCrouching = false;
+    target.currentAttackData = null;
+    if (target.attackTimer) {
+      target.attackTimer.remove();
+      target.attackTimer = null;
+    }
+    target.sprite.setVelocity(0, 0);
+    if (target.sprite.body) {
+      target.sprite.body.setAllowGravity(false);
+      target.sprite.body.velocity.x = 0;
+      target.sprite.body.velocity.y = 0;
+    }
+    target.currentAction = 'PSYSTRIKE ENGULFED';
+    target.sprite.setTint(0xd8b4fe);
+
+    // Center explosion directly around the engulfed opponent
+    const explosionX = target.sprite.x;
+    const explosionY = target.sprite.y - 15;
+
+    const explosion = this.add.sprite(explosionX, explosionY, 'mewtwo_sheet_vfx_psystrike');
     explosion.setDepth(28);
-    explosion.setScale(1.3);
-    explosion.play('mewtwo_anim_vfx_psystrike');
-    explosion.on('animationcomplete', () => { if (explosion.active) explosion.destroy(); });
-    this.time.delayedCall(1200, () => { if (explosion && explosion.active) explosion.destroy(); });
-    this.spawnShadowBallImpact(x, y);
+    explosion.setScale(1.35);
+    explosion.play('mewtwo_anim_vfx_psystrike_explosion');
+
+    // Subtle buildup rumble while sphere coalesces
+    this.cameras.main.shake(180, 0.008);
+
+    let hasDetonated = false;
+    const detonate = () => {
+      if (hasDetonated) return;
+      hasDetonated = true;
+
+      // Release capture state & restore gravity
+      target.isCaptured = false;
+      target.isStunned = false;
+      if (target.sprite && target.sprite.body) {
+        target.sprite.body.setAllowGravity(true);
+      }
+
+      // Clear psychic tint
+      if (target.sprite) {
+        if (target.isMirror) {
+          target.sprite.setTint(0xc4b5fd);
+        } else {
+          target.sprite.clearTint();
+        }
+      }
+
+      // Shockwave ring & ground flash at detonation peak
+      this.spawnShadowBallImpact(explosion.x, explosion.y);
+
+      // Supernova screen shake & heavy boom audio
+      this.cameras.main.shake(440, 0.030);
+      if (window.soundFX) window.soundFX.playStartBoom();
+
+      // Apply the 260 damage and massive knockback launch ONLY NOW when the ball actually explodes!
+      const atkData = {
+        damage: 260,
+        isSpecial: true,
+        knockbackX: 720,
+        knockbackY: -560
+      };
+      target.takeHit(atkData, caster);
+    };
+
+    // Detonate at the supernova explosion peak (Frame 9/10 of Psystrike sheet)
+    explosion.on('animationupdate', (anim, frame) => {
+      const texFrame = frame ? (frame.textureFrame !== undefined ? Number(frame.textureFrame) : (frame.index !== undefined ? frame.index - 1 : -1)) : -1;
+      if (texFrame >= 9) {
+        detonate();
+      }
+    });
+
+    // Failsafe timer: at 16 fps, frame 9 is ~562ms. If frame event doesn't trigger, detonate at 580ms.
+    this.time.delayedCall(580, () => {
+      detonate();
+    });
+
+    explosion.on('animationcomplete', () => {
+      if (!hasDetonated) detonate();
+      if (explosion.active) explosion.destroy();
+    });
+
+    this.time.delayedCall(1600, () => {
+      if (!hasDetonated) detonate();
+      if (explosion && explosion.active) explosion.destroy();
+    });
   }
 
   spawnTNTProjectile(caster) {
@@ -3065,6 +3201,7 @@ class ArenaScene extends Phaser.Scene {
 
     const hitX = proj.x;
     const hitY = proj.y;
+    const isMystic = Boolean(proj.isMystic);
     const isKikoken = Boolean(proj.isKikoken);
     const isShadowBall = Boolean(proj.isShadowBall);
     const isTNT = Boolean(proj.isTNT);
@@ -3075,25 +3212,31 @@ class ArenaScene extends Phaser.Scene {
       proj.destroy();
     }
 
+    if (isPsystrike) {
+      // Psystrike deals damage ONLY when the cosmic ball explodes!
+      this.spawnPsystrikeExplosion(target, caster, hitX, hitY);
+      return;
+    }
+
     if (isKikoken) {
       this.spawnKikokenImpact(hitX, hitY);
     } else if (isShadowBall) {
       this.spawnShadowBallImpact(hitX, hitY);
     } else if (isTNT) {
       this.spawnTNTExplosion(hitX, hitY, false);
-    } else if (isPsystrike) {
-      this.spawnPsystrikeExplosion(hitX, hitY);
+    } else if (isMystic) {
+      this.spawnShadowBallImpact(hitX, hitY);
     }
 
     const atkData = {
-      damage: isPsystrike ? 260 : (isShadowBall ? 155 : (isTNT ? 150 : (isKikoken ? 150 : 155))),
+      damage: isShadowBall ? 155 : (isTNT ? 150 : (isKikoken ? 150 : (isMystic ? 155 : 155))),
       isSpecial: true,
-      knockbackX: isPsystrike ? 720 : (isShadowBall ? 470 : (isTNT ? 450 : (isKikoken ? 460 : 450))),
-      knockbackY: isPsystrike ? -560 : (isShadowBall ? -270 : (isTNT ? -260 : (isKikoken ? -270 : -280)))
+      knockbackX: isShadowBall ? 520 : (isTNT ? 540 : (isKikoken ? 500 : (isMystic ? 480 : 500))),
+      knockbackY: isShadowBall ? -360 : (isTNT ? -380 : (isKikoken ? -350 : (isMystic ? -340 : -350)))
     };
 
     target.takeHit(atkData, caster);
-    this.cameras.main.shake(isPsystrike ? 380 : 240, isPsystrike ? 0.026 : 0.018);
+    this.cameras.main.shake(250, 0.019);
     if (window.soundFX) window.soundFX.playStartBoom();
   }
 
@@ -3446,6 +3589,7 @@ class ArenaScene extends Phaser.Scene {
       ease: 'Back.Out',
       onComplete: () => {
         this.time.delayedCall(700, () => {
+          if (!introText || !introText.active || !introText.scene) return;
           introText.setText('FIGHT!');
           introText.setColor('#ea580c');
           introText.setScale(1.3);
