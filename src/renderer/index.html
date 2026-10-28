@@ -6,6 +6,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Apex Brawl: Mystic Kombat</title>
   <link rel="stylesheet" href="styles/menu.css">
+  <script>
+    window.onerror = function(msg, url, line, col, error) {
+      console.error('[GLOBAL ERROR]', msg, 'at', url, line + ':' + col, error ? error.stack : '');
+    };
+    window.onunhandledrejection = function(e) {
+      console.error('[UNHANDLED REJECTION]', e.reason);
+    };
+  </script>
   <link rel="stylesheet" href="styles/loading.css">
 </head>
 
