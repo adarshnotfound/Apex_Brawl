@@ -27,6 +27,7 @@ class FighterEntity {
     // Create sprite
     const initialTexture = charId === 'strange' ? 'strange_sheet_idle' : (charId === 'chunli' ? 'chunli_sheet_idle' : 'harpy_sheet_idle');
     this.sprite = scene.physics.add.sprite(x, y, initialTexture);
+    this.sprite.setDepth(10);
     if (charId === 'strange') {
       this.sprite.setScale(0.80);
       this.sprite.setCollideWorldBounds(true);
@@ -71,19 +72,19 @@ class FighterEntity {
   }
 
   onAnimationComplete(key) {
-    if (key.startsWith('harpy_anim_atk_') || 
-        key.startsWith('harpy_anim_sp_') || 
-        key === 'harpy_anim_taunt' || 
-        key === 'harpy_anim_dash' || 
-        key === 'harpy_anim_backdash' ||
-        key.startsWith('strange_anim_atk_') || 
-        key.startsWith('strange_anim_sp_') || 
-        key === 'strange_anim_super' || 
-        key === 'strange_anim_dash' ||
-        key.startsWith('chunli_anim_atk_') ||
-        key.startsWith('chunli_anim_sp_') ||
-        key === 'chunli_anim_super' ||
-        key === 'chunli_anim_dash') {
+    if (key.startsWith('harpy_anim_atk_') ||
+      key.startsWith('harpy_anim_sp_') ||
+      key === 'harpy_anim_taunt' ||
+      key === 'harpy_anim_dash' ||
+      key === 'harpy_anim_backdash' ||
+      key.startsWith('strange_anim_atk_') ||
+      key.startsWith('strange_anim_sp_') ||
+      key === 'strange_anim_super' ||
+      key === 'strange_anim_dash' ||
+      key.startsWith('chunli_anim_atk_') ||
+      key.startsWith('chunli_anim_sp_') ||
+      key === 'chunli_anim_super' ||
+      key === 'chunli_anim_dash') {
       this.isAttacking = false;
       this.currentAttackData = null;
       if (this.attackTimer) {
@@ -290,8 +291,8 @@ class FighterEntity {
 
     // Ground Check: physical contact or world bottom
     const onGround = Boolean(
-      this.sprite.body.blocked.down || 
-      this.sprite.body.touching.down || 
+      this.sprite.body.blocked.down ||
+      this.sprite.body.touching.down ||
       this.sprite.body.bottom >= 573
     );
 
@@ -813,8 +814,16 @@ class ArenaScene extends Phaser.Scene {
       }
     });
 
-    // 1. Doctor Strange Mirror Dimension Background & Character Portraits
-    this.load.image('arena_bg', 'assets/mirror_dimension.png');
+    // 1. Japanese Dark-Fantasy Temple Arena Assets (Moonlit Mountain Shrine Courtyard)
+    const jBase = 'assets/backgrounds/japanese_temple/';
+    this.load.image('japan_sky_mountains', jBase + 'layer1_2_sky_mountains_backdrop.png');
+    this.load.image('japan_temple_master', jBase + 'aaa_japanese_temple_arena_1080p.png');
+    this.load.image('japan_floor', jBase + 'layer4_fighting_arena_floor_transparent.png');
+    this.load.spritesheet('japan_lantern', jBase + 'hanging_lantern_spritesheet_transparent.png', { frameWidth: 344, frameHeight: 768 });
+    this.load.spritesheet('japan_brazier', jBase + 'kagaribi_fire_brazier_spritesheet_transparent.png', { frameWidth: 344, frameHeight: 768 });
+    this.load.spritesheet('japan_sakura', jBase + 'sakura_petals_spritesheet_transparent.png', { frameWidth: 229, frameHeight: 256 });
+
+    // Character Portraits
     this.load.image('harpy_portrait', '../../assets/characters/harpy/portrait.png');
     this.load.image('strange_portrait', '../../assets/characters/Dr Strange/portrait.png');
     this.load.image('chunli_portrait', '../../assets/characters/ChunLi/portrait.png');
@@ -887,24 +896,15 @@ class ArenaScene extends Phaser.Scene {
 
     window.activeArenaScene = this;
 
-    // 1. World Floor at y = 575 (Directly on Mirror Dimension floating stone platform!)
-    this.physics.world.setBounds(0, 0, 1280, 575);
+    // 1. World Floor at y = 575 across 1920-wide combat arena
+    this.physics.world.setBounds(0, 0, 1920, 575);
+    this.cameras.main.setBounds(0, 0, 1920, 720);
 
-    // 2. Doctor Strange Mirror Dimension Background
-    const bg = this.add.image(640, 360, 'arena_bg');
-    bg.setDisplaySize(1280, 720);
+    // 2. Build Multi-Layer Japanese Temple Arena (Parallax, Braziers, Lanterns, Sakura, Mist)
+    this.buildJapaneseEnvironment();
 
-    // Glowing mystical barrier at bottom
-    const platformGlow = this.add.rectangle(640, 582, 1280, 14, 0xf59e0b, 0.4);
-    this.tweens.add({
-      targets: platformGlow,
-      alpha: 0.8,
-      duration: 1000,
-      yoyo: true,
-      repeat: -1
-    });
-
-    // 3. Register Animations
+    // 3. Register Animations (Fighters + Environmental Props)
+    this.registerEnvironmentAnimations();
     this.registerHarpyAnimations();
     this.registerStrangeAnimations();
     this.registerChunLiAnimations();
@@ -917,11 +917,11 @@ class ArenaScene extends Phaser.Scene {
     const p2Char = window.selectedFighterP2 || 'strange';
     const isMirror = p1Char === p2Char;
 
-    // Spawn Player 1 (Left side, faces right)
-    this.fighterP1 = new FighterEntity(this, 320, 460, p1Char, 1, false);
+    // Spawn Player 1 (Left mark, faces right)
+    this.fighterP1 = new FighterEntity(this, 550, 460, p1Char, 1, false);
 
-    // Spawn Player 2 (Right side, faces left)
-    this.fighterP2 = new FighterEntity(this, 960, 460, p2Char, 2, isMirror);
+    // Spawn Player 2 (Right mark, faces left)
+    this.fighterP2 = new FighterEntity(this, 1370, 460, p2Char, 2, isMirror);
 
     // Solid pushbox collider between fighters
     this.physics.add.collider(this.fighterP1.sprite, this.fighterP2.sprite);
@@ -937,7 +937,7 @@ class ArenaScene extends Phaser.Scene {
     // 5. Input Keys
     this.setupInputKeys();
 
-    // 6. Visual HUD
+    // 6. Visual Screen-Locked HUD
     this.buildDualPlayerHUD(p1Char, p2Char);
 
     // 7. Start Round 1
@@ -946,6 +946,134 @@ class ArenaScene extends Phaser.Scene {
     // Notify Loading Screen that arena is 100% created and ready
     if (window.onPhaserArenaReady) {
       window.onPhaserArenaReady();
+    }
+  }
+
+  buildJapaneseEnvironment() {
+    // Layer 1: Distant Celestial Night Sky & Alpine Mountains (Slow Parallax 0.18x)
+    this.envSky = this.add.image(0, 0, 'japan_sky_mountains').setOrigin(0, 0);
+    this.envSky.setDisplaySize(2100, 720);
+    this.envSky.setScrollFactor(0.18, 0);
+    this.envSky.setDepth(1);
+
+    // Ambient Moon Illumination Breathing Pulse
+    this.tweens.add({
+      targets: this.envSky,
+      alpha: { from: 0.92, to: 1 },
+      duration: 3500,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.InOut'
+    });
+
+    // Layer 2: Master Japanese Temple & Torii Courtyard (Midground Parallax 0.65x)
+    this.envTemple = this.add.image(0, 0, 'japan_temple_master').setOrigin(0, 0);
+    this.envTemple.setDisplaySize(1920, 720);
+    this.envTemple.setScrollFactor(0.65, 0.4);
+    this.envTemple.setDepth(2);
+
+    // Layer 3: Isolated Stone Courtyard Combat Floor (Direct 1.0x Scroll Factor)
+    this.envFloor = this.add.image(0, 0, 'japan_floor').setOrigin(0, 0);
+    this.envFloor.setDisplaySize(1920, 720);
+    this.envFloor.setScrollFactor(1.0, 1.0);
+    this.envFloor.setDepth(3);
+
+    // Floor Boundary Mystic Underglow along stone courtyard
+    const floorGlow = this.add.rectangle(960, 578, 1920, 8, 0xf59e0b, 0.28).setDepth(4);
+    this.tweens.add({
+      targets: floorGlow,
+      alpha: { from: 0.2, to: 0.5 },
+      duration: 1400,
+      yoyo: true,
+      repeat: -1
+    });
+
+    // Environmental Props: Ceremonial Fire Braziers (Kagaribi) at Left & Right stage edges
+    const brazierLeft = this.add.sprite(220, 575, 'japan_brazier').setOrigin(0.5, 1).setScale(0.35).setDepth(5);
+    brazierLeft.play('japan_brazier_burn');
+    const brazierRight = this.add.sprite(1700, 575, 'japan_brazier').setOrigin(0.5, 1).setScale(0.35).setDepth(5);
+    brazierRight.play('japan_brazier_burn');
+
+    // Dynamic Brazier Fire Auras (projecting warm ambient glow onto wet stone)
+    [brazierLeft, brazierRight].forEach(b => {
+      const aura = this.add.circle(b.x, b.y - 140, 95, 0xf59e0b, 0.18).setDepth(4);
+      this.tweens.add({
+        targets: aura,
+        scale: { from: 0.9, to: 1.15 },
+        alpha: { from: 0.12, to: 0.26 },
+        duration: 180 + Math.random() * 90,
+        yoyo: true,
+        repeat: -1
+      });
+    });
+
+    // Environmental Props: Hanging Swaying Paper Lanterns from temple eaves
+    const lanternLeft = this.add.sprite(360, 15, 'japan_lantern').setOrigin(0.5, 0).setScale(0.27).setDepth(5);
+    lanternLeft.play('japan_lantern_sway');
+    const lanternRight = this.add.sprite(1560, 15, 'japan_lantern').setOrigin(0.5, 0).setScale(0.27).setDepth(5);
+    lanternRight.play('japan_lantern_sway');
+
+    // Dynamic Ground Mist Ribbons (creeping across stone floor)
+    this.groundMist1 = this.add.rectangle(0, 555, 2600, 36, 0xd6e3f8, 0.08).setOrigin(0, 0).setDepth(4);
+    this.groundMist2 = this.add.rectangle(-400, 565, 2600, 28, 0x232b3e, 0.12).setOrigin(0, 0).setDepth(4);
+
+    // Dynamic Sakura Petal Particles System (Drifting across moonlit courtyard)
+    this.sakuraParticles = [];
+    for (let i = 0; i < 35; i++) {
+      const p = this.add.sprite(
+        Phaser.Math.Between(-100, 2020),
+        Phaser.Math.Between(-50, 720),
+        'japan_sakura',
+        Phaser.Math.Between(0, 5)
+      );
+      p.setScale(Phaser.Math.FloatBetween(0.12, 0.24));
+      p.setAlpha(Phaser.Math.FloatBetween(0.55, 0.92));
+      p.setDepth(6);
+      p.speedX = Phaser.Math.FloatBetween(-60, -120);
+      p.speedY = Phaser.Math.FloatBetween(35, 75);
+      p.rotSpeed = Phaser.Math.FloatBetween(-0.035, 0.035);
+      p.wobblePhase = Math.random() * Math.PI * 2;
+      p.wobbleSpeed = Phaser.Math.FloatBetween(2.2, 4.0);
+      this.sakuraParticles.push(p);
+    }
+
+    // Foreground Cinematic Out-of-Focus Sakura Petals (2.5D Camera Depth)
+    this.foregroundPetals = [];
+    for (let i = 0; i < 6; i++) {
+      const fp = this.add.sprite(
+        Phaser.Math.Between(-100, 2020),
+        Phaser.Math.Between(-50, 720),
+        'japan_sakura',
+        Phaser.Math.Between(0, 5)
+      );
+      fp.setScale(Phaser.Math.FloatBetween(0.42, 0.65));
+      fp.setAlpha(0.5);
+      fp.setDepth(15);
+      fp.setScrollFactor(1.35, 1.1);
+      fp.speedX = Phaser.Math.FloatBetween(-150, -230);
+      fp.speedY = Phaser.Math.FloatBetween(75, 130);
+      fp.rotSpeed = Phaser.Math.FloatBetween(-0.05, 0.05);
+      this.foregroundPetals.push(fp);
+    }
+  }
+
+  registerEnvironmentAnimations() {
+    if (!this.anims.exists('japan_brazier_burn')) {
+      this.anims.create({
+        key: 'japan_brazier_burn',
+        frames: this.anims.generateFrameNumbers('japan_brazier', { start: 0, end: 3 }),
+        frameRate: 8,
+        repeat: -1
+      });
+    }
+    if (!this.anims.exists('japan_lantern_sway')) {
+      this.anims.create({
+        key: 'japan_lantern_sway',
+        frames: this.anims.generateFrameNumbers('japan_lantern', { start: 0, end: 3 }),
+        frameRate: 4,
+        repeat: -1,
+        yoyo: true
+      });
     }
   }
 
@@ -1257,150 +1385,148 @@ class ArenaScene extends Phaser.Scene {
     const p1Color = p1Id === 'strange' ? 0xf59e0b : (p1Id === 'chunli' ? 0x0284c7 : 0x06b6d4);
     const p1Hex = p1Id === 'strange' ? '#f59e0b' : (p1Id === 'chunli' ? '#38bdf8' : '#06b6d4');
     const p1PortraitKey = p1Id === 'strange' ? 'strange_portrait' : (p1Id === 'chunli' ? 'chunli_portrait' : 'harpy_portrait');
-    const p1DisplayName = p1Id === 'chunli' ? 'CHUN-LI' : p1Id.toUpperCase();
+    const p1DisplayName = p1Id === 'chunli' ? 'CHUN-LI' : (p1Id === 'strange' ? 'DR. STRANGE' : 'HARPY');
 
-    const p1Card = this.add.rectangle(75, 60, 72, 72, p1Color, 0.4);
+    const p1Card = this.add.rectangle(75, 60, 72, 72, p1Color, 0.4).setScrollFactor(0).setDepth(100);
     p1Card.setStrokeStyle(2, p1Color);
-    const p1Img = this.add.image(75, 60, p1PortraitKey);
+    const p1Img = this.add.image(75, 60, p1PortraitKey).setScrollFactor(0).setDepth(101);
     p1Img.setDisplaySize(68, 68);
 
     this.p1Name = this.add.text(125, 34, `P1: ${p1DisplayName}`, {
-      fontFamily: 'Cinzel, Georgia, serif',
-      fontSize: '18px',
-      fontStyle: 'bold',
+      fontFamily: 'Bebas Neue, Rajdhani, sans-serif',
+      fontSize: '22px',
       color: '#fef08a'
-    });
+    }).setScrollFactor(0).setDepth(100);
 
-    const p1BarBg = this.add.rectangle(300, 68, 330, 16, 0x18181b, 0.85);
+    const p1BarBg = this.add.rectangle(300, 68, 330, 16, 0x18181b, 0.85).setScrollFactor(0).setDepth(100);
     p1BarBg.setStrokeStyle(1, 0x52525b);
-    this.p1BarFill = this.add.rectangle(137, 68, 326, 12, p1Color).setOrigin(0, 0.5);
+    this.p1BarFill = this.add.rectangle(137, 68, 326, 12, p1Color).setOrigin(0, 0.5).setScrollFactor(0).setDepth(101);
 
     this.p1HpText = this.add.text(300, 68, `${this.fighterP1.hp} / ${this.fighterP1.maxHp}`, {
       fontFamily: 'Rajdhani, sans-serif',
       fontSize: '11px',
       color: '#fff',
       fontStyle: 'bold'
-    }).setOrigin(0.5);
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(102);
 
     this.p1ActionText = this.add.text(125, 84, 'ACTION: IDLE', {
       fontFamily: 'Rajdhani, sans-serif',
       fontSize: '13px',
       color: p1Hex,
       fontStyle: 'bold'
-    });
+    }).setScrollFactor(0).setDepth(100);
 
     // --- PLAYER 2 HUD (Right) ---
     const p2Color = p2Id === 'strange' ? 0xf59e0b : (p2Id === 'chunli' ? 0x0284c7 : 0x06b6d4);
     const p2Hex = p2Id === 'strange' ? '#f59e0b' : (p2Id === 'chunli' ? '#38bdf8' : '#06b6d4');
     const p2PortraitKey = p2Id === 'strange' ? 'strange_portrait' : (p2Id === 'chunli' ? 'chunli_portrait' : 'harpy_portrait');
-    const p2DisplayName = p2Id === 'chunli' ? 'CHUN-LI' : p2Id.toUpperCase();
+    const p2DisplayName = p2Id === 'chunli' ? 'CHUN-LI' : (p2Id === 'strange' ? 'DR. STRANGE' : 'HARPY');
 
-    const p2Card = this.add.rectangle(1205, 60, 72, 72, p2Color, 0.4);
+    const p2Card = this.add.rectangle(1205, 60, 72, 72, p2Color, 0.4).setScrollFactor(0).setDepth(100);
     p2Card.setStrokeStyle(2, p2Color);
-    const p2Img = this.add.image(1205, 60, p2PortraitKey);
+    const p2Img = this.add.image(1205, 60, p2PortraitKey).setScrollFactor(0).setDepth(101);
     p2Img.setDisplaySize(68, 68);
 
     this.p2Name = this.add.text(1155, 34, `P2: ${p2DisplayName}`, {
-      fontFamily: 'Cinzel, Georgia, serif',
-      fontSize: '18px',
-      fontStyle: 'bold',
+      fontFamily: 'Bebas Neue, Rajdhani, sans-serif',
+      fontSize: '22px',
       color: '#fef08a'
-    }).setOrigin(1, 0);
+    }).setOrigin(1, 0).setScrollFactor(0).setDepth(100);
 
-    const p2BarBg = this.add.rectangle(980, 68, 330, 16, 0x18181b, 0.85);
+    const p2BarBg = this.add.rectangle(980, 68, 330, 16, 0x18181b, 0.85).setScrollFactor(0).setDepth(100);
     p2BarBg.setStrokeStyle(1, 0x52525b);
-    this.p2BarFill = this.add.rectangle(1143, 68, 326, 12, p2Color).setOrigin(1, 0.5);
+    this.p2BarFill = this.add.rectangle(1143, 68, 326, 12, p2Color).setOrigin(1, 0.5).setScrollFactor(0).setDepth(101);
 
     this.p2HpText = this.add.text(980, 68, `${this.fighterP2.hp} / ${this.fighterP2.maxHp}`, {
       fontFamily: 'Rajdhani, sans-serif',
       fontSize: '11px',
       color: '#fff',
       fontStyle: 'bold'
-    }).setOrigin(0.5);
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(102);
 
     this.p2ActionText = this.add.text(1155, 84, 'ACTION: IDLE', {
       fontFamily: 'Rajdhani, sans-serif',
       fontSize: '13px',
       color: p2Hex,
       fontStyle: 'bold'
-    }).setOrigin(1, 0);
+    }).setOrigin(1, 0).setScrollFactor(0).setDepth(100);
 
     // --- Stage Title ---
-    this.add.text(640, 14, '🔮 MIRROR DIMENSION 🔮', {
-      fontFamily: 'Cinzel, Georgia, serif',
-      fontSize: '13px',
+    this.add.text(640, 14, 'GEKKA NO REIBYŌ // MOONLIT SHRINE COURTYARD', {
+      fontFamily: 'Rajdhani, sans-serif',
+      fontSize: '12px',
       fontStyle: 'bold',
+      letterSpacing: 1,
       color: '#fde047'
-    }).setOrigin(0.5);
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(100);
 
     // --- Current Round Badge ---
     this.roundBadgeText = this.add.text(640, 31, 'ROUND 1', {
-      fontFamily: 'Cinzel, Georgia, serif',
-      fontSize: '15px',
-      fontStyle: 'bold',
+      fontFamily: 'Bebas Neue, Rajdhani, sans-serif',
+      fontSize: '20px',
+      letterSpacing: 1,
       color: '#fef08a',
       stroke: '#000000',
       strokeThickness: 3
-    }).setOrigin(0.5);
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(100);
 
     // --- Central 2-Minute Timer Box (120s down to 0) ---
-    this.timerBoxBg = this.add.rectangle(640, 62, 94, 52, 0x09090b, 0.92);
+    this.timerBoxBg = this.add.rectangle(640, 62, 94, 52, 0x09090b, 0.92).setScrollFactor(0).setDepth(100);
     this.timerBoxBg.setStrokeStyle(2, 0xf59e0b, 0.95);
 
     this.timerNumText = this.add.text(640, 53, '120', {
-      fontFamily: 'Cinzel, Rajdhani, sans-serif',
-      fontSize: '28px',
-      fontStyle: 'bold',
+      fontFamily: 'Bebas Neue, Rajdhani, sans-serif',
+      fontSize: '32px',
       color: '#fef08a',
       stroke: '#000000',
       strokeThickness: 3
-    }).setOrigin(0.5);
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(101);
 
     this.timerClockText = this.add.text(640, 75, '02:00', {
       fontFamily: 'Rajdhani, sans-serif',
       fontSize: '11px',
       fontStyle: 'bold',
       color: '#a1a1aa'
-    }).setOrigin(0.5);
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(101);
 
     // --- Best of 3 Round Win Pips ---
     // P1 Round Win Pips (Left of Timer)
-    this.p1Pip1 = this.add.circle(548, 62, 7, 0x18181b).setStrokeStyle(2, 0x06b6d4);
-    this.p1Pip2 = this.add.circle(568, 62, 7, 0x18181b).setStrokeStyle(2, 0x06b6d4);
+    this.p1Pip1 = this.add.circle(548, 62, 7, 0x18181b).setStrokeStyle(2, 0x06b6d4).setScrollFactor(0).setDepth(100);
+    this.p1Pip2 = this.add.circle(568, 62, 7, 0x18181b).setStrokeStyle(2, 0x06b6d4).setScrollFactor(0).setDepth(100);
     this.add.text(558, 77, 'P1 WINS', {
       fontFamily: 'Rajdhani, sans-serif',
       fontSize: '9px',
       fontStyle: 'bold',
       color: '#67e8f9'
-    }).setOrigin(0.5);
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(100);
 
     // P2 Round Win Pips (Right of Timer)
-    this.p2Pip1 = this.add.circle(712, 62, 7, 0x18181b).setStrokeStyle(2, 0xef4444);
-    this.p2Pip2 = this.add.circle(732, 62, 7, 0x18181b).setStrokeStyle(2, 0xef4444);
+    this.p2Pip1 = this.add.circle(712, 62, 7, 0x18181b).setStrokeStyle(2, 0xef4444).setScrollFactor(0).setDepth(100);
+    this.p2Pip2 = this.add.circle(732, 62, 7, 0x18181b).setStrokeStyle(2, 0xef4444).setScrollFactor(0).setDepth(100);
     this.add.text(722, 77, 'P2 WINS', {
       fontFamily: 'Rajdhani, sans-serif',
       fontSize: '9px',
       fontStyle: 'bold',
       color: '#f87171'
-    }).setOrigin(0.5);
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(100);
 
     // --- REQUIREMENT: PROMINENT KEY CONTROLS FOR BOTH PLAYERS ---
-    const guideBox = this.add.rectangle(640, 672, 1180, 52, 0x09090b, 0.88);
+    const guideBox = this.add.rectangle(640, 674, 1180, 50, 0x09090b, 0.88).setScrollFactor(0).setDepth(100);
     guideBox.setStrokeStyle(1.5, 0xf59e0b, 0.8);
 
-    this.add.text(640, 660, 'P1 [WASD/SPACE]: Move/Jump | [F] 5A Light | [G] 5B Med | [H] 5C Heavy | [R] Special | [S+H / Y] Super | [Q] Dash', {
+    this.add.text(640, 663, 'P1 [WASD/SPACE]: Move/Jump | [F] 5A Light | [G] 5B Med | [H] 5C Heavy | [R] Special | [S+H / Y] Super | [Q] Dash', {
       fontFamily: 'Rajdhani, sans-serif',
       fontSize: '13px',
       color: '#a5f3fc',
       fontStyle: 'bold'
-    }).setOrigin(0.5);
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(101);
 
-    this.add.text(640, 684, 'P2 [ARROWS]: Move/Jump | [J/NUM1] Light | [K/NUM2] Med | [L/NUM3] Heavy | [U/NUM4] Special | [↓+L / I] Super | [O] Dash', {
+    this.add.text(640, 686, 'P2 [ARROWS]: Move/Jump | [J/NUM1] Light | [K/NUM2] Med | [L/NUM3] Heavy | [U/NUM4] Special | [↓+L / I] Super | [O] Dash', {
       fontFamily: 'Rajdhani, sans-serif',
       fontSize: '13px',
       color: '#fef08a',
       fontStyle: 'bold'
-    }).setOrigin(0.5);
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(101);
   }
 
   spawnDamageNumber(x, y, damage, isSpecial) {
@@ -1440,7 +1566,7 @@ class ArenaScene extends Phaser.Scene {
     // Verify attacker is facing towards defender
     const facingRight = aSprite.flipX === true;
     const isInFront = (facingRight && dx > -20 && dx <= atkData.rangeX) ||
-                      (!facingRight && dx < 20 && dx >= -atkData.rangeX);
+      (!facingRight && dx < 20 && dx >= -atkData.rangeX);
 
     if (isInFront && dy <= atkData.rangeY) {
       attacker.hasDealtDamage = true;
@@ -1518,9 +1644,9 @@ class ArenaScene extends Phaser.Scene {
     this.timerRemainingMs = this.roundDurationSec * 1000;
     this.clearBanners();
 
-    // Reset fighters to initial fighting marks
-    this.fighterP1.reset(320, 460);
-    this.fighterP2.reset(960, 460);
+    // Reset fighters to initial fighting marks in 1920-wide arena
+    this.fighterP1.reset(550, 460);
+    this.fighterP2.reset(1370, 460);
 
     // Update Round Badge Title
     const isFinalRound = (this.p1RoundWins === 1 && this.p2RoundWins === 1);
@@ -1532,15 +1658,14 @@ class ArenaScene extends Phaser.Scene {
 
     this.updateHUD();
 
-    // Round intro announcement sequence
+    // Round intro announcement sequence (screen-fixed)
     const introText = this.add.text(640, 260, roundTitle, {
-      fontFamily: 'Cinzel, Georgia, serif',
-      fontSize: '76px',
-      fontStyle: 'bold',
+      fontFamily: 'Bebas Neue, Rajdhani, sans-serif',
+      fontSize: '84px',
       color: isFinalRound ? '#ef4444' : '#fef08a',
       stroke: '#000000',
       strokeThickness: 8
-    }).setOrigin(0.5).setScale(0);
+    }).setOrigin(0.5).setScale(0).setScrollFactor(0).setDepth(110);
     this.bannerObjects.push(introText);
 
     if (window.soundFX) window.soundFX.playSelect();
@@ -1639,25 +1764,24 @@ class ArenaScene extends Phaser.Scene {
     this.updateHUD();
     this.animatePipUpdate(roundWinner);
 
-    // Display primary banner
+    // Display primary banner (screen-fixed)
     const banner = this.add.text(640, 260, mainBannerText, {
-      fontFamily: 'Cinzel, Georgia, serif',
-      fontSize: '84px',
-      fontStyle: 'bold',
+      fontFamily: 'Bebas Neue, Rajdhani, sans-serif',
+      fontSize: '94px',
       color: mainColor,
       stroke: '#000000',
       strokeThickness: 8
-    }).setOrigin(0.5).setScale(0);
+    }).setOrigin(0.5).setScale(0).setScrollFactor(0).setDepth(120);
     this.bannerObjects.push(banner);
 
     const subText = this.add.text(640, 350, subBannerText, {
-      fontFamily: 'Cinzel, Georgia, serif',
-      fontSize: '28px',
+      fontFamily: 'Rajdhani, sans-serif',
+      fontSize: '24px',
       fontStyle: 'bold',
       color: '#fef08a',
       stroke: '#000000',
-      strokeThickness: 5
-    }).setOrigin(0.5).setAlpha(0);
+      strokeThickness: 4
+    }).setOrigin(0.5).setAlpha(0).setScrollFactor(0).setDepth(120);
     this.bannerObjects.push(subText);
 
     this.tweens.add({
@@ -1731,60 +1855,58 @@ class ArenaScene extends Phaser.Scene {
     if (window.soundFX) window.soundFX.playStartBoom();
     this.cameras.main.shake(500, 0.02);
 
-    // Dark semi-transparent overlay
-    const overlay = this.add.rectangle(640, 360, 1280, 720, 0x07060a, 0.72);
+    // Dark semi-transparent overlay (screen-fixed)
+    const overlay = this.add.rectangle(640, 360, 1280, 720, 0x07060a, 0.76).setScrollFactor(0).setDepth(120);
     this.bannerObjects.push(overlay);
 
     const titleText = this.add.text(640, 220, 'MATCH COMPLETE', {
-      fontFamily: 'Cinzel, Georgia, serif',
-      fontSize: '44px',
-      fontStyle: 'bold',
-      color: '#fde047',
+      fontFamily: 'Bebas Neue, Rajdhani, sans-serif',
+      fontSize: '52px',
+      color: '#f59e0b',
       stroke: '#000000',
-      strokeThickness: 6
-    }).setOrigin(0.5).setScale(0);
+      strokeThickness: 5
+    }).setOrigin(0.5).setScale(0).setScrollFactor(0).setDepth(121);
     this.bannerObjects.push(titleText);
 
-    const champText = this.add.text(640, 300, `🏆 ${matchChampion} VICTORIOUS! 🏆`, {
-      fontFamily: 'Cinzel, Georgia, serif',
-      fontSize: '40px',
-      fontStyle: 'bold',
+    const champText = this.add.text(640, 290, `${matchChampion.toUpperCase()} VICTORIOUS`, {
+      fontFamily: 'Bebas Neue, Rajdhani, sans-serif',
+      fontSize: '42px',
       color: championColor,
       stroke: '#000000',
-      strokeThickness: 6
-    }).setOrigin(0.5).setAlpha(0);
+      strokeThickness: 4
+    }).setOrigin(0.5).setAlpha(0).setScrollFactor(0).setDepth(121);
     this.bannerObjects.push(champText);
 
-    const scoreText = this.add.text(640, 365, `FINAL SCORE:  PLAYER 1 [ ${this.p1RoundWins} ]  —  [ ${this.p2RoundWins} ] PLAYER 2`, {
+    const scoreText = this.add.text(640, 355, `FINAL SCORE // 1P [ ${this.p1RoundWins} ] — [ ${this.p2RoundWins} ] 2P`, {
       fontFamily: 'Rajdhani, sans-serif',
-      fontSize: '22px',
+      fontSize: '20px',
       fontStyle: 'bold',
-      color: '#ffffff'
-    }).setOrigin(0.5).setAlpha(0);
+      color: '#e2e8f0'
+    }).setOrigin(0.5).setAlpha(0).setScrollFactor(0).setDepth(121);
     this.bannerObjects.push(scoreText);
 
-    const rematchBox = this.add.rectangle(640, 440, 520, 50, 0x18181b, 0.9);
-    rematchBox.setStrokeStyle(2, 0xf59e0b);
+    const rematchBox = this.add.rectangle(640, 430, 460, 46, 0x0f111a, 0.9).setScrollFactor(0).setDepth(122);
+    rematchBox.setStrokeStyle(1.5, 0xf59e0b);
     rematchBox.setInteractive({ useHandCursor: true });
     rematchBox.on('pointerdown', () => this.restartMatch());
-    rematchBox.on('pointerover', () => rematchBox.setFillStyle(0x27272a, 1));
-    rematchBox.on('pointerout', () => rematchBox.setFillStyle(0x18181b, 0.9));
+    rematchBox.on('pointerover', () => rematchBox.setFillStyle(0x1e2235, 1));
+    rematchBox.on('pointerout', () => rematchBox.setFillStyle(0x0f111a, 0.9));
     this.bannerObjects.push(rematchBox);
 
-    const promptText = this.add.text(640, 440, '⚔️ PRESS [ENTER / SPACE] TO REMATCH (OR CLICK HERE)', {
+    const promptText = this.add.text(640, 430, '[ ENTER / SPACE ] REMATCH', {
       fontFamily: 'Rajdhani, sans-serif',
-      fontSize: '17px',
+      fontSize: '18px',
       fontStyle: 'bold',
-      color: '#fef08a'
-    }).setOrigin(0.5).setAlpha(0);
+      color: '#fbbf24'
+    }).setOrigin(0.5).setAlpha(0).setScrollFactor(0).setDepth(123);
     this.bannerObjects.push(promptText);
 
-    const escText = this.add.text(640, 495, 'PRESS [ESC] TO RETURN TO THE ALTAR', {
+    const escText = this.add.text(640, 485, '[ ESC ] RETURN TO MAIN MENU', {
       fontFamily: 'Rajdhani, sans-serif',
-      fontSize: '15px',
-      color: '#a1a1aa',
+      fontSize: '14px',
+      color: '#94a3b8',
       fontStyle: 'bold'
-    }).setOrigin(0.5).setAlpha(0);
+    }).setOrigin(0.5).setAlpha(0).setScrollFactor(0).setDepth(123);
     this.bannerObjects.push(escText);
 
     this.tweens.add({
@@ -1816,7 +1938,7 @@ class ArenaScene extends Phaser.Scene {
       this.bannerObjects.forEach(obj => {
         try {
           if (obj && obj.destroy) obj.destroy();
-        } catch (e) {}
+        } catch (e) { }
       });
       this.bannerObjects = [];
     }
@@ -1931,13 +2053,99 @@ class ArenaScene extends Phaser.Scene {
       }
     }
 
+    // --- DYNAMIC MODERN FIGHTING GAME CAMERA SYSTEM ---
+    if (this.fighterP1 && this.fighterP2 && this.fighterP1.sprite && this.fighterP2.sprite) {
+      const p1Sprite = this.fighterP1.sprite;
+      const p2Sprite = this.fighterP2.sprite;
+
+      const midX = (p1Sprite.x + p2Sprite.x) / 2;
+      const midY = (p1Sprite.y + p2Sprite.y) / 2;
+      const dist = Math.abs(p1Sprite.x - p2Sprite.x);
+
+      // 1. Dynamic Zoom:
+      // Intense close-ups when fighters clash (< 360px), smooth wide-lens when fighters separate (> 760px)
+      let targetZoom = 1.0;
+      if (dist < 360) {
+        targetZoom = 1.08;
+      } else if (dist > 760) {
+        targetZoom = 0.94;
+      } else {
+        const factor = (dist - 360) / (760 - 360);
+        targetZoom = 1.08 - factor * (1.08 - 0.94);
+      }
+
+      this.cameras.main.zoom = Phaser.Math.Linear(this.cameras.main.zoom, targetZoom, 0.04);
+
+      // 2. Dynamic Center Tracking:
+      // Clamp target cam X so camera never shows outside the 1920 stage bounds
+      const halfViewW = (640 / this.cameras.main.zoom);
+      const minCamX = halfViewW;
+      const maxCamX = 1920 - halfViewW;
+      const targetCamX = Phaser.Math.Clamp(midX, minCamX, maxCamX);
+
+      // Vertical camera tracks aerial jumps with subtle damping
+      const groundY = 460;
+      const jumpOffset = Math.min(0, midY - groundY);
+      const targetCamY = 360 + jumpOffset * 0.28;
+
+      this.cameras.main.centerOn(
+        Phaser.Math.Linear(this.cameras.main.midPoint.x, targetCamX, 0.08),
+        Phaser.Math.Linear(this.cameras.main.midPoint.y, targetCamY, 0.06)
+      );
+    }
+
+    // --- DYNAMIC JAPANESE ENVIRONMENTAL MOTION SIMULATION ---
+    const dt = delta / 1000;
+    // Midground Ambient Sakura Petals
+    if (this.sakuraParticles) {
+      for (let i = 0; i < this.sakuraParticles.length; i++) {
+        const p = this.sakuraParticles[i];
+        p.wobblePhase += p.wobbleSpeed * dt;
+        p.x += (p.speedX + Math.sin(p.wobblePhase) * 18) * dt;
+        p.y += p.speedY * dt;
+        p.rotation += p.rotSpeed;
+
+        if (p.x < -120) p.x = 2050;
+        if (p.y > 740) {
+          p.y = -30;
+          p.x = Phaser.Math.Between(-100, 2050);
+        }
+      }
+    }
+
+    // Foreground Cinematic Out-of-Focus Sakura Petals
+    if (this.foregroundPetals) {
+      for (let i = 0; i < this.foregroundPetals.length; i++) {
+        const fp = this.foregroundPetals[i];
+        fp.x += fp.speedX * dt;
+        fp.y += fp.speedY * dt;
+        fp.rotation += fp.rotSpeed;
+
+        if (fp.x < -160) fp.x = 2100;
+        if (fp.y > 750) {
+          fp.y = -40;
+          fp.x = Phaser.Math.Between(0, 2100);
+        }
+      }
+    }
+
+    // Creeping Ground Mist Ribbons
+    if (this.groundMist1) {
+      this.groundMist1.x -= 24 * dt;
+      if (this.groundMist1.x < -480) this.groundMist1.x = 0;
+    }
+    if (this.groundMist2) {
+      this.groundMist2.x -= 14 * dt;
+      if (this.groundMist2.x < -600) this.groundMist2.x = -200;
+    }
+
     // Update Live Action, Health & Timer HUD
     this.updateHUD();
   }
 }
 
 // Global launchers & match control
-window.startPhaserArena = function() {
+window.startPhaserArena = function () {
   const container = document.getElementById('phaser-container');
   const menuWrapper = document.getElementById('menuWrapper');
   const arenaUI = document.getElementById('arenaControlBar');
@@ -1962,7 +2170,7 @@ window.startPhaserArena = function() {
   }
 };
 
-window.exitArenaToMenu = function() {
+window.exitArenaToMenu = function () {
   if (window.hideLoadingScreen) window.hideLoadingScreen();
   const container = document.getElementById('phaser-container');
   const menuWrapper = document.getElementById('menuWrapper');
@@ -1973,7 +2181,7 @@ window.exitArenaToMenu = function() {
   if (menuWrapper) menuWrapper.style.display = 'flex';
 };
 
-window.restartMatch = function() {
+window.restartMatch = function () {
   if (window.activeArenaScene) {
     window.activeArenaScene.restartMatch();
   } else if (window.startPhaserArena) {

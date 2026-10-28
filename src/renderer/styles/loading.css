@@ -60,12 +60,12 @@
   left: 50%;
   width: 3px;
   height: 120%;
-  background: linear-gradient(180deg, 
-    transparent 0%, 
-    rgba(245, 158, 11, 0.3) 25%, 
-    rgba(254, 240, 138, 0.9) 50%, 
-    rgba(220, 38, 38, 0.4) 75%, 
-    transparent 100%);
+  background: linear-gradient(180deg,
+      transparent 0%,
+      rgba(245, 158, 11, 0.3) 25%,
+      rgba(254, 240, 138, 0.9) 50%,
+      rgba(220, 38, 38, 0.4) 75%,
+      transparent 100%);
   transform: translateX(-50%) rotate(16deg);
   box-shadow: 0 0 25px rgba(245, 158, 11, 0.6);
   z-index: 2;
@@ -80,7 +80,7 @@
   width: 100%;
   height: 100%;
   z-index: 1;
-  background-image: 
+  background-image:
     linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
   background-size: 50px 50px;
@@ -493,9 +493,11 @@
     opacity: 0;
     transform: translateX(-120px) skewX(-4deg);
   }
+
   70% {
     transform: translateX(8px) skewX(0deg);
   }
+
   100% {
     opacity: 1;
     transform: translateX(0) skewX(0deg);
@@ -507,9 +509,11 @@
     opacity: 0;
     transform: translateX(120px) skewX(4deg);
   }
+
   70% {
     transform: translateX(-8px) skewX(0deg);
   }
+
   100% {
     opacity: 1;
     transform: translateX(0) skewX(0deg);
@@ -521,12 +525,15 @@
     opacity: 0;
     transform: scale(3.5);
   }
+
   60% {
     transform: scale(0.9);
   }
+
   80% {
     transform: scale(1.08);
   }
+
   100% {
     opacity: 1;
     transform: scale(1);
@@ -534,19 +541,32 @@
 }
 
 @keyframes rotateMandala {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes rotateMandalaReverse {
-  from { transform: rotate(360deg); }
-  to { transform: rotate(0deg); }
+  from {
+    transform: rotate(360deg);
+  }
+
+  to {
+    transform: rotate(0deg);
+  }
 }
 
 @keyframes portraitPulse {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: scale(1);
   }
+
   50% {
     transform: scale(1.03);
   }
@@ -556,13 +576,16 @@
   0% {
     background-position: -150px 0;
   }
+
   100% {
     background-position: 1000px 0;
   }
 }
 
 @keyframes vsSpin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes vsHeaderDrop {
@@ -570,6 +593,7 @@
     opacity: 0;
     transform: translateY(-30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -581,6 +605,7 @@
     opacity: 0;
     transform: translateY(30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -592,6 +617,7 @@
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -605,16 +631,20 @@
   #vs-loading-screen {
     padding: 1.5rem 1.8rem;
   }
+
   .vs-fighter-card {
     padding: 1.2rem 1.4rem;
     gap: 1rem;
   }
+
   .vs-fighter-name {
     font-size: 1.6rem;
   }
+
   .vs-symbol {
     font-size: 3.2rem;
   }
+
   .vs-portrait-frame {
     width: 95px;
     height: 95px;

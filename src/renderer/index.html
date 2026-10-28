@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
   <link rel="stylesheet" href="styles/menu.css">
   <link rel="stylesheet" href="styles/loading.css">
 </head>
+
 <body>
 
   <!-- Dynamic Temple Arena Background Image Layer -->
@@ -19,14 +21,19 @@
   <div class="screen-vignette"></div>
 
   <!-- Phaser 3 Arena Game Canvas Container -->
-  <div id="phaser-container" tabindex="0" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 50; background: #07060a; outline: none;"></div>
+  <div id="phaser-container" tabindex="0"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 50; background: #07060a; outline: none;">
+  </div>
 
   <!-- Arena Top Control & Return Bar -->
-  <div id="arenaControlBar" style="display: none; position: fixed; top: 16px; right: 24px; z-index: 100; gap: 0.8rem; align-items: center;">
-    <button class="icon-btn" onclick="window.restartMatch && window.restartMatch()" style="background: rgba(180, 83, 9, 0.85); border-color: #f59e0b; color: #fff; cursor: pointer;">
+  <div id="arenaControlBar"
+    style="display: none; position: fixed; top: 16px; right: 24px; z-index: 100; gap: 0.8rem; align-items: center;">
+    <button class="icon-btn" onclick="window.restartMatch && window.restartMatch()"
+      style="background: rgba(180, 83, 9, 0.85); border-color: #f59e0b; color: #fff; cursor: pointer;">
       🔄 RESTART MATCH
     </button>
-    <button class="icon-btn" onclick="window.exitArenaToMenu()" style="background: rgba(127, 29, 29, 0.85); border-color: #ef4444; color: #fff; cursor: pointer;">
+    <button class="icon-btn" onclick="window.exitArenaToMenu()"
+      style="background: rgba(127, 29, 29, 0.85); border-color: #ef4444; color: #fff; cursor: pointer;">
       🚪 EXIT TO MENU (ESC)
     </button>
   </div>
@@ -56,7 +63,8 @@
       <!-- Player 1 Card -->
       <div class="vs-fighter-card p1" id="vs-card-p1">
         <div class="vs-portrait-frame" id="vs-p1-frame">
-          <img class="vs-portrait-img" id="vs-p1-portrait" src="../../assets/characters/harpy/portrait.png" alt="Player 1">
+          <img class="vs-portrait-img" id="vs-p1-portrait" src="../../assets/characters/harpy/portrait.png"
+            alt="Player 1">
         </div>
         <div class="vs-fighter-info">
           <div class="vs-player-badge">
@@ -79,7 +87,8 @@
       <!-- Player 2 Card -->
       <div class="vs-fighter-card p2" id="vs-card-p2">
         <div class="vs-portrait-frame" id="vs-p2-frame">
-          <img class="vs-portrait-img" id="vs-p2-portrait" src="../../assets/characters/Dr Strange/portrait.png" alt="Player 2">
+          <img class="vs-portrait-img" id="vs-p2-portrait" src="../../assets/characters/Dr Strange/portrait.png"
+            alt="Player 2">
         </div>
         <div class="vs-fighter-info">
           <div class="vs-player-badge" id="vs-p2-badge">
@@ -193,70 +202,88 @@
         <button class="close-btn" aria-label="Close">&times;</button>
       </div>
 
-      <p style="text-align: center; color: var(--gold-light); font-size: 0.9rem; margin-top: 0.5rem; margin-bottom: 0.4rem;">
+      <p
+        style="text-align: center; color: var(--gold-light); font-size: 0.9rem; margin-top: 0.5rem; margin-bottom: 0.4rem;">
         Choose your fighters for both Player 1 and Player 2:
       </p>
 
       <div style="text-align: center; margin-bottom: 0.8rem;">
-        <span style="display: inline-block; padding: 0.35rem 0.9rem; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.5); border-radius: 20px; font-size: 0.82rem; font-weight: bold; color: #fde047; letter-spacing: 0.05em;">
+        <span
+          style="display: inline-block; padding: 0.35rem 0.9rem; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.5); border-radius: 20px; font-size: 0.82rem; font-weight: bold; color: #fde047; letter-spacing: 0.05em;">
           ⚔️ BEST OF 3 ROUNDS &nbsp;|&nbsp; ⏱️ 2 MINUTE TIMER &nbsp;|&nbsp; HEALTH DECISION ON TIMEOUT
         </span>
       </div>
 
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; text-align: center; margin: 1.2rem 0;">
         <!-- Player 1: Selectable Card -->
-        <div id="p1-card" style="background: rgba(6, 182, 212, 0.15); border: 1px solid #06b6d4; padding: 1.4rem; border-radius: 6px; display: flex; flex-direction: column; align-items: center; transition: all 0.3s ease;">
+        <div id="p1-card"
+          style="background: rgba(6, 182, 212, 0.15); border: 1px solid #06b6d4; padding: 1.4rem; border-radius: 6px; display: flex; flex-direction: column; align-items: center; transition: all 0.3s ease;">
           <h3 style="color: #fef08a; font-family: var(--font-heading); margin-bottom: 0.6rem; font-size: 1.05rem;">
             PLAYER 1 (CHALLENGER)
           </h3>
           <!-- P1 Fighter Selector Buttons -->
           <div style="display: flex; gap: 0.5rem; margin-bottom: 0.8rem; flex-wrap: wrap; justify-content: center;">
-            <button class="char-picker-btn p1-btn active" data-player="1" data-char="harpy" style="cursor: pointer; padding: 0.35rem 0.8rem; background: rgba(6, 182, 212, 0.3); border: 1px solid #f59e0b; color: #fff; border-radius: 3px; font-weight: bold; font-family: var(--font-heading);">
+            <button class="char-picker-btn p1-btn active" data-player="1" data-char="harpy"
+              style="cursor: pointer; padding: 0.35rem 0.8rem; background: rgba(6, 182, 212, 0.3); border: 1px solid #f59e0b; color: #fff; border-radius: 3px; font-weight: bold; font-family: var(--font-heading);">
               🦅 HARPY
             </button>
-            <button class="char-picker-btn p1-btn" data-player="1" data-char="strange" style="cursor: pointer; padding: 0.35rem 0.8rem; background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 3px; font-weight: bold; font-family: var(--font-heading); opacity: 0.65;">
+            <button class="char-picker-btn p1-btn" data-player="1" data-char="strange"
+              style="cursor: pointer; padding: 0.35rem 0.8rem; background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 3px; font-weight: bold; font-family: var(--font-heading); opacity: 0.65;">
               🔮 DR. STRANGE
             </button>
-            <button class="char-picker-btn p1-btn" data-player="1" data-char="chunli" style="cursor: pointer; padding: 0.35rem 0.8rem; background: rgba(2, 132, 199, 0.2); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 3px; font-weight: bold; font-family: var(--font-heading); opacity: 0.65;">
+            <button class="char-picker-btn p1-btn" data-player="1" data-char="chunli"
+              style="cursor: pointer; padding: 0.35rem 0.8rem; background: rgba(2, 132, 199, 0.2); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 3px; font-weight: bold; font-family: var(--font-heading); opacity: 0.65;">
               ⚡ CHUN-LI
             </button>
           </div>
 
-          <img id="p1-portrait" src="../../assets/characters/harpy/portrait.png" alt="P1" style="width: 90px; height: 90px; border-radius: 50%; border: 2px solid #06b6d4; object-fit: cover; margin-bottom: 0.5rem; box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);">
+          <img id="p1-portrait" src="../../assets/characters/harpy/portrait.png" alt="P1"
+            style="width: 90px; height: 90px; border-radius: 50%; border: 2px solid #06b6d4; object-fit: cover; margin-bottom: 0.5rem; box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);">
           <p id="p1-title" style="font-size: 1.3rem; font-weight: bold; color: #fff; margin: 0;">HARPY</p>
-          <p id="p1-archetype" style="font-size: 0.85rem; color: #67e8f9; margin-top: 0.1rem; font-weight: 600;">Sky Terror • Aerial Striker (Rushdown)</p>
+          <p id="p1-archetype" style="font-size: 0.85rem; color: #67e8f9; margin-top: 0.1rem; font-weight: 600;">Sky
+            Terror • Aerial Striker (Rushdown)</p>
           <div id="p1-keys" style="margin-top: 0.8rem; font-size: 0.85rem; color: #a5f3fc; line-height: 1.6;">
             Move: <span class="command-key">WASD</span> | Jump: <span class="command-key">SPACE</span><br>
-            Attacks: <span class="command-key">F</span> (5A Light) <span class="command-key">G</span> (5B Med) <span class="command-key">H</span> (5C Heavy)<br>
-            Special: <span class="command-key">R</span> | Super: <span class="command-key">S+H</span> / <span class="command-key">Y</span> | Dash: <span class="command-key">Q</span>
+            Attacks: <span class="command-key">F</span> (5A Light) <span class="command-key">G</span> (5B Med) <span
+              class="command-key">H</span> (5C Heavy)<br>
+            Special: <span class="command-key">R</span> | Super: <span class="command-key">S+H</span> / <span
+              class="command-key">Y</span> | Dash: <span class="command-key">Q</span>
           </div>
         </div>
 
         <!-- Player 2: Selectable Card -->
-        <div id="p2-card" style="background: rgba(6, 182, 212, 0.15); border: 1px solid #06b6d4; padding: 1.4rem; border-radius: 6px; display: flex; flex-direction: column; align-items: center; transition: all 0.3s ease;">
+        <div id="p2-card"
+          style="background: rgba(6, 182, 212, 0.15); border: 1px solid #06b6d4; padding: 1.4rem; border-radius: 6px; display: flex; flex-direction: column; align-items: center; transition: all 0.3s ease;">
           <h3 style="color: #fef08a; font-family: var(--font-heading); margin-bottom: 0.6rem; font-size: 1.05rem;">
             PLAYER 2 (DEFENDER)
           </h3>
           <!-- P2 Fighter Selector Buttons -->
           <div style="display: flex; gap: 0.5rem; margin-bottom: 0.8rem; flex-wrap: wrap; justify-content: center;">
-            <button class="char-picker-btn p2-btn" data-player="2" data-char="harpy" style="cursor: pointer; padding: 0.35rem 0.8rem; background: rgba(6, 182, 212, 0.2); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 3px; font-weight: bold; font-family: var(--font-heading); opacity: 0.65;">
+            <button class="char-picker-btn p2-btn" data-player="2" data-char="harpy"
+              style="cursor: pointer; padding: 0.35rem 0.8rem; background: rgba(6, 182, 212, 0.2); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 3px; font-weight: bold; font-family: var(--font-heading); opacity: 0.65;">
               🦅 HARPY
             </button>
-            <button class="char-picker-btn p2-btn active" data-player="2" data-char="strange" style="cursor: pointer; padding: 0.35rem 0.8rem; background: rgba(245, 158, 11, 0.35); border: 1px solid #f59e0b; color: #fff; border-radius: 3px; font-weight: bold; font-family: var(--font-heading); opacity: 1;">
+            <button class="char-picker-btn p2-btn active" data-player="2" data-char="strange"
+              style="cursor: pointer; padding: 0.35rem 0.8rem; background: rgba(245, 158, 11, 0.35); border: 1px solid #f59e0b; color: #fff; border-radius: 3px; font-weight: bold; font-family: var(--font-heading); opacity: 1;">
               🔮 DR. STRANGE
             </button>
-            <button class="char-picker-btn p2-btn" data-player="2" data-char="chunli" style="cursor: pointer; padding: 0.35rem 0.8rem; background: rgba(2, 132, 199, 0.2); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 3px; font-weight: bold; font-family: var(--font-heading); opacity: 0.65;">
+            <button class="char-picker-btn p2-btn" data-player="2" data-char="chunli"
+              style="cursor: pointer; padding: 0.35rem 0.8rem; background: rgba(2, 132, 199, 0.2); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 3px; font-weight: bold; font-family: var(--font-heading); opacity: 0.65;">
               ⚡ CHUN-LI
             </button>
           </div>
 
-          <img id="p2-portrait" src="../../assets/characters/Dr Strange/portrait.png" alt="P2" style="width: 90px; height: 90px; border-radius: 50%; border: 2px solid #f59e0b; object-fit: cover; margin-bottom: 0.5rem; box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);">
+          <img id="p2-portrait" src="../../assets/characters/Dr Strange/portrait.png" alt="P2"
+            style="width: 90px; height: 90px; border-radius: 50%; border: 2px solid #f59e0b; object-fit: cover; margin-bottom: 0.5rem; box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);">
           <p id="p2-title" style="font-size: 1.3rem; font-weight: bold; color: #fff; margin: 0;">DR. STRANGE</p>
-          <p id="p2-archetype" style="font-size: 0.85rem; color: #fde047; margin-top: 0.1rem; font-weight: 600;">Sorcerer Supreme • Mystic Arts (Zoner / Spells)</p>
+          <p id="p2-archetype" style="font-size: 0.85rem; color: #fde047; margin-top: 0.1rem; font-weight: 600;">
+            Sorcerer Supreme • Mystic Arts (Zoner / Spells)</p>
           <div id="p2-keys" style="margin-top: 0.8rem; font-size: 0.85rem; color: #fef08a; line-height: 1.6;">
             Move: <span class="command-key">ARROWS ↑ ← ↓ →</span><br>
-            Attacks: <span class="command-key">J / NUM1</span> (Light) <span class="command-key">K / NUM2</span> (Med) <span class="command-key">L / NUM3</span> (Heavy)<br>
-            Special: <span class="command-key">U / NUM4</span> (Projectile) | Super: <span class="command-key">↓+L / I</span> | Dash: <span class="command-key">O</span>
+            Attacks: <span class="command-key">J / NUM1</span> (Light) <span class="command-key">K / NUM2</span> (Med)
+            <span class="command-key">L / NUM3</span> (Heavy)<br>
+            Special: <span class="command-key">U / NUM4</span> (Projectile) | Super: <span class="command-key">↓+L /
+              I</span> | Dash: <span class="command-key">O</span>
           </div>
         </div>
       </div>
@@ -275,10 +302,12 @@
       <p style="color: var(--text-muted); line-height: 1.6;">
         Ascend the Mystic Tower defeating elemental bosses in sequence, culminating in Harpy the Sky Terror.
       </p>
-      <div style="margin: 1.5rem 0; padding: 1rem; background: rgba(255,255,255,0.03); border-left: 3px solid var(--gold-glow);">
+      <div
+        style="margin: 1.5rem 0; padding: 1rem; background: rgba(255,255,255,0.03); border-left: 3px solid var(--gold-glow);">
         <strong>Opponent:</strong> Harpy (Aerial Rushdown, high jump velocity, Talon frame traps)
       </div>
-      <button class="fight-cta-btn" onclick="document.getElementById('btnLaunchFight').click()">START ARCADE RUN</button>
+      <button class="fight-cta-btn" onclick="document.getElementById('btnLaunchFight').click()">START ARCADE
+        RUN</button>
     </div>
   </div>
 
@@ -290,7 +319,8 @@
         <button class="close-btn" aria-label="Close">&times;</button>
       </div>
       <p style="color: var(--text-muted); line-height: 1.6;">
-        Enter the practice arena to test Harpy's frame data, sprite animations, hitboxes, and cancel chains in real time.
+        Enter the practice arena to test Harpy's frame data, sprite animations, hitboxes, and cancel chains in real
+        time.
       </p>
       <button class="fight-cta-btn" onclick="document.getElementById('btnLaunchFight').click()">ENTER DOJO</button>
     </div>
@@ -303,15 +333,22 @@
         <div class="modal-title">📜 GRIMOIRE: COMBAT FRAME DATA</div>
         <button class="close-btn" aria-label="Close">&times;</button>
       </div>
-      
+
       <!-- Character Tabs -->
       <div style="display: flex; gap: 0.8rem; margin: 1.2rem 0 0.8rem 0; flex-wrap: wrap;">
-        <button class="grimoire-tab-btn active" data-char="harpy" style="cursor: pointer; background: rgba(6, 182, 212, 0.25); border: 1px solid #06b6d4; color: #fff; padding: 0.5rem 1.2rem; font-family: var(--font-heading); font-weight: bold; border-radius: 4px; letter-spacing: 0.05em;">🦅 HARPY</button>
-        <button class="grimoire-tab-btn" data-char="strange" style="cursor: pointer; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 0.5rem 1.2rem; font-family: var(--font-heading); font-weight: bold; border-radius: 4px; letter-spacing: 0.05em; opacity: 0.75;">🔮 DR. STRANGE</button>
-        <button class="grimoire-tab-btn" data-char="chunli" style="cursor: pointer; background: rgba(2, 132, 199, 0.15); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 0.5rem 1.2rem; font-family: var(--font-heading); font-weight: bold; border-radius: 4px; letter-spacing: 0.05em; opacity: 0.75;">⚡ CHUN-LI</button>
+        <button class="grimoire-tab-btn active" data-char="harpy"
+          style="cursor: pointer; background: rgba(6, 182, 212, 0.25); border: 1px solid #06b6d4; color: #fff; padding: 0.5rem 1.2rem; font-family: var(--font-heading); font-weight: bold; border-radius: 4px; letter-spacing: 0.05em;">🦅
+          HARPY</button>
+        <button class="grimoire-tab-btn" data-char="strange"
+          style="cursor: pointer; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 0.5rem 1.2rem; font-family: var(--font-heading); font-weight: bold; border-radius: 4px; letter-spacing: 0.05em; opacity: 0.75;">🔮
+          DR. STRANGE</button>
+        <button class="grimoire-tab-btn" data-char="chunli"
+          style="cursor: pointer; background: rgba(2, 132, 199, 0.15); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 0.5rem 1.2rem; font-family: var(--font-heading); font-weight: bold; border-radius: 4px; letter-spacing: 0.05em; opacity: 0.75;">⚡
+          CHUN-LI</button>
       </div>
 
-      <p id="grimoire-char-title" style="color: var(--gold-light); font-family: var(--font-heading); font-size: 1.05rem; font-weight: bold; margin-bottom: 0.8rem;">
+      <p id="grimoire-char-title"
+        style="color: var(--gold-light); font-family: var(--font-heading); font-size: 1.05rem; font-weight: bold; margin-bottom: 0.8rem;">
         🦅 HARPY THE SKY TERROR (RUSHDOWN / AERIAL)
       </p>
 
@@ -331,28 +368,36 @@
           <tr>
             <td><strong>Talon Jab (5A)</strong></td>
             <td><span class="command-key">F</span></td>
-            <td>5f</td><td>3f</td><td>8f</td>
+            <td>5f</td>
+            <td>3f</td>
+            <td>8f</td>
             <td><span style="color: #4ade80;">+3f</span></td>
             <td>40 HP</td>
           </tr>
           <tr>
             <td><strong>Wing Flurry (5B)</strong></td>
             <td><span class="command-key">G</span></td>
-            <td>8f</td><td>4f</td><td>12f</td>
+            <td>8f</td>
+            <td>4f</td>
+            <td>12f</td>
             <td><span style="color: #fde047;">0f</span></td>
             <td>75 HP</td>
           </tr>
           <tr>
             <td><strong>Gale Strike (5C)</strong></td>
             <td><span class="command-key">S + G</span></td>
-            <td>11f</td><td>5f</td><td>17f</td>
+            <td>11f</td>
+            <td>5f</td>
+            <td>17f</td>
             <td><span style="color: #f87171;">-3f</span></td>
             <td>120 HP (Wallbounce)</td>
           </tr>
           <tr>
             <td><strong>Tempest Feather Storm</strong></td>
             <td><span class="command-key">S ➔ D + H</span></td>
-            <td>12f</td><td>10f</td><td>20f</td>
+            <td>12f</td>
+            <td>10f</td>
+            <td>20f</td>
             <td><span style="color: #f87171;">-6f</span></td>
             <td>220 HP (Super)</td>
           </tr>
@@ -371,42 +416,97 @@
 
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1rem;">
         <!-- Player 1 -->
-        <div style="background: rgba(220, 38, 38, 0.1); border: 1px solid rgba(220, 38, 38, 0.4); padding: 1.2rem; border-radius: 6px;">
-          <h3 style="color: #fca5a5; font-family: var(--font-heading); margin-bottom: 0.8rem; font-size: 1.1rem; border-bottom: 1px solid rgba(220, 38, 38, 0.3); padding-bottom: 0.4rem;">
+        <div
+          style="background: rgba(220, 38, 38, 0.1); border: 1px solid rgba(220, 38, 38, 0.4); padding: 1.2rem; border-radius: 6px;">
+          <h3
+            style="color: #fca5a5; font-family: var(--font-heading); margin-bottom: 0.8rem; font-size: 1.1rem; border-bottom: 1px solid rgba(220, 38, 38, 0.3); padding-bottom: 0.4rem;">
             ⚔️ PLAYER 1 (WASD)
           </h3>
           <table class="data-table" style="margin-top: 0.5rem; font-size: 0.88rem;">
-            <tr><td>Movement / Jump</td><td><span class="command-key">W A S D</span> / <span class="command-key">SPACE</span></td></tr>
-            <tr><td>Light Attack (5A)</td><td><span class="command-key">F</span></td></tr>
-            <tr><td>Medium Attack (5B)</td><td><span class="command-key">G</span></td></tr>
-            <tr><td>Heavy Strike (5C)</td><td><span class="command-key">H</span></td></tr>
-            <tr><td>Special Ability</td><td><span class="command-key">R</span></td></tr>
-            <tr><td>Super Move</td><td><span class="command-key">S + H</span> or <span class="command-key">Y</span></td></tr>
-            <tr><td>Dash / Dodge</td><td><span class="command-key">Q</span></td></tr>
-            <tr><td>Taunt</td><td><span class="command-key">T</span></td></tr>
+            <tr>
+              <td>Movement / Jump</td>
+              <td><span class="command-key">W A S D</span> / <span class="command-key">SPACE</span></td>
+            </tr>
+            <tr>
+              <td>Light Attack (5A)</td>
+              <td><span class="command-key">F</span></td>
+            </tr>
+            <tr>
+              <td>Medium Attack (5B)</td>
+              <td><span class="command-key">G</span></td>
+            </tr>
+            <tr>
+              <td>Heavy Strike (5C)</td>
+              <td><span class="command-key">H</span></td>
+            </tr>
+            <tr>
+              <td>Special Ability</td>
+              <td><span class="command-key">R</span></td>
+            </tr>
+            <tr>
+              <td>Super Move</td>
+              <td><span class="command-key">S + H</span> or <span class="command-key">Y</span></td>
+            </tr>
+            <tr>
+              <td>Dash / Dodge</td>
+              <td><span class="command-key">Q</span></td>
+            </tr>
+            <tr>
+              <td>Taunt</td>
+              <td><span class="command-key">T</span></td>
+            </tr>
           </table>
         </div>
 
         <!-- Player 2 -->
-        <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.4); padding: 1.2rem; border-radius: 6px;">
-          <h3 style="color: #fde047; font-family: var(--font-heading); margin-bottom: 0.8rem; font-size: 1.1rem; border-bottom: 1px solid rgba(245, 158, 11, 0.3); padding-bottom: 0.4rem;">
+        <div
+          style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.4); padding: 1.2rem; border-radius: 6px;">
+          <h3
+            style="color: #fde047; font-family: var(--font-heading); margin-bottom: 0.8rem; font-size: 1.1rem; border-bottom: 1px solid rgba(245, 158, 11, 0.3); padding-bottom: 0.4rem;">
             🛡️ PLAYER 2 (ARROWS & JKL)
           </h3>
           <table class="data-table" style="margin-top: 0.5rem; font-size: 0.88rem;">
-            <tr><td>Movement / Jump</td><td><span class="command-key">↑ ← ↓ →</span></td></tr>
-            <tr><td>Light Attack (5A)</td><td><span class="command-key">J</span> or <span class="command-key">NUM 1</span></td></tr>
-            <tr><td>Medium Attack (5B)</td><td><span class="command-key">K</span> or <span class="command-key">NUM 2</span></td></tr>
-            <tr><td>Heavy Strike (5C)</td><td><span class="command-key">L</span> or <span class="command-key">NUM 3</span></td></tr>
-            <tr><td>Special Ability</td><td><span class="command-key">U</span> or <span class="command-key">NUM 4</span></td></tr>
-            <tr><td>Super Move</td><td><span class="command-key">↓ + L</span> or <span class="command-key">I</span> or <span class="command-key">NUM 5</span></td></tr>
-            <tr><td>Dash / Dodge</td><td><span class="command-key">O</span> or <span class="command-key">NUM 0</span></td></tr>
-            <tr><td>Taunt</td><td><span class="command-key">P</span> or <span class="command-key">NUM 6</span></td></tr>
+            <tr>
+              <td>Movement / Jump</td>
+              <td><span class="command-key">↑ ← ↓ →</span></td>
+            </tr>
+            <tr>
+              <td>Light Attack (5A)</td>
+              <td><span class="command-key">J</span> or <span class="command-key">NUM 1</span></td>
+            </tr>
+            <tr>
+              <td>Medium Attack (5B)</td>
+              <td><span class="command-key">K</span> or <span class="command-key">NUM 2</span></td>
+            </tr>
+            <tr>
+              <td>Heavy Strike (5C)</td>
+              <td><span class="command-key">L</span> or <span class="command-key">NUM 3</span></td>
+            </tr>
+            <tr>
+              <td>Special Ability</td>
+              <td><span class="command-key">U</span> or <span class="command-key">NUM 4</span></td>
+            </tr>
+            <tr>
+              <td>Super Move</td>
+              <td><span class="command-key">↓ + L</span> or <span class="command-key">I</span> or <span
+                  class="command-key">NUM 5</span></td>
+            </tr>
+            <tr>
+              <td>Dash / Dodge</td>
+              <td><span class="command-key">O</span> or <span class="command-key">NUM 0</span></td>
+            </tr>
+            <tr>
+              <td>Taunt</td>
+              <td><span class="command-key">P</span> or <span class="command-key">NUM 6</span></td>
+            </tr>
           </table>
         </div>
       </div>
 
-      <div style="margin-top: 1.2rem; padding: 1rem; background: rgba(255,255,255,0.03); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 4px;">
-        <h4 style="font-family: var(--font-heading); color: var(--gold-light); margin-bottom: 0.5rem; font-size: 0.95rem;">
+      <div
+        style="margin-top: 1.2rem; padding: 1rem; background: rgba(255,255,255,0.03); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 4px;">
+        <h4
+          style="font-family: var(--font-heading); color: var(--gold-light); margin-bottom: 0.5rem; font-size: 0.95rem;">
           SYSTEM HOTKEYS & GAMEPAD
         </h4>
         <div style="display: flex; flex-wrap: wrap; gap: 1.5rem; font-size: 0.85rem; color: var(--text-muted);">
@@ -431,8 +531,10 @@
 
       <div style="display: flex; flex-direction: column; gap: 1.5rem; margin-top: 1rem;">
         <div>
-          <label style="display: block; font-weight: 700; margin-bottom: 0.5rem; color: var(--gold-light);">MASTER AUDIO VOLUME</label>
-          <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="0.7" style="width: 100%; accent-color: var(--gold-glow); cursor: pointer;">
+          <label style="display: block; font-weight: 700; margin-bottom: 0.5rem; color: var(--gold-light);">MASTER AUDIO
+            VOLUME</label>
+          <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="0.7"
+            style="width: 100%; accent-color: var(--gold-glow); cursor: pointer;">
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem;">
@@ -445,16 +547,19 @@
         </div>
 
         <div>
-          <label style="display: block; font-weight: 700; margin-bottom: 0.5rem; color: var(--gold-light);">AMBIENT SOUNDTRACK</label>
+          <label style="display: block; font-weight: 700; margin-bottom: 0.5rem; color: var(--gold-light);">AMBIENT
+            SOUNDTRACK</label>
           <button class="icon-btn" id="toggleBGM" style="width: 100%; justify-content: center; padding: 0.8rem;">
             TEMPLE DRONE: OFF (CLICK TO ACTIVATE)
           </button>
         </div>
 
         <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
-          <h4 style="font-family: var(--font-heading); color: #fca5a5; margin-bottom: 0.6rem;">CONTROLLER COMPATIBILITY</h4>
+          <h4 style="font-family: var(--font-heading); color: #fca5a5; margin-bottom: 0.6rem;">CONTROLLER COMPATIBILITY
+          </h4>
           <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.5;">
-            Supports Xbox One/Series, DualShock 4/DualSense, and generic USB X-Input fightsticks via browser Gamepad API.
+            Supports Xbox One/Series, DualShock 4/DualSense, and generic USB X-Input fightsticks via browser Gamepad
+            API.
           </p>
         </div>
       </div>
@@ -469,4 +574,5 @@
   <script src="loading.js"></script>
   <script src="menu.js"></script>
 </body>
+
 </html>

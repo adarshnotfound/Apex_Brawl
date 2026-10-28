@@ -3,7 +3,7 @@
 // Directly synchronized with Phaser 3 Preload & Scene Ready
 // =========================================================
 
-(function() {
+(function () {
   const FIGHTER_REGISTRY = {
     harpy: {
       id: 'harpy',
@@ -338,8 +338,8 @@
     if (fill) fill.style.width = `${clampedPct}%`;
     if (percentText) percentText.textContent = `${clampedPct}%`;
     if (statusText) {
-      statusText.innerHTML = clampedPct >= 100 
-        ? `⚡ ${msg}` 
+      statusText.innerHTML = clampedPct >= 100
+        ? `⚡ ${msg}`
         : `<span class="vs-spinner"></span> ${msg}`;
     }
   }
