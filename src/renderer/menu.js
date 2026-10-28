@@ -275,153 +275,213 @@ window.selectedFighterP1 = 'harpy';
 window.selectedFighterP2 = 'strange';
 window.selectedStage = 'japanese_temple';
 
+const MK1_ROSTER = {
+  harpy: {
+    id: 'harpy',
+    name: 'HARPY',
+    subtitle: 'THE SKY TERROR • WINGED AERIAL STRIKER',
+    archetype: 'Rushdown • High Air Mobility & Frame Traps',
+    render: 'assets/characters/harpy/action_render.png',
+    avatar: 'assets/characters/harpy/select_avatar.png',
+    themeColor: '#06b6d4',
+    accentColor: '#67e8f9'
+  },
+  strange: {
+    id: 'strange',
+    name: 'DR. STRANGE',
+    subtitle: 'MASTER OF THE MYSTIC ARTS',
+    archetype: 'Zoner • Spellcaster Supreme & Space Control',
+    render: 'assets/characters/Dr Strange/action_render.png',
+    avatar: 'assets/characters/Dr Strange/select_avatar.png',
+    themeColor: '#f59e0b',
+    accentColor: '#fde047'
+  },
+  chunli: {
+    id: 'chunli',
+    name: 'CHUN-LI',
+    subtitle: 'STRONGEST WOMAN IN THE WORLD',
+    archetype: 'Rushdown • Lightning Strikes & Hyakuretsukyaku',
+    render: 'assets/characters/ChunLi/action_render.png',
+    avatar: 'assets/characters/ChunLi/select_avatar.png',
+    themeColor: '#0284c7',
+    accentColor: '#38bdf8'
+  },
+  mewtwo: {
+    id: 'mewtwo',
+    name: 'MEWTWO',
+    subtitle: 'GENETIC APEX & PSYCHIC OVERLORD',
+    archetype: 'Zoner / Striker • Shadow Ball & Psystrike',
+    render: 'assets/characters/Mewtwo/action_render.png',
+    avatar: 'assets/characters/Mewtwo/select_avatar.png',
+    themeColor: '#9333ea',
+    accentColor: '#c084fc'
+  },
+  steve: {
+    id: 'steve',
+    name: 'STEVE',
+    subtitle: 'THE MASTER CRAFTER & SANDBOX CHAMPION',
+    archetype: 'Brawler / Trap • Diamond Blade & TNT Blockade',
+    render: 'assets/characters/Steve/action_render.png',
+    avatar: 'assets/characters/Steve/select_avatar.png',
+    themeColor: '#0d9488',
+    accentColor: '#2dd4bf'
+  },
+  zoro: {
+    id: 'zoro',
+    name: 'RORONOA ZORO',
+    subtitle: 'PIRATE HUNTER & SANTORYU SWORDSMAN',
+    archetype: 'Striker • Three-Sword Style & Demon Slash',
+    render: 'assets/characters/zoro/action_render.png',
+    avatar: 'assets/characters/zoro/select_avatar.png',
+    themeColor: '#10b981',
+    accentColor: '#34d399'
+  }
+};
+
+const ROSTER_KEYS = ['harpy', 'strange', 'chunli', 'mewtwo', 'steve'];
+
 function initStageSelection() {
+  const pill = document.getElementById('mk1StageSelector');
+  if (pill) {
+    pill.addEventListener('click', () => {
+      window.selectedStage = (window.selectedStage === 'sky_temple') ? 'japanese_temple' : 'sky_temple';
+      updateStagePillUI();
+      if (window.soundFX) window.soundFX.playSelect();
+    });
+  }
+
+  // Also support any legacy stage cards if opened in sub-modals
   document.querySelectorAll('.stage-card').forEach(card => {
     card.addEventListener('click', () => {
-      const stageId = card.dataset.stage;
-      window.selectedStage = stageId;
-
-      document.querySelectorAll('.stage-card').forEach(c => {
-        c.classList.remove('active');
-        c.style.opacity = '0.75';
-        c.style.borderColor = 'rgba(255,255,255,0.2)';
-        c.style.boxShadow = 'none';
-      });
-
-      card.classList.add('active');
-      card.style.opacity = '1';
-      const isSky = stageId === 'sky_temple';
-      card.style.borderColor = isSky ? '#06b6d4' : '#f59e0b';
-      card.style.boxShadow = isSky ? '0 0 18px rgba(6, 182, 212, 0.45)' : '0 0 18px rgba(245, 158, 11, 0.45)';
-
-      const tag = document.getElementById('selected-stage-tag');
-      if (tag) {
-        if (isSky) {
-          tag.textContent = '☁️ SKY TEMPLE SELECTED';
-          tag.style.color = '#67e8f9';
-          tag.style.borderColor = '#06b6d4';
-          tag.style.background = 'rgba(6, 182, 212, 0.2)';
-        } else {
-          tag.textContent = '⛩️ MOONLIT SHRINE SELECTED';
-          tag.style.color = '#fde047';
-          tag.style.borderColor = '#f59e0b';
-          tag.style.background = 'rgba(245, 158, 11, 0.2)';
-        }
-      }
-
+      window.selectedStage = card.dataset.stage;
+      updateStagePillUI();
       if (window.soundFX) window.soundFX.playSelect();
     });
   });
+
+  updateStagePillUI();
+}
+
+function updateStagePillUI() {
+  const isSky = window.selectedStage === 'sky_temple';
+  const nameEl = document.getElementById('mk1-stage-name');
+  const thumbEl = document.getElementById('mk1-stage-thumb');
+  if (nameEl) {
+    nameEl.textContent = isSky ? 'THE ETERNAL SKY TEMPLE' : 'MOONLIT MOUNTAIN SHRINE';
+    nameEl.style.color = isSky ? '#67e8f9' : '#fef08a';
+  }
+  if (thumbEl) {
+    thumbEl.src = isSky
+      ? 'assets/backgrounds/sky_temple/sky_temple_thumb.png'
+      : 'assets/backgrounds/japanese_temple/japanese_temple_thumb.png';
+  }
 }
 
 function initCharacterSelection() {
-  document.querySelectorAll('.char-picker-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const player = btn.dataset.player; // "1" or "2"
-      const charId = btn.dataset.char;   // "harpy"
+  // Roster cards click handling
+  document.querySelectorAll('.roster-card').forEach(card => {
+    if (card.classList.contains('locked')) return;
 
-      document.querySelectorAll(`.char-picker-btn[data-player="${player}"]`).forEach(b => {
-        b.style.opacity = '0.5';
-        b.style.borderColor = 'rgba(255,255,255,0.2)';
-      });
-      btn.style.opacity = '1';
-      btn.style.borderColor = '#f59e0b';
+    // Left click: Select Player 1 (or toggle if Shift held)
+    card.addEventListener('click', (e) => {
+      const charId = card.dataset.char;
+      if (!charId || !MK1_ROSTER[charId]) return;
 
-      if (player === '1') {
-        window.selectedFighterP1 = charId;
+      if (e.shiftKey || e.altKey) {
+        setFighterSelection('2', charId);
       } else {
-        window.selectedFighterP2 = charId;
+        setFighterSelection('1', charId);
       }
+      if (window.soundFX) window.soundFX.playSelect();
+    });
 
-      updatePlayerCardUI(player, charId);
+    // Right click: Select Player 2
+    card.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      const charId = card.dataset.char;
+      if (!charId || !MK1_ROSTER[charId]) return;
+      setFighterSelection('2', charId);
       if (window.soundFX) window.soundFX.playSelect();
     });
   });
+
+  // Keyboard navigation for MK1 character select
+  window.addEventListener('keydown', (e) => {
+    const overlay = document.getElementById('modal-battle-prompt');
+    if (!overlay || !overlay.classList.contains('open')) return;
+
+    // Player 1 navigation: A / D
+    if (e.key === 'a' || e.key === 'A') {
+      cycleFighter('1', -1);
+    } else if (e.key === 'd' || e.key === 'D') {
+      cycleFighter('1', 1);
+    }
+
+    // Player 2 navigation: Left / Right arrows
+    if (e.key === 'ArrowLeft') {
+      cycleFighter('2', -1);
+    } else if (e.key === 'ArrowRight') {
+      cycleFighter('2', 1);
+    }
+
+    // Space / Enter launches fight
+    if (e.key === 'Enter' || (e.key === ' ' && e.target === document.body)) {
+      const fightBtn = document.getElementById('btnLaunchFight');
+      if (fightBtn) fightBtn.click();
+    }
+  });
+
+  // Initial UI refresh
+  setFighterSelection('1', window.selectedFighterP1 || 'harpy', false);
+  setFighterSelection('2', window.selectedFighterP2 || 'strange', false);
 }
 
-function updatePlayerCardUI(player, charId) {
-  const card = document.getElementById(`p${player}-card`);
-  const portrait = document.getElementById(`p${player}-portrait`);
-  const title = document.getElementById(`p${player}-title`);
-  const archetype = document.getElementById(`p${player}-archetype`);
-  const keys = document.getElementById(`p${player}-keys`);
+function cycleFighter(player, dir) {
+  const current = (player === '1') ? window.selectedFighterP1 : window.selectedFighterP2;
+  const idx = ROSTER_KEYS.indexOf(current);
+  const nextIdx = (idx + dir + ROSTER_KEYS.length) % ROSTER_KEYS.length;
+  setFighterSelection(player, ROSTER_KEYS[nextIdx]);
+  if (window.soundFX) window.soundFX.playSelect();
+}
 
-  if (!card) return;
-
-  if (charId === 'strange') {
-    card.style.background = 'rgba(245, 158, 11, 0.15)';
-    card.style.borderColor = '#f59e0b';
-    if (portrait) portrait.src = '../../assets/characters/Dr Strange/portrait.png';
-    if (portrait) portrait.style.borderColor = '#f59e0b';
-    if (title) title.textContent = 'DR. STRANGE';
-    if (archetype) {
-      archetype.textContent = 'Sorcerer Supreme • Mystic Arts (Zoner / Spells)';
-      archetype.style.color = '#fde047';
-    }
-    if (keys) {
-      keys.innerHTML = player === '1'
-        ? `Move: <span class="command-key">WASD</span> | Jump: <span class="command-key">SPACE</span><br>Attacks: <span class="command-key">F</span> (5A) <span class="command-key">G</span> (5B) <span class="command-key">H</span> (5C)<br>Special: <span class="command-key">R</span> (Mystic Orb) | Super: <span class="command-key">S+H / Y</span> | Dash: <span class="command-key">Q</span>`
-        : `Move: <span class="command-key">ARROWS ↑ ← ↓ →</span><br>Attacks: <span class="command-key">J / NUM1</span> (5A) <span class="command-key">K / NUM2</span> (5B) <span class="command-key">L / NUM3</span> (5C)<br>Special: <span class="command-key">U / NUM4</span> (Mystic Orb) | Super: <span class="command-key">↓+L / I</span> | Dash: <span class="command-key">O</span>`;
-    }
-  } else if (charId === 'chunli') {
-    card.style.background = 'rgba(2, 132, 199, 0.15)';
-    card.style.borderColor = '#0284c7';
-    if (portrait) portrait.src = '../../assets/characters/ChunLi/portrait.png';
-    if (portrait) portrait.style.borderColor = '#0284c7';
-    if (title) title.textContent = 'CHUN-LI';
-    if (archetype) {
-      archetype.textContent = 'Strongest Woman in the World • Lightning Strikes (Rushdown)';
-      archetype.style.color = '#38bdf8';
-    }
-    if (keys) {
-      keys.innerHTML = player === '1'
-        ? `Move: <span class="command-key">WASD</span> | Jump: <span class="command-key">SPACE</span><br>Attacks: <span class="command-key">F</span> (5A) <span class="command-key">G</span> (5B) <span class="command-key">H</span> (5C)<br>Special: <span class="command-key">R</span> (Kikoken) | Super: <span class="command-key">S+H / Y</span> | Dash: <span class="command-key">Q</span>`
-        : `Move: <span class="command-key">ARROWS ↑ ← ↓ →</span><br>Attacks: <span class="command-key">J / NUM1</span> (5A) <span class="command-key">K / NUM2</span> (5B) <span class="command-key">L / NUM3</span> (5C)<br>Special: <span class="command-key">U / NUM4</span> (Kikoken) | Super: <span class="command-key">↓+L / I</span> | Dash: <span class="command-key">O</span>`;
-    }
-  } else if (charId === 'mewtwo') {
-    card.style.background = 'rgba(147, 51, 234, 0.15)';
-    card.style.borderColor = '#9333ea';
-    if (portrait) portrait.src = '../../assets/characters/Mewtwo/portrait.png';
-    if (portrait) portrait.style.borderColor = '#9333ea';
-    if (title) title.textContent = 'MEWTWO';
-    if (archetype) {
-      archetype.textContent = 'Genetic Apex • Psychic Overlord (Zoner / Striker)';
-      archetype.style.color = '#c084fc';
-    }
-    if (keys) {
-      keys.innerHTML = player === '1'
-        ? `Move: <span class="command-key">WASD</span> | Jump: <span class="command-key">SPACE</span><br>Attacks: <span class="command-key">F</span> (5A) <span class="command-key">G</span> (5B) <span class="command-key">H</span> (5C)<br>Special: <span class="command-key">R</span> (Shadow Ball) | Super: <span class="command-key">S+H / Y</span> | Dash: <span class="command-key">Q</span>`
-        : `Move: <span class="command-key">ARROWS ↑ ← ↓ →</span><br>Attacks: <span class="command-key">J / NUM1</span> (5A) <span class="command-key">K / NUM2</span> (5B) <span class="command-key">L / NUM3</span> (5C)<br>Special: <span class="command-key">U / NUM4</span> (Shadow Ball) | Super: <span class="command-key">↓+L / I</span> | Dash: <span class="command-key">O</span>`;
-    }
-  } else if (charId === 'steve') {
-    card.style.background = 'rgba(13, 148, 136, 0.15)';
-    card.style.borderColor = '#0d9488';
-    if (portrait) portrait.src = '../../assets/characters/Steve/portrait.png';
-    if (portrait) portrait.style.borderColor = '#0d9488';
-    if (title) title.textContent = 'STEVE';
-    if (archetype) {
-      archetype.textContent = 'Master Crafter • Sandbox Champion (Brawler / Trap)';
-      archetype.style.color = '#2dd4bf';
-    }
-    if (keys) {
-      keys.innerHTML = player === '1'
-        ? `Move: <span class="command-key">WASD</span> | Jump: <span class="command-key">SPACE</span><br>Attacks: <span class="command-key">F</span> (5A) <span class="command-key">G</span> (5B) <span class="command-key">H</span> (5C)<br>Special: <span class="command-key">R</span> (TNT Toss) | Super: <span class="command-key">S+H / Y</span> | Dash: <span class="command-key">Q</span>`
-        : `Move: <span class="command-key">ARROWS ↑ ← ↓ →</span><br>Attacks: <span class="command-key">J / NUM1</span> (5A) <span class="command-key">K / NUM2</span> (5B) <span class="command-key">L / NUM3</span> (5C)<br>Special: <span class="command-key">U / NUM4</span> (TNT Toss) | Super: <span class="command-key">↓+L / I</span> | Dash: <span class="command-key">O</span>`;
-    }
+function setFighterSelection(player, charId, animate = true) {
+  if (player === '1') {
+    window.selectedFighterP1 = charId;
   } else {
-    card.style.background = 'rgba(6, 182, 212, 0.15)';
-    card.style.borderColor = '#06b6d4';
-    if (portrait) portrait.src = '../../assets/characters/harpy/portrait.png';
-    if (portrait) portrait.style.borderColor = '#06b6d4';
-    if (title) title.textContent = 'HARPY';
-    if (archetype) {
-      archetype.textContent = 'Sky Terror • Aerial Striker (Rushdown)';
-      archetype.style.color = '#67e8f9';
-    }
-    if (keys) {
-      keys.innerHTML = player === '1'
-        ? `Move: <span class="command-key">WASD</span> | Jump: <span class="command-key">SPACE</span><br>Attacks: <span class="command-key">F</span> (5A) <span class="command-key">G</span> (5B) <span class="command-key">H</span> (5C)<br>Special: <span class="command-key">R</span> | Super: <span class="command-key">S+H / Y</span> | Dash: <span class="command-key">Q</span>`
-        : `Move: <span class="command-key">ARROWS ↑ ← ↓ →</span><br>Attacks: <span class="command-key">J / NUM1</span> (5A) <span class="command-key">K / NUM2</span> (5B) <span class="command-key">L / NUM3</span> (5C)<br>Special: <span class="command-key">U / NUM4</span> | Super: <span class="command-key">↓+L / I</span> | Dash: <span class="command-key">O</span>`;
+    window.selectedFighterP2 = charId;
+  }
+
+  // Update card cursor borders
+  document.querySelectorAll('.roster-card').forEach(card => {
+    const c = card.dataset.char;
+    card.classList.toggle('p1-selected', c === window.selectedFighterP1);
+    card.classList.toggle('p2-selected', c === window.selectedFighterP2);
+  });
+
+  // Update fighter presentation display
+  updateFighterDisplay(player, charId, animate);
+}
+
+function updateFighterDisplay(player, charId, animate = true) {
+  const data = MK1_ROSTER[charId] || MK1_ROSTER['harpy'];
+  const nameEl = document.getElementById(`p${player}-name`);
+  const subtitleEl = document.getElementById(`p${player}-subtitle`);
+  const archetypeEl = document.getElementById(`p${player}-archetype`);
+  const renderImg = document.getElementById(`p${player}-render-img`);
+
+  if (nameEl) nameEl.textContent = data.name;
+  if (subtitleEl) subtitleEl.textContent = data.subtitle;
+  if (archetypeEl) archetypeEl.textContent = data.archetype;
+
+  if (renderImg) {
+    if (animate) {
+      renderImg.classList.add('fade-enter');
+      setTimeout(() => {
+        renderImg.src = data.render;
+        renderImg.classList.remove('fade-enter');
+      }, 100);
+    } else {
+      renderImg.src = data.render;
     }
   }
 }
