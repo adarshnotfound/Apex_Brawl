@@ -248,6 +248,7 @@ class FighterEntity {
       }
     } else if (key === 'harpy_anim_knockback' || key === 'strange_anim_knockback' || key === 'chunli_anim_knockback' || key === 'mewtwo_anim_knockback' || key === 'steve_anim_knockback') {
       this.isKnockedBack = false;
+      this.isStunned = false;
       if (this.charId === 'chunli') {
         this.sprite.setDisplayOrigin(128, 128);
         this.sprite.body.setSize(100, 230);
@@ -734,6 +735,7 @@ class FighterEntity {
     this.isAttacking = false;
     this.isCrouching = false;
     this.isCaptured = false;
+    this.isStunned = false;
     if (this.sprite && this.sprite.chain) this.sprite.chain();
     this.currentAttackData = null;
     if (this.sprite && this.sprite.body) {
@@ -742,6 +744,10 @@ class FighterEntity {
     if (this.attackTimer) {
       this.attackTimer.remove();
       this.attackTimer = null;
+    }
+    if (this.stunTimer) {
+      this.stunTimer.remove();
+      this.stunTimer = null;
     }
     if (this.activeHoyokuVFX && this.activeHoyokuVFX.active) {
       this.activeHoyokuVFX.destroy();
@@ -879,10 +885,12 @@ class FighterEntity {
         // Do not abort active attack animation upon ground contact
         this.isInAir = false;
         this.isKnockedBack = false;
+        this.isStunned = false;
         this.snapToGround();
       } else {
         this.isInAir = false;
         this.isKnockedBack = false;
+        this.isStunned = false;
         this.isAttacking = false;
         this.currentAttackData = null;
         if (this.charId === 'chunli' && this.sprite && this.sprite.body) {
@@ -2871,6 +2879,7 @@ class ArenaScene extends Phaser.Scene {
             this.events.off('update', onUpdate);
             if (vfx.active) vfx.destroy();
             target.isCaptured = false;
+            target.isStunned = false;
             if (target.sprite.body) target.sprite.body.setAllowGravity(true);
             target.snapToGround();
             return;
@@ -2882,6 +2891,7 @@ class ArenaScene extends Phaser.Scene {
               this.events.off('update', onUpdate);
               if (vfx.active) vfx.destroy();
               target.isCaptured = false;
+              target.isStunned = false;
               if (target.sprite.body) target.sprite.body.setAllowGravity(true);
               target.snapToGround();
               return;
@@ -2905,6 +2915,7 @@ class ArenaScene extends Phaser.Scene {
 
                 // Release hold & restore gravity
                 target.isCaptured = false;
+                target.isStunned = false;
                 if (target.sprite.body) {
                   target.sprite.body.setAllowGravity(true);
                 }
