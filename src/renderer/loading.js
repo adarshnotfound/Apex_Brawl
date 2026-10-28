@@ -144,12 +144,24 @@
     window.selectedStage = selectedStage;
     window.isTrainingMode = options.isTraining === true;
     window.isLanMatch = options.isLan === true;
+    const isArcade = options.isArcade === true || window.isArcadeMode === true;
+    const isCpu = options.isCpu === true || isArcade || window.isCpuMatch === true;
+    window.isArcadeMode = isArcade;
+    window.isCpuMatch = isCpu;
+    window.cpuDifficulty = options.difficulty || window.cpuDifficulty || 'MEDIUM';
+
     const stageName = options.stageName || (selectedStage === 'sky_temple' ? 'THE ETERNAL SKY TEMPLE • CELESTIAL ABYSS' : 'MOONLIT MOUNTAIN SHRINE • GEKKA NO REIBYŌ');
+    const diff = window.cpuDifficulty.toUpperCase();
+
     const matchType = options.isTraining
       ? '🥋 DOJO PRACTICE • TRAINING MODE'
       : (options.isLan
         ? '🌐 LAN MULTIPLAYER • 1v1 KOMBAT'
-        : (options.matchType || 'BEST OF 3 ROUNDS • 120s TIMER'));
+        : (isArcade
+          ? `🤖 ARCADE TOWER • FLOOR ${window.arcadeStage || 1} • VS CPU (${diff})`
+          : (isCpu
+            ? `🤖 VS CPU (${diff}) • BEST OF 3 ROUNDS`
+            : (options.matchType || 'BEST OF 3 ROUNDS • 120s TIMER'))));
 
     const p1Data = FIGHTER_REGISTRY[p1Id] || FIGHTER_REGISTRY['harpy'];
     const p2Data = FIGHTER_REGISTRY[p2Id] || FIGHTER_REGISTRY['strange'];

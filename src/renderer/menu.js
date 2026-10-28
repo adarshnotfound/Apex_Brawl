@@ -1,10 +1,16 @@
 // Main Menu Controller for Apex Brawl (Mystic Kombat)
+window.cpuDifficulty = 'MEDIUM';
+window.isCpuMatch = true; // Default single player matches to VS CPU!
+window.isArcadeMode = false;
+window.arcadeStage = 1;
+
 document.addEventListener('DOMContentLoaded', () => {
   initEmbersCanvas();
   initMenuNavigation();
   initModals();
   initGamepadSupport();
   initLANLobbyUI();
+  initArcadeAndAIControls();
 });
 
 // ----------------------------------------------------
@@ -266,16 +272,23 @@ function initModals() {
 
       closeAllModals();
       const isTraining = window.isTrainingModeSelected === true;
+      const isArcade = window.isArcadeMode === true;
+      const isCpu = window.isCpuMatch === true || isArcade;
       if (window.startMatchWithLoadingScreen) {
         window.startMatchWithLoadingScreen({
           p1Char: window.selectedFighterP1,
           p2Char: window.selectedFighterP2,
           stage: window.selectedStage || 'japanese_temple',
           isTraining: isTraining,
-          isLan: window.isLanMatch
+          isLan: window.isLanMatch,
+          isArcade: isArcade,
+          isCpu: isCpu,
+          difficulty: window.cpuDifficulty || 'MEDIUM'
         });
       } else if (window.startPhaserArena) {
         window.isTrainingMode = isTraining;
+        window.isCpuMatch = isCpu;
+        window.isArcadeMode = isArcade;
         window.startPhaserArena();
       }
     });
@@ -421,8 +434,8 @@ function initCharacterSelection() {
       const charId = card.dataset.char;
       if (!charId || !MK1_ROSTER[charId]) return;
 
-      if (window.isTrainingModeSelected) {
-        // Training Mode: Only select Player 1! Opponent is always Dummy.
+      if (window.isTrainingModeSelected || window.isArcadeMode) {
+        // Training or Arcade Tower: Player selects their champion (P1)
         setFighterSelection('1', charId);
       } else if (window.isLanMatch && window.lanManager) {
         // LAN Mode: Host selects P1, Client selects P2
@@ -773,16 +786,38 @@ function switchGrimoireCharacter(charId) {
 function openCharacterSelect(mode = 'VERSUS') {
   window.isTrainingModeSelected = (mode === 'TRAINING');
   window.isLanMatch = (mode === 'LAN');
+  window.isArcadeMode = (mode === 'ARCADE');
+
+  if (mode === 'ARCADE') {
+    window.isCpuMatch = true;
+    window.arcadeStage = window.arcadeStage || 1;
+  }
+
   const fightBtn = document.getElementById('btnLaunchFight');
   const fightBtnText = document.querySelector('#btnLaunchFight .mk1-fight-btn-text');
   
+  // Update Top Floating Opponent Mode and Difficulty Buttons
+  const toggleOppBtn = document.getElementById('btnToggleOpponentMode');
+  const cycleDiffBtn = document.getElementById('btnCycleDifficulty');
+  if (toggleOppBtn) {
+    toggleOppBtn.style.display = (mode === 'VERSUS') ? 'inline-flex' : 'none';
+  }
+  if (cycleDiffBtn) {
+    cycleDiffBtn.style.display = (mode === 'VERSUS' && window.isCpuMatch) ? 'inline-flex' : 'none';
+  }
+  updateOpponentModeUI();
+
   if (fightBtnText) {
     if (mode === 'TRAINING') {
       fightBtnText.textContent = 'ENTER DOJO';
+      if (fightBtn) fightBtn.style.opacity = '1';
     } else if (mode === 'LAN') {
       const isHost = (window.lanManager && window.lanManager.role === 'HOST');
       fightBtnText.textContent = isHost ? 'START LAN KOMBAT' : 'WAITING FOR HOST...';
       if (fightBtn) fightBtn.style.opacity = isHost ? '1' : '0.5';
+    } else if (mode === 'ARCADE') {
+      fightBtnText.textContent = `ENTER FLOOR ${window.arcadeStage || 1}`;
+      if (fightBtn) fightBtn.style.opacity = '1';
     } else {
       fightBtnText.textContent = 'FIGHT';
       if (fightBtn) fightBtn.style.opacity = '1';
@@ -790,11 +825,15 @@ function openCharacterSelect(mode = 'VERSUS') {
   }
 
   if (window.isTrainingModeSelected) {
-    // In Training mode, Opponent is ALWAYS the Dummy! Only Player 1 is chosen by the player.
     window.selectedFighterP2 = 'dummy';
     updateFighterDisplay('1', window.selectedFighterP1 || 'harpy', false);
     updateFighterDisplay('2', 'dummy', false);
-    // Remove P2 selection indicator from all roster cards
+    document.querySelectorAll('.roster-card').forEach(card => card.classList.remove('p2-selected'));
+  } else if (window.isArcadeMode) {
+    const floorOpponent = (window.arcadeStage === 2) ? 'chunli' : ((window.arcadeStage >= 3) ? 'harpy' : 'strange');
+    window.selectedFighterP2 = floorOpponent;
+    updateFighterDisplay('1', window.selectedFighterP1 || 'harpy', false);
+    updateFighterDisplay('2', floorOpponent, false);
     document.querySelectorAll('.roster-card').forEach(card => card.classList.remove('p2-selected'));
   } else {
     if (window.selectedFighterP2 === 'dummy') {
@@ -1230,6 +1269,80 @@ function initLANLobbyUI() {
         pill.style.display = 'inline-block';
         pill.textContent = `${ms}ms LAN`;
       }
+    });
+  }
+}
+
+
+// ----------------------------------------------------
+// 6. Arcade Mode Ladder & AI Opponent Controls
+// ----------------------------------------------------
+function updateOpponentModeUI() {
+  const icon = document.getElementById('opponentModeIcon');
+  const label = document.getElementById('opponentModeLabel');
+  const cycleDiffBtn = document.getElementById('btnCycleDifficulty');
+  const diffLabel = document.getElementById('cpuDifficultyLabel');
+
+  if (icon) icon.textContent = window.isCpuMatch ? '🤖' : '🎮';
+  if (label) label.textContent = window.isCpuMatch ? 'VS CPU' : 'LOCAL 1v1';
+  if (cycleDiffBtn && !window.isTrainingModeSelected && !window.isLanMatch && !window.isArcadeMode) {
+    cycleDiffBtn.style.display = window.isCpuMatch ? 'inline-flex' : 'none';
+  }
+  if (diffLabel) {
+    diffLabel.textContent = (window.cpuDifficulty || 'MEDIUM').toUpperCase();
+  }
+}
+
+function initArcadeAndAIControls() {
+  // Opponent mode toggle button in MK1 character select
+  const toggleOppBtn = document.getElementById('btnToggleOpponentMode');
+  if (toggleOppBtn) {
+    toggleOppBtn.addEventListener('click', () => {
+      window.isCpuMatch = !window.isCpuMatch;
+      updateOpponentModeUI();
+      if (window.soundFX) window.soundFX.playSelect();
+    });
+  }
+
+  // CPU Difficulty cycle button in MK1 character select
+  const cycleDiffBtn = document.getElementById('btnCycleDifficulty');
+  if (cycleDiffBtn) {
+    cycleDiffBtn.addEventListener('click', () => {
+      const diffs = ['EASY', 'MEDIUM', 'HARD', 'INSANE'];
+      const current = (window.cpuDifficulty || 'MEDIUM').toUpperCase();
+      const nextIdx = (diffs.indexOf(current) + 1) % diffs.length;
+      window.cpuDifficulty = diffs[nextIdx];
+      updateOpponentModeUI();
+      if (window.soundFX) window.soundFX.playSelect();
+    });
+  }
+
+  // Arcade Modal Difficulty Buttons
+  document.querySelectorAll('.arcade-diff-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.arcade-diff-btn').forEach(b => {
+        b.classList.remove('active');
+        b.style.background = 'rgba(255,255,255,0.05)';
+      });
+      btn.classList.add('active');
+      btn.style.background = 'rgba(245, 158, 11, 0.25)';
+      window.cpuDifficulty = btn.dataset.diff || 'MEDIUM';
+      updateOpponentModeUI();
+      if (window.soundFX) window.soundFX.playSelect();
+    });
+  });
+
+  // Start Arcade Run CTA
+  const btnStartArcade = document.getElementById('btnStartArcadeLadder');
+  if (btnStartArcade) {
+    btnStartArcade.addEventListener('click', () => {
+      closeAllModals();
+      window.isArcadeMode = true;
+      window.arcadeStage = 1;
+      window.selectedFighterP2 = 'strange';
+      window.selectedStage = 'sky_temple';
+      openCharacterSelect('ARCADE');
+      if (window.soundFX) window.soundFX.playSelect();
     });
   }
 }

@@ -896,6 +896,19 @@ class FighterEntity {
       return;
     }
 
+    // Determine whether fighter is holding Back away from opponent (Fighting Block)
+    if (this.scene && this.scene.fighterP1 && this.scene.fighterP2) {
+      const opponent = (this === this.scene.fighterP1) ? this.scene.fighterP2 : this.scene.fighterP1;
+      if (opponent && opponent.sprite) {
+        const opponentIsToRight = opponent.sprite.x > this.sprite.x;
+        this.isHoldingBack = Boolean(opponentIsToRight ? input.left : input.right);
+      } else {
+        this.isHoldingBack = false;
+      }
+    } else {
+      this.isHoldingBack = false;
+    }
+
     // Ground Check: physical contact or world bottom
     const onGround = Boolean(
       this.isCrouching ||
@@ -1896,6 +1909,9 @@ class ArenaScene extends Phaser.Scene {
     this.isGameOver = false;
     this.currentRound = 1;
     this.p1RoundWins = 0;
+    this.fightingAI = window.fightingAI || (typeof FightingAI !== 'undefined' ? new FightingAI() : null);
+    this.isCpuMatch = (window.isCpuMatch === true) || (window.isArcadeMode === true);
+    this.cpuDifficulty = window.cpuDifficulty || 'MEDIUM';
     this.p2RoundWins = 0;
     this.roundState = 'INTRO';
     this.roundTimer = this.roundDurationSec;
@@ -3169,6 +3185,9 @@ class ArenaScene extends Phaser.Scene {
     let p2Title = `${p2Prefix}: ${p2DisplayName}`;
     if (window.isLanMatch && window.lanManager) {
       p2Title = window.lanManager.role === 'CLIENT' ? `2P (YOU): ${p2DisplayName}` : `2P (CHALLENGER): ${p2DisplayName}`;
+    } else if (window.isCpuMatch || this.isCpuMatch || window.isArcadeMode) {
+      const diff = (window.cpuDifficulty || this.cpuDifficulty || 'MEDIUM').toUpperCase();
+      p2Title = `CPU (${diff}): ${p2DisplayName}`;
     }
     this.p2Name = this.add.text(1155, 34, p2Title, {
       fontFamily: 'Bebas Neue, Rajdhani, sans-serif',
@@ -3327,11 +3346,9 @@ class ArenaScene extends Phaser.Scene {
         } else if (guardSetting === 'RANDOM' && Math.random() < 0.5) {
           isBlocked = true;
         }
-      } else if (defender === this.fighterP1) {
-        // Player 1 Block: Holding Back (away from attacker) while not attacking
-        if (defender.isHoldingBack && !defender.isAttacking) {
-          isBlocked = true;
-        }
+      } else if (defender.isHoldingBack && !defender.isAttacking) {
+        // Universal Block: Defender holding Back (away from attacker) while not attacking
+        isBlocked = true;
       }
 
       if (isBlocked) {
@@ -4085,7 +4102,28 @@ class ArenaScene extends Phaser.Scene {
     rematchBox.on('pointerout', () => rematchBox.setFillStyle(0x0f111a, 0.9));
     this.bannerObjects.push(rematchBox);
 
-    const promptText = this.add.text(640, 430, '[ ENTER / SPACE ] REMATCH', {
+    let promptLabel = '[ ENTER / SPACE ] REMATCH';
+    const isArcade = Boolean(window.isArcadeMode);
+    const p1WonMatch = (this.p1RoundWins >= this.maxRoundsToWin);
+
+    if (isArcade) {
+      const stage = window.arcadeStage || 1;
+      if (p1WonMatch) {
+        if (stage < 3) {
+          promptLabel = `[ ENTER / SPACE ] ADVANCE TO FLOOR ${stage + 1}`;
+          rematchBox.removeAllListeners();
+          rematchBox.on('pointerdown', () => this.advanceArcadeFloor());
+        } else {
+          promptLabel = '🏆 TOWER CONQUERED! [ ENTER ] RETURN TO MENU';
+          rematchBox.removeAllListeners();
+          rematchBox.on('pointerdown', () => window.location.reload());
+        }
+      } else {
+        promptLabel = `[ ENTER / SPACE ] RETRY FLOOR ${stage}`;
+      }
+    }
+
+    const promptText = this.add.text(640, 430, promptLabel, {
       fontFamily: 'Rajdhani, sans-serif',
       fontSize: '18px',
       fontStyle: 'bold',
@@ -4116,7 +4154,38 @@ class ArenaScene extends Phaser.Scene {
     });
   }
 
+  advanceArcadeFloor() {
+    this.clearBanners();
+    window.arcadeStage = (window.arcadeStage || 1) + 1;
+    let nextOpponent = 'chunli';
+    let nextStage = 'japanese_temple';
+    if (window.arcadeStage >= 3) {
+      nextOpponent = 'harpy';
+      nextStage = 'sky_temple';
+    }
+
+    window.selectedFighterP2 = nextOpponent;
+    window.selectedStage = nextStage;
+
+    if (window.startMatchWithLoadingScreen) {
+      window.startMatchWithLoadingScreen({
+        p1Char: window.selectedFighterP1,
+        p2Char: nextOpponent,
+        stage: nextStage,
+        isArcade: true,
+        isCpu: true,
+        difficulty: window.cpuDifficulty || 'MEDIUM'
+      });
+    } else {
+      this.scene.restart();
+    }
+  }
+
   restartMatch() {
+    if (window.isArcadeMode && (this.p1RoundWins >= this.maxRoundsToWin) && (window.arcadeStage || 1) < 3) {
+      this.advanceArcadeFloor();
+      return;
+    }
     this.clearBanners();
     this.currentRound = 1;
     this.p1RoundWins = 0;
@@ -4331,28 +4400,20 @@ class ArenaScene extends Phaser.Scene {
             dashJustDown: false, tauntJustDown: false
           };
         } else if (dummyAction === 'CPU') {
-          // Sparring AI combatant
-          const p1Dist = this.fighterP1.sprite.x - this.fighterP2.sprite.x;
-          const absDist = Math.abs(p1Dist);
-          const aiFacing = this.fighterP2.getFacingDir();
-          const shouldMoveForward = (absDist > 200);
-
-          p2Input = {
-            up: (absDist > 300 && Math.random() < 0.02),
-            upJustDown: (absDist > 300 && Math.random() < 0.02),
-            down: (absDist < 120 && Math.random() < 0.03),
-            left: (p1Dist < -50),
-            right: (p1Dist > 50),
-            isHoldingForward: shouldMoveForward,
-            lightJustDown: (absDist < 160 && Math.random() < 0.06),
-            mediumJustDown: (absDist < 200 && Math.random() < 0.04),
-            heavyJustDown: (absDist < 220 && Math.random() < 0.03),
-            specialJustDown: (absDist > 250 && Math.random() < 0.03),
-            superJustDown: (absDist < 180 && Math.random() < 0.02),
-            dashJustDown: (absDist > 400 && Math.random() < 0.03),
-            tauntJustDown: false
-          };
+          // Sparring AI Combatant powered by FightingAI
+          const diff = (this.trainingSettings && this.trainingSettings.cpuDifficulty) || 'MEDIUM';
+          const aiEngine = this.fightingAI || window.fightingAI;
+          if (aiEngine) {
+            p2Input = aiEngine.update(time, delta, this.fighterP1, this.fighterP2, diff);
+          }
         }
+      }
+    } else if ((this.isCpuMatch || window.isCpuMatch || window.isArcadeMode) && !window.isLanMatch) {
+      // Single Player VS CPU Match / Arcade Mode Ladder
+      const aiEngine = this.fightingAI || window.fightingAI;
+      if (aiEngine) {
+        const diff = this.cpuDifficulty || window.cpuDifficulty || 'MEDIUM';
+        p2Input = aiEngine.update(time, delta, this.fighterP1, this.fighterP2, diff);
       }
     }
 
