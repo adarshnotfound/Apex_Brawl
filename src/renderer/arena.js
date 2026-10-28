@@ -23,19 +23,26 @@ class FighterEntity {
     this.shadowBallFired = false;
     this.tntFired = false;
 
-    this.hp = charId === 'strange' ? 960 : (charId === 'chunli' ? 950 : (charId === 'mewtwo' ? 940 : (charId === 'steve' ? 980 : 920)));
+    this.hp = charId === 'dummy' ? 1000 : (charId === 'strange' ? 960 : (charId === 'chunli' ? 950 : (charId === 'mewtwo' ? 940 : (charId === 'steve' ? 980 : 920))));
     this.maxHp = this.hp;
 
     // Movement speeds & Jump velocity (balanced fighting game frame data)
-    this.walkSpeed = charId === 'strange' ? 215 : (charId === 'chunli' ? 260 : (charId === 'mewtwo' ? 250 : (charId === 'steve' ? 240 : 260)));
-    this.dashSpeed = charId === 'strange' ? 460 : (charId === 'chunli' ? 495 : (charId === 'mewtwo' ? 500 : (charId === 'steve' ? 470 : 490)));
-    this.jumpVel = charId === 'strange' ? -720 : (charId === 'chunli' ? -760 : (charId === 'mewtwo' ? -750 : (charId === 'steve' ? -730 : -760)));
+    this.walkSpeed = charId === 'dummy' ? 220 : (charId === 'strange' ? 215 : (charId === 'chunli' ? 260 : (charId === 'mewtwo' ? 250 : (charId === 'steve' ? 240 : 260))));
+    this.dashSpeed = charId === 'dummy' ? 440 : (charId === 'strange' ? 460 : (charId === 'chunli' ? 495 : (charId === 'mewtwo' ? 500 : (charId === 'steve' ? 470 : 490))));
+    this.jumpVel = charId === 'dummy' ? -720 : (charId === 'strange' ? -720 : (charId === 'chunli' ? -760 : (charId === 'mewtwo' ? -750 : (charId === 'steve' ? -730 : -760))));
 
     // Create sprite
-    const initialTexture = charId === 'strange' ? 'strange_sheet_idle' : (charId === 'chunli' ? 'chunli_sheet_idle' : (charId === 'mewtwo' ? 'mewtwo_sheet_idle' : (charId === 'steve' ? 'steve_sheet_idle' : 'harpy_sheet_idle')));
+    const initialTexture = charId === 'dummy' ? 'dummy_sprite' : (charId === 'strange' ? 'strange_sheet_idle' : (charId === 'chunli' ? 'chunli_sheet_idle' : (charId === 'mewtwo' ? 'mewtwo_sheet_idle' : (charId === 'steve' ? 'steve_sheet_idle' : 'harpy_sheet_idle'))));
     this.sprite = scene.physics.add.sprite(x, y, initialTexture);
     this.sprite.setDepth(10);
-    if (charId === 'strange') {
+    if (charId === 'dummy') {
+      // Static Robo Practice Dummy: 245x340 frame scaled to 0.68 visual height (~230px)
+      this.sprite.setScale(0.68);
+      this.sprite.setCollideWorldBounds(true);
+      this.sprite.setDisplayOrigin(122, 170);
+      this.sprite.body.setSize(110, 310);
+      this.sprite.body.setOffset(68, 25);
+    } else if (charId === 'strange') {
       this.sprite.setScale(0.80);
       this.sprite.setCollideWorldBounds(true);
       this.sprite.body.setSize(180, 360);
@@ -76,7 +83,10 @@ class FighterEntity {
       this.sprite.setTint(0xc4b5fd);
     }
 
-    if (charId === 'strange') {
+    if (charId === 'dummy') {
+      // Practice Dummy uses static sprite frame with tint flash feedback
+      this.sprite.clearTint();
+    } else if (charId === 'strange') {
       this.sprite.play('strange_anim_idle');
     } else if (charId === 'chunli') {
       this.sprite.play('chunli_anim_idle');
@@ -228,6 +238,14 @@ class FighterEntity {
   }
 
   updateTextureForState() {
+    if (this.charId === 'dummy') {
+      // Static Robot: never play sprite animations!
+      this.currentAction = (this.scene && this.scene.trainingSettings && this.scene.trainingSettings.dummyAction === 'GUARD') ? 'GUARD' : 'STAND STILL';
+      this.sprite.setTexture('dummy_sprite');
+      this.sprite.clearTint();
+      return;
+    }
+
     if (this.charId === 'strange') {
       if (this.isKnockedBack) {
         this.currentAction = 'KNOCKBACK / LAUNCH';
@@ -469,6 +487,47 @@ class FighterEntity {
   takeHit(attackData, attacker) {
     if (this.hp <= 0 || (this.scene && this.scene.roundState !== 'FIGHTING')) return;
 
+    if (this.charId === 'dummy') {
+      // STATIC ROBO DUMMY GETS DAMAGE!
+      this.hp = Math.max(0, this.hp - attackData.damage);
+
+      // Floating damage number
+      const textY = this.sprite.y - 120;
+      this.scene.spawnDamageNumber(this.sprite.x, textY, attackData.damage, attackData.isSpecial);
+
+      // Metallic impact flash (bright white tint on hit)
+      this.sprite.setTint(0xffffff);
+      this.scene.time.delayedCall(120, () => {
+        if (this.sprite && this.sprite.active) {
+          this.sprite.clearTint();
+        }
+      });
+
+      // Subtle solid impact recoil (slight jolt then settles immediately)
+      const attackerX = (attacker && attacker.sprite) ? attacker.sprite.x : (this.sprite.x - this.getFacingDir() * 100);
+      const pushDir = this.sprite.x >= attackerX ? 1 : -1;
+      const recoilSpeed = attackData.isSpecial ? 120 : 60;
+      this.sprite.setVelocityX(pushDir * recoilSpeed);
+      this.scene.time.delayedCall(100, () => {
+        if (this.sprite && this.sprite.active) {
+          this.sprite.setVelocityX(0);
+        }
+      });
+
+      // Screen impact shake
+      this.scene.cameras.main.shake(attackData.isSpecial ? 160 : 80, attackData.isSpecial ? 0.012 : 0.005);
+
+      // Sound impact
+      if (window.soundFX) {
+        if (attackData.isSpecial) window.soundFX.playStartBoom();
+        else window.soundFX.playSelect();
+      }
+
+      // Update HUD immediately
+      this.scene.updateHUD();
+      return;
+    }
+
     // Apply Damage
     this.hp = Math.max(0, this.hp - attackData.damage);
 
@@ -512,7 +571,7 @@ class FighterEntity {
     this.scene.spawnDamageNumber(this.sprite.x, textY, attackData.damage, attackData.isSpecial);
 
     // Hit flash
-    this.sprite.setTint(0xff2222);
+    this.sprite.setTint(this.charId === 'dummy' ? 0xffffff : 0xff2222);
     this.scene.time.delayedCall(160, () => {
       if (this.isMirror) {
         this.sprite.setTint(0xc4b5fd);
@@ -560,6 +619,15 @@ class FighterEntity {
 
   handleControls(input) {
     if (!this.sprite || !this.sprite.body) return;
+
+    if (this.charId === 'dummy') {
+      // Static Robo Dummy: completely static in place, absorbs damage cleanly
+      this.sprite.setVelocityX(0);
+      this.sprite.setTexture('dummy_sprite');
+      const isGuard = (this.scene && this.scene.trainingSettings && this.scene.trainingSettings.dummyAction === 'GUARD');
+      this.currentAction = isGuard ? 'GUARD' : 'STAND STILL';
+      return;
+    }
     if (this.hp <= 0 || (this.scene && this.scene.roundState !== 'FIGHTING')) {
       if (this.hp <= 0) {
         this.currentAction = 'DEFEATED (K.O.)';
@@ -1500,6 +1568,10 @@ class ArenaScene extends Phaser.Scene {
     this.load.spritesheet('steve_sheet_tnt_flight', stBase + 'TNT_Flight.png', { frameWidth: 600, frameHeight: 448 });
     this.load.spritesheet('steve_sheet_tnt_fuse', stBase + 'TNT_Fuse.png', { frameWidth: 600, frameHeight: 448 });
     this.load.spritesheet('steve_sheet_tnt_explosion', stBase + 'TNT_Explosion.png', { frameWidth: 632, frameHeight: 424 });
+
+    // 6. Training Dummy Assets
+    this.load.image('dummy_sprite', 'assets/characters/dummy/dummy_sprite.png');
+    this.load.image('dummy_portrait', 'assets/characters/dummy/portrait.png');
   }
 
   create() {
@@ -1539,7 +1611,7 @@ class ArenaScene extends Phaser.Scene {
 
     // 4. Resolve selected fighters
     const p1Char = window.selectedFighterP1 || 'harpy';
-    const p2Char = window.selectedFighterP2 || 'strange';
+    const p2Char = (window.isTrainingMode === true) ? 'dummy' : (window.selectedFighterP2 || 'strange');
     const isMirror = p1Char === p2Char;
 
     // Spawn Player 1 (Left mark, faces right)
@@ -1566,6 +1638,9 @@ class ArenaScene extends Phaser.Scene {
 
     // 6. Visual Screen-Locked HUD
     this.buildDualPlayerHUD(p1Char, p2Char);
+
+    // 6.5. Modern Feature-Complete Training Mode Initialization
+    this.setupTrainingMode();
 
     // 7. Start Round 1
     this.startRound(1);
@@ -2538,7 +2613,7 @@ class ArenaScene extends Phaser.Scene {
     const p1Color = p1Id === 'strange' ? 0xf59e0b : (p1Id === 'chunli' ? 0x0284c7 : (p1Id === 'mewtwo' ? 0x9333ea : (p1Id === 'steve' ? 0x0d9488 : 0x06b6d4)));
     const p1Hex = p1Id === 'strange' ? '#f59e0b' : (p1Id === 'chunli' ? '#38bdf8' : (p1Id === 'mewtwo' ? '#c084fc' : (p1Id === 'steve' ? '#2dd4bf' : '#06b6d4')));
     const p1PortraitKey = p1Id === 'strange' ? 'strange_portrait' : (p1Id === 'chunli' ? 'chunli_portrait' : (p1Id === 'mewtwo' ? 'mewtwo_portrait' : (p1Id === 'steve' ? 'steve_portrait' : 'harpy_portrait')));
-    const p1DisplayName = p1Id === 'chunli' ? 'CHUN-LI' : (p1Id === 'strange' ? 'DR. STRANGE' : (p1Id === 'mewtwo' ? 'MEWTWO' : (p1Id === 'steve' ? 'STEVE' : 'HARPY')));
+    const p1DisplayName = p1Id === 'chunli' ? 'CHUN-LI' : (p1Id === 'strange' ? 'DR. STRANGE' : (p1Id === 'mewtwo' ? 'MEWTWO' : (p1Id === 'steve' ? 'STEVE' : (p1Id === 'zoro' ? 'ZORO' : 'HARPY'))));
 
     const p1Card = this.add.rectangle(75, 60, 72, 72, p1Color, 0.4).setScrollFactor(0).setDepth(100);
     p1Card.setStrokeStyle(2, p1Color);
@@ -2570,17 +2645,18 @@ class ArenaScene extends Phaser.Scene {
     }).setScrollFactor(0).setDepth(100);
 
     // --- PLAYER 2 HUD (Right) ---
-    const p2Color = p2Id === 'strange' ? 0xf59e0b : (p2Id === 'chunli' ? 0x0284c7 : (p2Id === 'mewtwo' ? 0x9333ea : (p2Id === 'steve' ? 0x0d9488 : 0x06b6d4)));
-    const p2Hex = p2Id === 'strange' ? '#f59e0b' : (p2Id === 'chunli' ? '#38bdf8' : (p2Id === 'mewtwo' ? '#c084fc' : (p2Id === 'steve' ? '#2dd4bf' : '#06b6d4')));
-    const p2PortraitKey = p2Id === 'strange' ? 'strange_portrait' : (p2Id === 'chunli' ? 'chunli_portrait' : (p2Id === 'mewtwo' ? 'mewtwo_portrait' : (p2Id === 'steve' ? 'steve_portrait' : 'harpy_portrait')));
-    const p2DisplayName = p2Id === 'chunli' ? 'CHUN-LI' : (p2Id === 'strange' ? 'DR. STRANGE' : (p2Id === 'mewtwo' ? 'MEWTWO' : (p2Id === 'steve' ? 'STEVE' : 'HARPY')));
+    const p2Color = p2Id === 'dummy' ? 0x64748b : (p2Id === 'strange' ? 0xf59e0b : (p2Id === 'chunli' ? 0x0284c7 : (p2Id === 'mewtwo' ? 0x9333ea : (p2Id === 'steve' ? 0x0d9488 : 0x06b6d4))));
+    const p2Hex = p2Id === 'dummy' ? '#94a3b8' : (p2Id === 'strange' ? '#f59e0b' : (p2Id === 'chunli' ? '#38bdf8' : (p2Id === 'mewtwo' ? '#c084fc' : (p2Id === 'steve' ? '#2dd4bf' : '#06b6d4'))));
+    const p2PortraitKey = p2Id === 'dummy' ? 'dummy_portrait' : (p2Id === 'strange' ? 'strange_portrait' : (p2Id === 'chunli' ? 'chunli_portrait' : (p2Id === 'mewtwo' ? 'mewtwo_portrait' : (p2Id === 'steve' ? 'steve_portrait' : 'harpy_portrait'))));
+    const p2DisplayName = p2Id === 'dummy' ? 'PRACTICE DUMMY' : (p2Id === 'chunli' ? 'CHUN-LI' : (p2Id === 'strange' ? 'DR. STRANGE' : (p2Id === 'mewtwo' ? 'MEWTWO' : (p2Id === 'steve' ? 'STEVE' : (p2Id === 'zoro' ? 'ZORO' : 'HARPY')))));
 
     const p2Card = this.add.rectangle(1205, 60, 72, 72, p2Color, 0.4).setScrollFactor(0).setDepth(100);
     p2Card.setStrokeStyle(2, p2Color);
     const p2Img = this.add.image(1205, 60, p2PortraitKey).setScrollFactor(0).setDepth(101);
     p2Img.setDisplaySize(68, 68);
 
-    this.p2Name = this.add.text(1155, 34, `P2: ${p2DisplayName}`, {
+    const p2Prefix = this.isTrainingMode ? 'DUMMY' : 'P2';
+    this.p2Name = this.add.text(1155, 34, `${p2Prefix}: ${p2DisplayName}`, {
       fontFamily: 'Bebas Neue, Rajdhani, sans-serif',
       fontSize: '22px',
       color: '#fef08a'
@@ -2724,7 +2800,130 @@ class ArenaScene extends Phaser.Scene {
 
     if (isInFront && dy <= atkData.rangeY) {
       attacker.hasDealtDamage = true;
-      defender.takeHit(atkData, attacker);
+
+      // 1. GUARD / BLOCK EVALUATION (Player & Dummy)
+      let isBlocked = false;
+      if (defender === this.fighterP2 && this.isTrainingMode && this.trainingSettings) {
+        const dummyAction = this.trainingSettings.dummyAction;
+        const guardSetting = this.trainingSettings.dummyGuard;
+        if (dummyAction === 'GUARD' || guardSetting === 'ALL') {
+          isBlocked = true;
+        } else if (guardSetting === 'AFTER_FIRST_HIT' && this.comboHits > 0) {
+          isBlocked = true;
+        } else if (guardSetting === 'RANDOM' && Math.random() < 0.5) {
+          isBlocked = true;
+        }
+      } else if (defender === this.fighterP1) {
+        // Player 1 Block: Holding Back (away from attacker) while not attacking
+        if (defender.isHoldingBack && !defender.isAttacking) {
+          isBlocked = true;
+        }
+      }
+
+      if (isBlocked) {
+        // Block Effect (Blue Tint + Guard Ping + Floating Text)
+        if (window.soundFX && window.soundFX.playGuard) {
+          window.soundFX.playGuard();
+        } else if (window.soundFX) {
+          window.soundFX.playSelect();
+        }
+
+        defender.sprite.setTint(0x60a5fa);
+        this.time.delayedCall(150, () => {
+          if (defender.isMirror) defender.sprite.setTint(0xc4b5fd);
+          else defender.sprite.clearTint();
+        });
+
+        // Spawn Floating "BLOCKED!" Text
+        const textY = defender.sprite.y - 105;
+        const blockText = this.add.text(defender.sprite.x, textY, 'BLOCKED!', {
+          fontFamily: 'Oswald',
+          fontSize: '22px',
+          fontStyle: 'bold',
+          color: '#60a5fa',
+          stroke: '#000000',
+          strokeThickness: 3
+        }).setOrigin(0.5);
+
+        this.tweens.add({
+          targets: blockText,
+          y: textY - 35,
+          alpha: 0,
+          duration: 650,
+          ease: 'Power2',
+          onComplete: () => blockText.destroy()
+        });
+
+        // Chip damage for special attacks only
+        const chipDmg = atkData.isSpecial ? Math.max(6, Math.round(atkData.damage * 0.15)) : 0;
+        if (chipDmg > 0) {
+          defender.hp = Math.max(1, defender.hp - chipDmg);
+          this.spawnDamageNumber(defender.sprite.x, textY - 20, chipDmg, false);
+        }
+
+        // Frame Advantage on Block
+        let blockAdv = '-2F (SAFE)';
+        if (atkData.isSpecial) blockAdv = '-14F (UNSAFE)';
+        else if (atkData.damage >= 50) blockAdv = '-6F (UNSAFE)';
+        else if (atkData.damage <= 25) blockAdv = '+1F (ADVANTAGE)';
+
+        const moveName = atkData.name || (atkData.isSpecial ? 'SPECIAL' : 'NORMAL');
+        this.updateAttackDataHUD(this.comboHits, chipDmg, this.comboDamage, 1.0, blockAdv, moveName);
+        this.cameras.main.shake(80, 0.005);
+        return;
+      }
+
+      // 2. CLEAN HIT CONNECTS
+      let finalDamage = atkData.damage;
+
+      // Counter Hit Check
+      if (this.isTrainingMode && this.trainingSettings && this.trainingSettings.dummyCounterHit === 'ALWAYS') {
+        finalDamage = Math.round(finalDamage * 1.25);
+        const counterText = this.add.text(defender.sprite.x, defender.sprite.y - 135, 'COUNTER HIT!', {
+          fontFamily: 'Oswald',
+          fontSize: '24px',
+          fontStyle: 'bold',
+          color: '#f59e0b',
+          stroke: '#000000',
+          strokeThickness: 4
+        }).setOrigin(0.5);
+
+        this.tweens.add({
+          targets: counterText,
+          y: defender.sprite.y - 170,
+          alpha: 0,
+          duration: 750,
+          ease: 'Power2',
+          onComplete: () => counterText.destroy()
+        });
+      }
+
+      // Check if Damage is Disabled in Training Mode
+      if (this.isTrainingMode && this.trainingSettings && this.trainingSettings.disableDamage) {
+        finalDamage = 0;
+      }
+
+      // Combo Tracking & Damage Scaling (SF6 Standard: 100%, 90%, 80%, floor at 20%)
+      this.comboHits++;
+      const scaling = Math.max(0.2, 1.0 - (this.comboHits - 1) * 0.1);
+      const scaledDamage = Math.round(finalDamage * scaling);
+      this.comboDamage += scaledDamage;
+      this.lastHitDamage = scaledDamage;
+      this.comboTimer = 1.25;
+
+      // Frame Advantage on Hit
+      let hitAdv = '+4F (LINKABLE)';
+      if (atkData.isSpecial) hitAdv = '+18F (HARD KNOCKDOWN)';
+      else if (atkData.damage >= 50) hitAdv = '+8F (COMBOABLE)';
+      else if (atkData.damage >= 35) hitAdv = '+6F (LINKABLE)';
+
+      const moveName = atkData.name || (atkData.isSpecial ? 'SPECIAL' : 'NORMAL');
+      if (this.isTrainingMode) {
+        this.updateAttackDataHUD(this.comboHits, scaledDamage, this.comboDamage, scaling, hitAdv, moveName);
+      }
+
+      // Deliver Damage to entity
+      defender.takeHit({ ...atkData, damage: scaledDamage }, attacker);
 
       // Camera impact shake
       this.cameras.main.shake(atkData.isSpecial ? 220 : 120, atkData.isSpecial ? 0.016 : 0.007);
@@ -2734,6 +2933,331 @@ class ArenaScene extends Phaser.Scene {
         if (atkData.isSpecial) window.soundFX.playStartBoom();
         else window.soundFX.playSelect();
       }
+    }
+  }
+
+
+  // ==========================================================================
+  // MODERN TRAINING MODE ENGINE & DIAGNOSTICS (SF6 / TEKKEN 8 / MK1 STANDARD)
+  // ==========================================================================
+  setupTrainingMode() {
+    this.isTrainingMode = window.isTrainingMode === true;
+    this.trainingSettings = {
+      dummyAction: 'STAND',       // 'STAND' (Stand Still) | 'GUARD' | 'ATTACK' | 'CROUCH' | 'JUMP' | 'CPU' | 'MANUAL'
+      dummyGuard: 'NONE',         // 'NONE' | 'ALL' | 'AFTER_FIRST_HIT' | 'RANDOM'
+      dummyGuardType: 'STAND',     // 'STAND' | 'CROUCH'
+      dummyCounterHit: 'NORMAL',   // 'NORMAL' | 'ALWAYS'
+      inputHistory: true,
+      attackData: true,
+      showHitboxes: false,
+      healthRegen: true,
+      disableDamage: false,       // When true, all hits deal 0 damage
+      unlimitedHealth: false,     // Disabled by default so Dummy Robot visibly takes damage!
+      p1HealthPreset: 100,
+      p2HealthPreset: 100,
+      infiniteSuper: true
+    };
+
+    // Diagnostic & Combo Tracking
+    this.comboHits = 0;
+    this.comboDamage = 0;
+    this.lastHitDamage = 0;
+    this.comboTimer = 0;
+    this.advantageFrames = 0;
+    this.p1InputHistory = [];
+    this.lastLoggedInputKey = '';
+    this.dummyJumpTimer = 0;
+
+    // Hitbox Graphics Layer
+    this.hitboxGraphics = this.add.graphics();
+    this.hitboxGraphics.setDepth(48);
+
+    // Setup Hotkeys: Tab (Training Menu), Backspace (Quick Reset), H (Hitboxes)
+    if (this.input && this.input.keyboard) {
+      this.input.keyboard.on('keydown-TAB', (e) => {
+        if (this.isTrainingMode) {
+          e.preventDefault();
+          this.toggleTrainingMenu();
+        }
+      });
+
+      this.input.keyboard.on('keydown-BACKSPACE', (e) => {
+        if (this.isTrainingMode) {
+          e.preventDefault();
+          this.resetPositions('CENTER');
+        }
+      });
+
+      this.input.keyboard.on('keydown-R', (e) => {
+        // Shift+R or standalone R when not in text input
+        if (this.isTrainingMode && !e.target.matches('input, textarea') && (e.shiftKey || e.ctrlKey)) {
+          e.preventDefault();
+          this.resetPositions('CENTER');
+        }
+      });
+
+      this.input.keyboard.on('keydown-H', (e) => {
+        if (this.isTrainingMode && !e.target.matches('input, textarea')) {
+          this.toggleHitboxes();
+        }
+      });
+    }
+
+    // Toggle Training Mode UI in DOM
+    const btnSettings = document.getElementById('btnToggleTrainingMenu');
+    const btnReset = document.getElementById('btnResetTrainingPos');
+    const btnHitbox = document.getElementById('btnToggleHitboxes');
+    const inputHistory = document.getElementById('trainingInputHistory');
+    const attackData = document.getElementById('trainingAttackData');
+
+    if (this.isTrainingMode) {
+      if (btnSettings) btnSettings.style.display = 'flex';
+      if (btnReset) btnReset.style.display = 'flex';
+      if (btnHitbox) btnHitbox.style.display = 'flex';
+      if (inputHistory) inputHistory.style.display = 'flex';
+      if (attackData) attackData.style.display = 'flex';
+
+      // Override timer text with infinite symbol
+      if (this.timerText) this.timerText.setText('∞');
+    } else {
+      if (btnSettings) btnSettings.style.display = 'none';
+      if (btnReset) btnReset.style.display = 'none';
+      if (btnHitbox) btnHitbox.style.display = 'none';
+      if (inputHistory) inputHistory.style.display = 'none';
+      if (attackData) attackData.style.display = 'none';
+    }
+  }
+
+  setTrainingSetting(key, val) {
+    if (!this.trainingSettings) return;
+    this.trainingSettings[key] = val;
+
+    if (key === 'showHitboxes') {
+      const chk = document.getElementById('chkHitboxes');
+      if (chk) chk.checked = !!val;
+    } else if (key === 'inputHistory') {
+      const el = document.getElementById('trainingInputHistory');
+      if (el) el.style.display = val ? 'flex' : 'none';
+    } else if (key === 'attackData') {
+      const el = document.getElementById('trainingAttackData');
+      if (el) el.style.display = val ? 'flex' : 'none';
+    } else if (key === 'p1HealthPreset' && this.fighterP1) {
+      this.fighterP1.hp = Math.round((val / 100) * this.fighterP1.maxHp);
+      this.updateHUD();
+    } else if (key === 'p2HealthPreset' && this.fighterP2) {
+      this.fighterP2.hp = Math.round((val / 100) * this.fighterP2.maxHp);
+      this.updateHUD();
+    }
+  }
+
+  toggleTrainingMenu(force) {
+    const modal = document.getElementById('trainingSettingsModal');
+    if (!modal) return;
+    const isCurrentlyOpen = modal.style.display === 'flex' || modal.classList.contains('open');
+    const shouldOpen = force !== undefined ? force : !isCurrentlyOpen;
+    modal.classList.toggle('open', shouldOpen);
+    modal.style.display = shouldOpen ? 'flex' : 'none';
+    if (window.soundFX) window.soundFX.playSelect();
+  }
+
+  toggleHitboxes() {
+    if (!this.trainingSettings) return;
+    this.setTrainingSetting('showHitboxes', !this.trainingSettings.showHitboxes);
+    if (window.soundFX) window.soundFX.playSelect();
+  }
+
+  resetPositions(type = 'CENTER') {
+    if (!this.fighterP1 || !this.fighterP2) return;
+
+    if (type === 'CENTER') {
+      this.fighterP1.sprite.setPosition(680, 575);
+      this.fighterP2.sprite.setPosition(1240, 575);
+      this.fighterP1.setFacingDir(1);
+      this.fighterP2.setFacingDir(-1);
+    } else if (type === 'LEFT_CORNER') {
+      this.fighterP1.sprite.setPosition(220, 575);
+      this.fighterP2.sprite.setPosition(420, 575);
+      this.fighterP1.setFacingDir(1);
+      this.fighterP2.setFacingDir(-1);
+    } else if (type === 'RIGHT_CORNER') {
+      this.fighterP1.sprite.setPosition(1500, 575);
+      this.fighterP2.sprite.setPosition(1700, 575);
+      this.fighterP1.setFacingDir(1);
+      this.fighterP2.setFacingDir(-1);
+    } else if (type === 'SWAP') {
+      const tempX = this.fighterP1.sprite.x;
+      this.fighterP1.sprite.setPosition(this.fighterP2.sprite.x, 575);
+      this.fighterP2.sprite.setPosition(tempX, 575);
+      this.fighterP1.setFacingDir(this.fighterP1.sprite.x < this.fighterP2.sprite.x ? 1 : -1);
+      this.fighterP2.setFacingDir(this.fighterP2.sprite.x < this.fighterP1.sprite.x ? 1 : -1);
+    }
+
+    // Neutralize physical states
+    [this.fighterP1, this.fighterP2].forEach(f => {
+      f.sprite.setVelocity(0, 0);
+      f.isAttacking = false;
+      f.isKnockedBack = false;
+      f.isInAir = false;
+      f.isCrouching = false;
+      f.currentAction = 'IDLE';
+      f.currentAttackData = null;
+      if (f.charId === 'strange') f.sprite.play('strange_anim_idle', true);
+      else if (f.charId === 'chunli') f.sprite.play('chunli_anim_idle', true);
+      else if (f.charId === 'mewtwo') f.sprite.play('mewtwo_anim_idle', true);
+      else if (f.charId === 'steve') f.sprite.play('steve_anim_idle', true);
+      else if (f.charId === 'zoro') f.sprite.play('zoro_anim_idle', true);
+      else f.sprite.play('harpy_anim_idle', true);
+    });
+
+    // Reset health to target presets
+    const p1Target = (this.trainingSettings.p1HealthPreset / 100) * this.fighterP1.maxHp;
+    const p2Target = (this.trainingSettings.p2HealthPreset / 100) * this.fighterP2.maxHp;
+    this.fighterP1.hp = Math.round(p1Target);
+    this.fighterP2.hp = Math.round(p2Target);
+
+    // Reset combo meters
+    this.comboHits = 0;
+    this.comboDamage = 0;
+    this.lastHitDamage = 0;
+    this.comboTimer = 0;
+    this.updateAttackDataHUD(0, 0, 0, 1.0, '-');
+
+    if (window.soundFX) window.soundFX.playSelect();
+  }
+
+  updateAttackDataHUD(hits, dmg, totalDmg, scaling, adv, attackName = '') {
+    const atkEl = document.getElementById('tdAttackName');
+    if (atkEl && attackName) {
+      atkEl.textContent = attackName.toUpperCase();
+    }
+    const hitsEl = document.getElementById('tdComboHits');
+    const dmgEl = document.getElementById('tdDamage');
+    const totalEl = document.getElementById('tdTotalDamage');
+    const scaleEl = document.getElementById('tdScaling');
+    const advEl = document.getElementById('tdAdvantage');
+
+    if (hitsEl) hitsEl.textContent = `${hits} HITS`;
+    if (dmgEl) dmgEl.textContent = `${dmg}`;
+    if (totalEl) totalEl.textContent = `${totalDmg}`;
+    if (scaleEl) scaleEl.textContent = `${Math.round(scaling * 100)}%`;
+
+    if (advEl) {
+      advEl.textContent = adv;
+      if (adv.includes('+') || adv.includes('SAFE') || adv.includes('LINK')) {
+        advEl.className = 'data-val adv-safe';
+      } else if (adv.includes('-') || adv.includes('UNSAFE')) {
+        advEl.className = 'data-val adv-unsafe';
+      } else {
+        advEl.className = 'data-val';
+      }
+    }
+  }
+
+  logP1Input(p1Input) {
+    if (!this.trainingSettings || !this.trainingSettings.inputHistory) return;
+
+    let dir = '⬝';
+    if (p1Input.up && p1Input.left) dir = '⬉';
+    else if (p1Input.up && p1Input.right) dir = '⬈';
+    else if (p1Input.down && p1Input.left) dir = '⬋';
+    else if (p1Input.down && p1Input.right) dir = '⬊';
+    else if (p1Input.up) dir = '⬆';
+    else if (p1Input.down) dir = '⬇';
+    else if (p1Input.left) dir = '⬅';
+    else if (p1Input.right) dir = '➡';
+
+    const btns = [];
+    if (p1Input.lightJustDown) btns.push({ name: 'LP', cls: 'btn-light' });
+    if (p1Input.mediumJustDown) btns.push({ name: 'MP', cls: 'btn-med' });
+    if (p1Input.heavyJustDown) btns.push({ name: 'HP', cls: 'btn-heavy' });
+    if (p1Input.specialJustDown) btns.push({ name: 'SP', cls: 'btn-special' });
+    if (p1Input.superJustDown) btns.push({ name: 'EX', cls: 'btn-special' });
+
+    const key = `${dir}_${btns.map(b => b.name).join('+')}`;
+    const isNew = btns.length > 0 || (key !== this.lastLoggedInputKey && dir !== '⬝');
+
+    if (isNew) {
+      this.lastLoggedInputKey = key;
+      this.p1InputHistory.unshift({
+        dir,
+        btns,
+        frames: 1
+      });
+      if (this.p1InputHistory.length > 9) {
+        this.p1InputHistory.pop();
+      }
+      this.renderInputHistory();
+    } else if (this.p1InputHistory.length > 0) {
+      this.p1InputHistory[0].frames++;
+      const topFrameEl = document.querySelector('#trainingInputHistory .input-entry:last-child .frame-count');
+      if (topFrameEl) {
+        topFrameEl.textContent = `${this.p1InputHistory[0].frames}F`;
+      }
+    }
+  }
+
+  renderInputHistory() {
+    const container = document.getElementById('trainingInputHistory');
+    if (!container) return;
+
+    container.innerHTML = this.p1InputHistory.map(item => `
+      <div class="input-entry">
+        <div class="input-icons">
+          <span class="dir-icon">${item.dir}</span>
+          ${item.btns.map(b => `<span class="btn-badge ${b.cls}">${b.name}</span>`).join('')}
+        </div>
+        <span class="frame-count">${item.frames}F</span>
+      </div>
+    `).join('');
+  }
+
+  renderHitboxes() {
+    if (!this.hitboxGraphics) return;
+    this.hitboxGraphics.clear();
+
+    if (!this.trainingSettings || !this.trainingSettings.showHitboxes) return;
+
+    // Draw Hurtboxes (Green) for Fighters
+    [this.fighterP1, this.fighterP2].forEach(f => {
+      if (!f || !f.sprite || !f.sprite.active) return;
+      const x = f.sprite.x;
+      const y = f.sprite.y;
+      const w = 110;
+      const h = f.isCrouching ? 110 : 180;
+      const top = y - h + 20;
+
+      // Green body hurtbox
+      this.hitboxGraphics.lineStyle(2, 0x10b981, 0.95);
+      this.hitboxGraphics.fillStyle(0x10b981, 0.16);
+      this.hitboxGraphics.fillRect(x - w / 2, top, w, h);
+      this.hitboxGraphics.strokeRect(x - w / 2, top, w, h);
+
+      // Red attack hitbox if actively striking
+      if (f.isAttacking && f.currentAttackData) {
+        const atk = f.currentAttackData;
+        const facing = f.getFacingDir();
+        const rx = atk.rangeX || 160;
+        const ry = atk.rangeY || 100;
+        const atkX = facing === 1 ? x - 15 : x + 15 - rx;
+        const atkY = y - ry;
+
+        this.hitboxGraphics.lineStyle(2, 0xef4444, 0.95);
+        this.hitboxGraphics.fillStyle(0xef4444, 0.28);
+        this.hitboxGraphics.fillRect(atkX, atkY, rx, ry * 1.5);
+        this.hitboxGraphics.strokeRect(atkX, atkY, rx, ry * 1.5);
+      }
+    });
+
+    // Draw Projectile Hitboxes (Cyan)
+    if (this.projectiles) {
+      this.projectiles.children.iterate(proj => {
+        if (proj && proj.active) {
+          this.hitboxGraphics.lineStyle(2, 0x06b6d4, 0.95);
+          this.hitboxGraphics.fillStyle(0x06b6d4, 0.28);
+          this.hitboxGraphics.fillRect(proj.x - 30, proj.y - 30, 60, 60);
+          this.hitboxGraphics.strokeRect(proj.x - 30, proj.y - 30, 60, 60);
+        }
+      });
     }
   }
 
@@ -3112,36 +3636,74 @@ class ArenaScene extends Phaser.Scene {
 
     // Active Timer Countdown during FIGHTING state
     if (this.roundState === 'FIGHTING') {
-      this.timerRemainingMs = Math.max(0, this.timerRemainingMs - delta);
-      const sec = Math.ceil(this.timerRemainingMs / 1000);
+      if (this.isTrainingMode) {
+        // Infinite Timer for Training Mode
+        this.timerRemainingMs = 999999;
+        this.roundTimer = 999;
+        if (this.timerNumText && this.timerNumText.text !== '∞') {
+          this.timerNumText.setText('∞');
+        }
 
-      if (sec !== this.roundTimer) {
-        this.roundTimer = sec;
-
-        // Audible & visual pulse alert when time <= 10s
-        if (this.roundTimer <= 10 && this.roundTimer > 0) {
-          if (window.soundFX && window.soundFX.playTimerTick) {
-            window.soundFX.playTimerTick(true);
+        // Combo Drop Timer & Smooth Health Regeneration
+        const dt = delta / 1000;
+        if (this.comboTimer > 0) {
+          this.comboTimer -= dt;
+          if (this.comboTimer <= 0) {
+            this.comboHits = 0;
           }
-          if (this.timerNumText) {
-            this.tweens.add({
-              targets: this.timerNumText,
-              scale: 1.25,
-              duration: 120,
-              yoyo: true
-            });
+        } else if (this.trainingSettings && this.trainingSettings.healthRegen) {
+          // Smoothly refill P1 and P2 to preset levels
+          const p1Target = (this.trainingSettings.p1HealthPreset / 100) * this.fighterP1.maxHp;
+          const p2Target = (this.trainingSettings.p2HealthPreset / 100) * this.fighterP2.maxHp;
+
+          if (this.fighterP1.hp < p1Target) {
+            this.fighterP1.hp = Math.min(p1Target, this.fighterP1.hp + Math.round(300 * dt));
+          }
+          if (this.fighterP2.hp < p2Target) {
+            this.fighterP2.hp = Math.min(p2Target, this.fighterP2.hp + Math.round(300 * dt));
           }
         }
-      }
 
-      // Consistent 2-minute timer reached zero!
-      // REQUIREMENT: when it reaches zero player with lower health loses!
-      if (this.timerRemainingMs <= 0) {
-        this.roundTimer = 0;
-        this.timerRemainingMs = 0;
-        this.updateHUD();
-        this.endRound('TIMEOUT');
-        return;
+        // Unlimited Health Mode
+        if (this.trainingSettings && this.trainingSettings.unlimitedHealth) {
+          this.fighterP1.hp = this.fighterP1.maxHp;
+          this.fighterP2.hp = this.fighterP2.maxHp;
+        }
+
+        // Infinite Super Meter
+        if (this.trainingSettings && this.trainingSettings.infiniteSuper) {
+          this.fighterP1.superMeter = 100;
+          this.fighterP2.superMeter = 100;
+        }
+      } else {
+        this.timerRemainingMs = Math.max(0, this.timerRemainingMs - delta);
+        const sec = Math.ceil(this.timerRemainingMs / 1000);
+
+        if (sec !== this.roundTimer) {
+          this.roundTimer = sec;
+
+          if (this.roundTimer <= 10 && this.roundTimer > 0) {
+            if (window.soundFX && window.soundFX.playTimerTick) {
+              window.soundFX.playTimerTick(true);
+            }
+            if (this.timerNumText) {
+              this.tweens.add({
+                targets: this.timerNumText,
+                scale: 1.25,
+                duration: 120,
+                yoyo: true
+              });
+            }
+          }
+        }
+
+        if (this.timerRemainingMs <= 0) {
+          this.roundTimer = 0;
+          this.timerRemainingMs = 0;
+          this.updateHUD();
+          this.endRound('TIMEOUT');
+          return;
+        }
       }
     }
 
@@ -3175,7 +3737,7 @@ class ArenaScene extends Phaser.Scene {
     const p2Right = this.p2Keys.right.isDown;
     const p2Down = this.p2Keys.down.isDown;
 
-    const p2Input = {
+    let p2Input = {
       up: p2Up,
       upJustDown: p2UpJustDown,
       down: p2Down,
@@ -3191,6 +3753,95 @@ class ArenaScene extends Phaser.Scene {
       tauntJustDown: Phaser.Input.Keyboard.JustDown(this.p2Keys.p)
     };
 
+    // Log P1 Inputs for Training Input History
+    if (this.isTrainingMode) {
+      this.logP1Input(p1Input);
+
+      // Synthesize Dummy Behavior based on Training Settings
+      if (this.trainingSettings) {
+        const dummyAction = this.trainingSettings.dummyAction;
+
+        if (dummyAction === 'STAND') {
+          // Stationary Practice Opponent (Stand Still)
+          p2Input = {
+            up: false, upJustDown: false,
+            down: false, left: false, right: false,
+            isHoldingForward: false,
+            lightJustDown: false, mediumJustDown: false, heavyJustDown: false,
+            specialJustDown: false, superJustDown: false,
+            dashJustDown: false, tauntJustDown: false
+          };
+        } else if (dummyAction === 'GUARD') {
+          // Continuous Guard Mode: holds back to block all attacks
+          p2Input = {
+            up: false, upJustDown: false,
+            down: false,
+            left: this.fighterP2.getFacingDir() === 1 ? false : true,
+            right: this.fighterP2.getFacingDir() === 1 ? true : false,
+            isHoldingForward: false,
+            lightJustDown: false, mediumJustDown: false, heavyJustDown: false,
+            specialJustDown: false, superJustDown: false,
+            dashJustDown: false, tauntJustDown: false
+          };
+        } else if (dummyAction === 'ATTACK') {
+          // Continuous Attacking: repeats strikes so player can practice blocking and parrying
+          const atkCycle = Math.floor(time / 650) % 3;
+          const isAtkFrame = (time % 650 < 40);
+          p2Input = {
+            up: false, upJustDown: false,
+            down: false, left: false, right: false,
+            isHoldingForward: true,
+            lightJustDown: (isAtkFrame && atkCycle === 0),
+            mediumJustDown: (isAtkFrame && atkCycle === 1),
+            heavyJustDown: (isAtkFrame && atkCycle === 2),
+            specialJustDown: false, superJustDown: false,
+            dashJustDown: false, tauntJustDown: false
+          };
+        } else if (dummyAction === 'CROUCH') {
+          p2Input = {
+            up: false, upJustDown: false,
+            down: true, left: false, right: false,
+            isHoldingForward: false,
+            lightJustDown: false, mediumJustDown: false, heavyJustDown: false,
+            specialJustDown: false, superJustDown: false,
+            dashJustDown: false, tauntJustDown: false
+          };
+        } else if (dummyAction === 'JUMP') {
+          const shouldJump = (time % 1800 < 30);
+          p2Input = {
+            up: shouldJump, upJustDown: shouldJump,
+            down: false, left: false, right: false,
+            isHoldingForward: false,
+            lightJustDown: false, mediumJustDown: false, heavyJustDown: false,
+            specialJustDown: false, superJustDown: false,
+            dashJustDown: false, tauntJustDown: false
+          };
+        } else if (dummyAction === 'CPU') {
+          // Sparring AI combatant
+          const p1Dist = this.fighterP1.sprite.x - this.fighterP2.sprite.x;
+          const absDist = Math.abs(p1Dist);
+          const aiFacing = this.fighterP2.getFacingDir();
+          const shouldMoveForward = (absDist > 200);
+
+          p2Input = {
+            up: (absDist > 300 && Math.random() < 0.02),
+            upJustDown: (absDist > 300 && Math.random() < 0.02),
+            down: (absDist < 120 && Math.random() < 0.03),
+            left: (p1Dist < -50),
+            right: (p1Dist > 50),
+            isHoldingForward: shouldMoveForward,
+            lightJustDown: (absDist < 160 && Math.random() < 0.06),
+            mediumJustDown: (absDist < 200 && Math.random() < 0.04),
+            heavyJustDown: (absDist < 220 && Math.random() < 0.03),
+            specialJustDown: (absDist > 250 && Math.random() < 0.03),
+            superJustDown: (absDist < 180 && Math.random() < 0.02),
+            dashJustDown: (absDist > 400 && Math.random() < 0.03),
+            tauntJustDown: false
+          };
+        }
+      }
+    }
+
     // Feed controls to entities
     this.fighterP1.handleControls(p1Input);
     this.fighterP2.handleControls(p2Input);
@@ -3202,10 +3853,30 @@ class ArenaScene extends Phaser.Scene {
 
       // Check K.O.
       if (this.fighterP1.hp <= 0 || this.fighterP2.hp <= 0) {
-        this.endRound('KO');
-        return;
+        if (this.isTrainingMode) {
+          // Instant Soft Recovery & Refill in Training Mode (No Round Interruptions!)
+          if (this.fighterP1.hp <= 0) {
+            this.fighterP1.hp = this.fighterP1.maxHp;
+            this.fighterP1.currentAction = 'IDLE';
+            this.fighterP1.isKnockedBack = false;
+            this.fighterP1.isInAir = false;
+          }
+          if (this.fighterP2.hp <= 0) {
+            this.fighterP2.hp = this.fighterP2.maxHp;
+            this.fighterP2.currentAction = 'IDLE';
+            this.fighterP2.isKnockedBack = false;
+            this.fighterP2.isInAir = false;
+          }
+          this.updateHUD();
+        } else {
+          this.endRound('KO');
+          return;
+        }
       }
     }
+
+    // Real-Time Hitbox & Hurtbox Visualizer Rendering
+    this.renderHitboxes();
 
     // --- DYNAMIC MODERN FIGHTING GAME CAMERA SYSTEM ---
     if (this.fighterP1 && this.fighterP2 && this.fighterP1.sprite && this.fighterP2.sprite) {
@@ -3332,9 +4003,18 @@ window.exitArenaToMenu = function () {
   const container = document.getElementById('phaser-container');
   const menuWrapper = document.getElementById('menuWrapper');
   const arenaUI = document.getElementById('arenaControlBar');
+  const inputHistory = document.getElementById('trainingInputHistory');
+  const attackData = document.getElementById('trainingAttackData');
+  const trainingModal = document.getElementById('trainingSettingsModal');
 
   if (container) container.style.display = 'none';
   if (arenaUI) arenaUI.style.display = 'none';
+  if (inputHistory) inputHistory.style.display = 'none';
+  if (attackData) attackData.style.display = 'none';
+  if (trainingModal) {
+    trainingModal.classList.remove('open');
+    trainingModal.style.display = 'none';
+  }
   if (menuWrapper) menuWrapper.style.display = 'flex';
 };
 

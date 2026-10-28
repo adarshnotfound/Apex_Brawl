@@ -160,13 +160,13 @@ function executeMenuItem(action) {
 
   switch (action) {
     case 'local-1v1':
-      openModal('modal-battle-prompt');
+      openCharacterSelect('VERSUS');
       break;
     case 'arcade':
       openModal('modal-arcade');
       break;
     case 'training':
-      openModal('modal-training');
+      openCharacterSelect('TRAINING');
       break;
     case 'controls':
       openModal('modal-controls');
@@ -249,13 +249,16 @@ function initModals() {
   if (fightBtn) {
     fightBtn.addEventListener('click', () => {
       closeAllModals();
+      const isTraining = window.isTrainingModeSelected === true;
       if (window.startMatchWithLoadingScreen) {
         window.startMatchWithLoadingScreen({
           p1Char: window.selectedFighterP1,
           p2Char: window.selectedFighterP2,
-          stage: window.selectedStage || 'japanese_temple'
+          stage: window.selectedStage || 'japanese_temple',
+          isTraining: isTraining
         });
       } else if (window.startPhaserArena) {
+        window.isTrainingMode = isTraining;
         window.startPhaserArena();
       }
     });
@@ -269,6 +272,7 @@ function initModals() {
 
   // Battle Arena Selection
   initStageSelection();
+  initDojoSetup();
 }
 
 window.selectedFighterP1 = 'harpy';
@@ -326,6 +330,16 @@ const MK1_ROSTER = {
     themeColor: '#0d9488',
     accentColor: '#2dd4bf'
   },
+  dummy: {
+    id: 'dummy',
+    name: 'TRAINING DUMMY',
+    subtitle: 'COMBAT AUTOMATON • PRACTICE TARGET',
+    archetype: 'Practice Target • Telemetry & Combos',
+    render: 'assets/characters/dummy/action_render.png',
+    avatar: 'assets/characters/dummy/select_avatar.png',
+    themeColor: '#64748b',
+    accentColor: '#94a3b8'
+  },
   zoro: {
     id: 'zoro',
     name: 'RORONOA ZORO',
@@ -338,7 +352,7 @@ const MK1_ROSTER = {
   }
 };
 
-const ROSTER_KEYS = ['harpy', 'strange', 'chunli', 'mewtwo', 'steve'];
+const ROSTER_KEYS = ['harpy', 'strange', 'chunli', 'mewtwo', 'steve', 'zoro'];
 
 function initStageSelection() {
   const pill = document.getElementById('mk1StageSelector');
@@ -445,6 +459,11 @@ function cycleFighter(player, dir) {
 }
 
 function setFighterSelection(player, charId, animate = true) {
+  if (window.isTrainingModeSelected && player === '2') {
+    // Opponent in Training Mode is locked to Dummy
+    return;
+  }
+
   if (player === '1') {
     window.selectedFighterP1 = charId;
   } else {
@@ -455,7 +474,11 @@ function setFighterSelection(player, charId, animate = true) {
   document.querySelectorAll('.roster-card').forEach(card => {
     const c = card.dataset.char;
     card.classList.toggle('p1-selected', c === window.selectedFighterP1);
-    card.classList.toggle('p2-selected', c === window.selectedFighterP2);
+    if (!window.isTrainingModeSelected) {
+      card.classList.toggle('p2-selected', c === window.selectedFighterP2);
+    } else {
+      card.classList.remove('p2-selected');
+    }
   });
 
   // Update fighter presentation display
@@ -469,7 +492,13 @@ function updateFighterDisplay(player, charId, animate = true) {
   const archetypeEl = document.getElementById(`p${player}-archetype`);
   const renderImg = document.getElementById(`p${player}-render-img`);
 
-  if (nameEl) nameEl.textContent = data.name;
+  if (nameEl) {
+    if (player === '2' && window.isTrainingModeSelected) {
+      nameEl.textContent = `DUMMY: ${data.name}`;
+    } else {
+      nameEl.textContent = data.name;
+    }
+  }
   if (subtitleEl) subtitleEl.textContent = data.subtitle;
   if (archetypeEl) archetypeEl.textContent = data.archetype;
 
@@ -710,6 +739,32 @@ function switchGrimoireCharacter(charId) {
   }
 }
 
+
+function openCharacterSelect(mode = 'VERSUS') {
+  window.isTrainingModeSelected = (mode === 'TRAINING');
+  const fightBtnText = document.querySelector('#btnLaunchFight .mk1-fight-btn-text');
+  if (fightBtnText) {
+    fightBtnText.textContent = (mode === 'TRAINING') ? 'ENTER DOJO' : 'FIGHT';
+  }
+
+  if (window.isTrainingModeSelected) {
+    // In Training mode, Opponent is ALWAYS the Dummy! Only Player 1 is chosen by the player.
+    window.selectedFighterP2 = 'dummy';
+    updateFighterDisplay('1', window.selectedFighterP1 || 'harpy', false);
+    updateFighterDisplay('2', 'dummy', false);
+    // Remove P2 selection indicator from all roster cards
+    document.querySelectorAll('.roster-card').forEach(card => card.classList.remove('p2-selected'));
+  } else {
+    if (window.selectedFighterP2 === 'dummy') {
+      window.selectedFighterP2 = 'strange';
+    }
+    updateFighterDisplay('1', window.selectedFighterP1 || 'harpy', false);
+    updateFighterDisplay('2', window.selectedFighterP2 || 'strange', false);
+  }
+
+  openModal('modal-battle-prompt');
+}
+
 function openModal(id) {
   closeAllModals();
   const target = document.getElementById(id);
@@ -783,4 +838,89 @@ function initGamepadSupport() {
   });
 
   requestAnimationFrame(pollGamepads);
+}
+
+// ----------------------------------------------------
+// 2.5. Dojo Training Mode Setup & In-Game Controls
+// ----------------------------------------------------
+window.dojoP1 = 'harpy';
+window.dojoP2 = 'strange';
+window.dojoStage = 'japanese_temple';
+
+function initDojoSetup() {
+  // P1 Fighter Selection Pills
+  document.querySelectorAll('#dojoP1Picker .dojo-char-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('#dojoP1Picker .dojo-char-pill').forEach(p => p.classList.remove('selected'));
+      pill.classList.add('selected');
+      window.dojoP1 = pill.dataset.char;
+      if (window.soundFX) window.soundFX.playSelect();
+    });
+  });
+
+  // Dummy P2 Selection Pills
+  document.querySelectorAll('#dojoP2Picker .dojo-char-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('#dojoP2Picker .dojo-char-pill').forEach(p => p.classList.remove('dummy-selected'));
+      pill.classList.add('dummy-selected');
+      window.dojoP2 = pill.dataset.char;
+      if (window.soundFX) window.soundFX.playSelect();
+    });
+  });
+
+  // Stage Selection Pills
+  document.querySelectorAll('#dojoStagePicker .dojo-char-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('#dojoStagePicker .dojo-char-pill').forEach(p => p.classList.remove('selected'));
+      pill.classList.add('selected');
+      window.dojoStage = pill.dataset.stage;
+      if (window.soundFX) window.soundFX.playSelect();
+    });
+  });
+
+  // Launch Training Mode CTA
+  const btnLaunch = document.getElementById('btnLaunchTraining');
+  if (btnLaunch) {
+    btnLaunch.addEventListener('click', () => {
+      closeAllModals();
+      if (window.startMatchWithLoadingScreen) {
+        window.startMatchWithLoadingScreen({
+          p1Char: window.dojoP1 || 'harpy',
+          p2Char: window.dojoP2 || 'strange',
+          stage: window.dojoStage || 'japanese_temple',
+          isTraining: true
+        });
+      }
+    });
+  }
+
+  // In-Game Training Settings Modal: Tabs
+  document.querySelectorAll('.training-tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.training-tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.training-tab-content').forEach(c => c.classList.remove('active'));
+
+      btn.classList.add('active');
+      const tabId = 'ttab-' + btn.dataset.tab;
+      const content = document.getElementById(tabId);
+      if (content) content.classList.add('active');
+      if (window.soundFX) window.soundFX.playHover();
+    });
+  });
+
+  // In-Game Training Settings Modal: Segmented Controls
+  document.querySelectorAll('.segmented-control').forEach(seg => {
+    const settingKey = seg.dataset.setting;
+    seg.querySelectorAll('.seg-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        seg.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const val = btn.dataset.val;
+        if (window.activeArenaScene) {
+          window.activeArenaScene.setTrainingSetting(settingKey, isNaN(Number(val)) ? val : Number(val));
+        }
+        if (window.soundFX) window.soundFX.playSelect();
+      });
+    });
+  });
 }

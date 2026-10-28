@@ -16,6 +16,7 @@
   </script>
   <link rel="stylesheet" href="styles/loading.css">
   <link rel="stylesheet" href="styles/character_select.css">
+  <link rel="stylesheet" href="styles/training.css">
 </head>
 
 <body>
@@ -36,14 +37,23 @@
 
   <!-- Arena Top Control & Return Bar -->
   <div id="arenaControlBar"
-    style="display: none; position: fixed; top: 16px; right: 24px; z-index: 100; gap: 0.8rem; align-items: center;">
+    style="display: none; position: fixed; top: 16px; right: 24px; z-index: 100; gap: 0.6rem; align-items: center;">
+    <button class="training-btn btn-settings" id="btnToggleTrainingMenu" onclick="window.activeArenaScene && window.activeArenaScene.toggleTrainingMenu()" style="display: none;">
+      ⚙ TRAINING (TAB)
+    </button>
+    <button class="training-btn btn-reset" id="btnResetTrainingPos" onclick="window.activeArenaScene && window.activeArenaScene.resetPositions('CENTER')" style="display: none;">
+      ↺ RESET (R)
+    </button>
+    <button class="training-btn btn-hitbox" id="btnToggleHitboxes" onclick="window.activeArenaScene && window.activeArenaScene.toggleHitboxes()" style="display: none;">
+      📦 HITBOXES (H)
+    </button>
     <button class="icon-btn" onclick="window.restartMatch && window.restartMatch()"
       style="background: rgba(180, 83, 9, 0.85); border-color: #f59e0b; color: #fff; cursor: pointer;">
-      🔄 RESTART MATCH
+      🔄 RESTART
     </button>
     <button class="icon-btn" onclick="window.exitArenaToMenu()"
       style="background: rgba(127, 29, 29, 0.85); border-color: #ef4444; color: #fff; cursor: pointer;">
-      🚪 EXIT TO MENU (ESC)
+      🚪 EXIT (ESC)
     </button>
   </div>
 
@@ -304,21 +314,6 @@
     </div>
   </div>
 
-  <!-- 3. Training Modal -->
-  <div class="modal-overlay" id="modal-training">
-    <div class="modal-card">
-      <div class="modal-header">
-        <div class="modal-title">🥋 DOJO / PRACTICE ARENA</div>
-        <button class="close-btn" aria-label="Close">&times;</button>
-      </div>
-      <p style="color: var(--text-muted); line-height: 1.6;">
-        Enter the practice arena to test Harpy's frame data, sprite animations, hitboxes, and cancel chains in real
-        time.
-      </p>
-      <button class="fight-cta-btn" onclick="document.getElementById('btnLaunchFight').click()">ENTER DOJO</button>
-    </div>
-  </div>
-
   <!-- 4. Grimoire (Frame Data & Moves) Modal -->
   <div class="modal-overlay" id="modal-grimoire">
     <div class="modal-card" style="max-width: 820px;">
@@ -564,6 +559,236 @@
       </div>
     </div>
   </div>
+
+  <!-- Live Training Mode HUD Overlay -->
+  <div id="trainingInputHistory" style="display: none;"></div>
+  <div id="trainingAttackData" style="display: none;">
+    <div class="data-row" style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 3px; margin-bottom: 2px;">
+      <span>ATTACK:</span>
+      <span class="data-val" id="tdAttackName" style="color: #67e8f9; font-size: 0.88rem;">-</span>
+    </div>
+    <div class="data-row">
+      <span>COMBO:</span>
+      <span class="data-val combo-hits" id="tdComboHits">0 HITS</span>
+    </div>
+    <div class="data-row">
+      <span>DAMAGE:</span>
+      <span class="data-val damage" id="tdDamage">0</span>
+    </div>
+    <div class="data-row">
+      <span>TOTAL:</span>
+      <span class="data-val" id="tdTotalDamage">0</span>
+    </div>
+    <div class="data-row">
+      <span>SCALING:</span>
+      <span class="data-val" id="tdScaling">100%</span>
+    </div>
+    <div class="data-row">
+      <span>ADVANTAGE:</span>
+      <span class="data-val" id="tdAdvantage">-</span>
+    </div>
+  </div>
+
+  <!-- In-Game Training Settings Modal (Modern Tabbed Overlay) -->
+  <div id="trainingSettingsModal" style="display: none;">
+    <div class="training-dialog">
+      <div class="training-dialog-header">
+        <div class="training-dialog-title">
+          <span>🥋 DOJO</span> TRAINING SETTINGS
+        </div>
+        <button class="training-close-btn" onclick="window.activeArenaScene && window.activeArenaScene.toggleTrainingMenu(false)">&times;</button>
+      </div>
+
+      <div class="training-tabs">
+        <button class="training-tab-btn active" data-tab="dummy">🥋 DUMMY</button>
+        <button class="training-tab-btn" data-tab="display">📊 DISPLAY</button>
+        <button class="training-tab-btn" data-tab="gauges">⚡ GAUGES</button>
+        <button class="training-tab-btn" data-tab="position">📍 POSITION</button>
+      </div>
+
+      <!-- Tab 1: Opponent Behavior Settings -->
+      <div class="training-tab-content active" id="ttab-dummy">
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">OPPONENT BEHAVIOR</span>
+            <span class="setting-desc">Stationary practice dummy, continuous guard, or attacking</span>
+          </div>
+          <div class="segmented-control" data-setting="dummyAction">
+            <button class="seg-btn active" data-val="STAND">STAND STILL</button>
+            <button class="seg-btn" data-val="GUARD">GUARD</button>
+            <button class="seg-btn" data-val="ATTACK">ATTACK</button>
+            <button class="seg-btn" data-val="CROUCH">CROUCH</button>
+            <button class="seg-btn" data-val="JUMP">JUMP</button>
+            <button class="seg-btn" data-val="CPU">SPARRING AI</button>
+            <button class="seg-btn" data-val="MANUAL">2P</button>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">BLOCK / GUARD</span>
+            <span class="setting-desc">When the dummy blocks attacks</span>
+          </div>
+          <div class="segmented-control" data-setting="dummyGuard">
+            <button class="seg-btn active" data-val="NONE">OFF</button>
+            <button class="seg-btn" data-val="ALL">ALL GUARD</button>
+            <button class="seg-btn" data-val="AFTER_FIRST_HIT">AFTER 1ST HIT</button>
+            <button class="seg-btn" data-val="RANDOM">RANDOM</button>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">GUARD TYPE</span>
+            <span class="setting-desc">Standing (High/Mid) or Crouching (Low)</span>
+          </div>
+          <div class="segmented-control" data-setting="dummyGuardType">
+            <button class="seg-btn active" data-val="STAND">HIGH / MID</button>
+            <button class="seg-btn" data-val="CROUCH">LOW</button>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">COUNTER HIT</span>
+            <span class="setting-desc">Test counter-hit damage (+25%) and hitstun</span>
+          </div>
+          <div class="segmented-control" data-setting="dummyCounterHit">
+            <button class="seg-btn active" data-val="NORMAL">NORMAL</button>
+            <button class="seg-btn" data-val="ALWAYS">ALWAYS COUNTER</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: Display Settings -->
+      <div class="training-tab-content" id="ttab-display">
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">VIRTUAL INPUT HISTORY</span>
+            <span class="setting-desc">Display live directional and button inputs</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="chkInputHistory" checked onchange="window.activeArenaScene && window.activeArenaScene.setTrainingSetting('inputHistory', this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">ATTACK & FRAME DATA HUD</span>
+            <span class="setting-desc">Show combo hits, damage, scaling & advantage</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="chkAttackData" checked onchange="window.activeArenaScene && window.activeArenaScene.setTrainingSetting('attackData', this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">HITBOXES & HURTBOXES</span>
+            <span class="setting-desc">Visual collision and attack boundaries</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="chkHitboxes" onchange="window.activeArenaScene && window.activeArenaScene.setTrainingSetting('showHitboxes', this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Tab 3: Gauges & Life -->
+      <div class="training-tab-content" id="ttab-gauges">
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">DISABLE DAMAGE</span>
+            <span class="setting-desc">Hits register & combos display, but fighters take 0 damage</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="chkDisableDamage" onchange="window.activeArenaScene && window.activeArenaScene.setTrainingSetting('disableDamage', this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">UNLIMITED HEALTH</span>
+            <span class="setting-desc">Keep both fighters locked at 100% health constantly</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="chkUnlimitedHealth" onchange="window.activeArenaScene && window.activeArenaScene.setTrainingSetting('unlimitedHealth', this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">AUTO HEALTH REGEN</span>
+            <span class="setting-desc">Refill health immediately after combo ends</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="chkHealthRegen" checked onchange="window.activeArenaScene && window.activeArenaScene.setTrainingSetting('healthRegen', this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">PLAYER 1 HEALTH</span>
+            <span class="setting-desc">Preset starting HP (e.g. low HP clutch practice)</span>
+          </div>
+          <div class="segmented-control" data-setting="p1HealthPreset">
+            <button class="seg-btn active" data-val="100">100%</button>
+            <button class="seg-btn" data-val="50">50%</button>
+            <button class="seg-btn" data-val="25">25%</button>
+            <button class="seg-btn" data-val="1">1%</button>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">DUMMY HEALTH</span>
+            <span class="setting-desc">Preset dummy HP</span>
+          </div>
+          <div class="segmented-control" data-setting="p2HealthPreset">
+            <button class="seg-btn active" data-val="100">100%</button>
+            <button class="seg-btn" data-val="50">50%</button>
+            <button class="seg-btn" data-val="25">25%</button>
+            <button class="seg-btn" data-val="1">1%</button>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">INFINITE SUPER / EX</span>
+            <span class="setting-desc">Unlimited meter for special & super moves</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="chkInfiniteSuper" checked onchange="window.activeArenaScene && window.activeArenaScene.setTrainingSetting('infiniteSuper', this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Tab 4: Position Reset -->
+      <div class="training-tab-content" id="ttab-position">
+        <div class="position-grid">
+          <button class="pos-btn" onclick="window.activeArenaScene && window.activeArenaScene.resetPositions('CENTER')">
+            ⚖️ CENTER STAGE
+          </button>
+          <button class="pos-btn" onclick="window.activeArenaScene && window.activeArenaScene.resetPositions('LEFT_CORNER')">
+            ⬅️ LEFT CORNER
+          </button>
+          <button class="pos-btn" onclick="window.activeArenaScene && window.activeArenaScene.resetPositions('RIGHT_CORNER')">
+            ➡️ RIGHT CORNER
+          </button>
+          <button class="pos-btn" onclick="window.activeArenaScene && window.activeArenaScene.resetPositions('SWAP')">
+            🔄 SWAP SIDES
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 
   <!-- Scripts -->
   <script src="../../node_modules/phaser/dist/phaser.min.js"></script>
