@@ -367,7 +367,7 @@ function updateStagePillUI() {
   const nameEl = document.getElementById('mk1-stage-name');
   const thumbEl = document.getElementById('mk1-stage-thumb');
   if (nameEl) {
-    nameEl.textContent = isSky ? 'THE ETERNAL SKY TEMPLE' : 'MOONLIT MOUNTAIN SHRINE';
+    nameEl.textContent = isSky ? 'SKY TEMPLE' : 'SHRINE';
     nameEl.style.color = isSky ? '#67e8f9' : '#fef08a';
   }
   if (thumbEl) {

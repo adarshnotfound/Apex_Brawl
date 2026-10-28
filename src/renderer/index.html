@@ -210,37 +210,15 @@
       <div class="mk1-bg-layer" style="background-image: url('assets/backgrounds/char_select_bg_mk1.png');"></div>
       <div class="mk1-ambient-vignette"></div>
 
-      <!-- Top Navigation Bar -->
-      <div class="mk1-top-bar">
-        <div class="mk1-top-left">
-          <button class="mk1-circle-btn close-btn" aria-label="Close" title="Return to Main Menu (ESC)">
-            <span class="mk1-btn-icon">✕</span>
-          </button>
-          <div class="mk1-mode-tag">
-            <span style="font-size: 1.2rem;">⚔️</span>
-            <div>
-              <span class="mk1-tag-title">VERSUS KOMBAT</span>
-              <span class="mk1-tag-sub">LOCAL 1v1</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Center Stage Selection Pill -->
-        <div class="mk1-stage-pill" id="mk1StageSelector" title="Click to Switch Battle Arena">
-          <div class="mk1-stage-thumb-wrap">
-            <img id="mk1-stage-thumb" src="assets/backgrounds/japanese_temple/japanese_temple_thumb.png" alt="Arena">
-          </div>
-          <div class="mk1-stage-info">
-            <div class="mk1-stage-label">ARENA: <span id="mk1-stage-name">MOONLIT MOUNTAIN SHRINE</span></div>
-            <div class="mk1-stage-hint">CLICK TO TOGGLE ARENA ⛩️ / ☁️</div>
-          </div>
-        </div>
-
-        <div class="mk1-top-right">
-          <div class="mk1-prompt-badge" id="p2-join-prompt">
-            <span>🎮 P1: WASD / CLICK • P2: ARROWS / R-CLICK</span>
-          </div>
-        </div>
+      <!-- Minimal Floating Corner Controls -->
+      <div class="mk1-floating-top">
+        <button class="mk1-circle-btn close-btn" aria-label="Close" title="Return to Main Menu (ESC)">
+          <span class="mk1-btn-icon">✕</span>
+        </button>
+        <button class="mk1-stage-toggle-btn" id="mk1StageSelector" title="Click to Switch Arena">
+          <img id="mk1-stage-thumb" src="assets/backgrounds/japanese_temple/japanese_temple_thumb.png" alt="Arena">
+          <span id="mk1-stage-name">ARENA</span>
+        </button>
       </div>
 
       <!-- Main Visual Stage: Fighters Confrontation -->
@@ -248,10 +226,7 @@
         <!-- Player 1 (Left Fighter) -->
         <div class="mk1-fighter-display p1" id="p1-display">
           <div class="mk1-fighter-info">
-            <div class="mk1-player-badge p1-badge">PLAYER 1</div>
             <h1 class="mk1-fighter-name" id="p1-name">HARPY</h1>
-            <div class="mk1-fighter-subtitle" id="p1-subtitle">THE SKY TERROR • WINGED AERIAL STRIKER</div>
-            <div class="mk1-fighter-archetype" id="p1-archetype">Rushdown • High Air Mobility & Frame Traps</div>
           </div>
           <div class="mk1-render-wrap">
             <img class="mk1-fighter-render p1-render" id="p1-render-img" src="assets/characters/harpy/action_render.png" alt="Player 1">
@@ -261,23 +236,15 @@
 
         <!-- Center VS Crest & Enter Kombat CTA -->
         <div class="mk1-center-pillar">
-          <div class="mk1-vs-crest">
-            <div class="mk1-vs-circle">
-              <span class="mk1-vs-text">VS</span>
-            </div>
-          </div>
           <button class="mk1-fight-btn" id="btnLaunchFight" title="Begin Match">
-            <span class="mk1-fight-btn-text">⚔️ ENTER KOMBAT</span>
+            <span class="mk1-fight-btn-text">FIGHT</span>
           </button>
         </div>
 
         <!-- Player 2 (Right Fighter) -->
         <div class="mk1-fighter-display p2" id="p2-display">
           <div class="mk1-fighter-info p2-info">
-            <div class="mk1-player-badge p2-badge">PLAYER 2</div>
             <h1 class="mk1-fighter-name" id="p2-name">DR. STRANGE</h1>
-            <div class="mk1-fighter-subtitle" id="p2-subtitle">MASTER OF THE MYSTIC ARTS</div>
-            <div class="mk1-fighter-archetype" id="p2-archetype">Zoner • Spellcaster Supreme & Space Control</div>
           </div>
           <div class="mk1-render-wrap">
             <img class="mk1-fighter-render p2-render" id="p2-render-img" src="assets/characters/Dr Strange/action_render.png" alt="Player 2">
@@ -285,42 +252,33 @@
           </div>
         </div>
       </div>
-      <!-- Bottom Character Selection Grid Tray -->
+
+      <!-- Bottom Character Selection Grid (Small Avatar Boxes, Transparent BG, Aligned Up) -->
       <div class="mk1-roster-tray">
-        <div class="mk1-tray-header">
-          <span class="mk1-tray-title">CHOOSE YOUR COMBATANT</span>
-          <span class="mk1-tray-hint">LEFT-CLICK: P1 (GOLD) &nbsp;|&nbsp; RIGHT-CLICK: P2 (CYAN)</span>
-        </div>
         <div class="mk1-roster-grid" id="mk1RosterGrid">
           <!-- Fighter 1: Harpy -->
-          <div class="roster-card p1-selected" data-char="harpy" id="rcard-harpy" title="Harpy the Sky Terror">
+          <div class="roster-card p1-selected" data-char="harpy" id="rcard-harpy" title="Harpy">
             <img class="roster-card-img" src="assets/characters/harpy/select_avatar.png" alt="Harpy">
-            <div class="roster-card-name">HARPY</div>
           </div>
           <!-- Fighter 2: Dr. Strange -->
-          <div class="roster-card p2-selected" data-char="strange" id="rcard-strange" title="Doctor Strange">
+          <div class="roster-card p2-selected" data-char="strange" id="rcard-strange" title="Dr. Strange">
             <img class="roster-card-img" src="assets/characters/Dr Strange/select_avatar.png" alt="Dr. Strange">
-            <div class="roster-card-name">STRANGE</div>
           </div>
           <!-- Fighter 3: Chun-Li -->
           <div class="roster-card" data-char="chunli" id="rcard-chunli" title="Chun-Li">
             <img class="roster-card-img" src="assets/characters/ChunLi/select_avatar.png" alt="Chun-Li">
-            <div class="roster-card-name">CHUN-LI</div>
           </div>
           <!-- Fighter 4: Mewtwo -->
           <div class="roster-card" data-char="mewtwo" id="rcard-mewtwo" title="Mewtwo">
             <img class="roster-card-img" src="assets/characters/Mewtwo/select_avatar.png" alt="Mewtwo">
-            <div class="roster-card-name">MEWTWO</div>
           </div>
           <!-- Fighter 5: Steve -->
           <div class="roster-card" data-char="steve" id="rcard-steve" title="Steve">
             <img class="roster-card-img" src="assets/characters/Steve/select_avatar.png" alt="Steve">
-            <div class="roster-card-name">STEVE</div>
           </div>
-          <!-- Secret / Locked Slot: Zoro -->
-          <div class="roster-card" data-char="zoro" id="rcard-zoro" title="Roronoa Zoro">
+          <!-- Fighter 6: Zoro -->
+          <div class="roster-card" data-char="zoro" id="rcard-zoro" title="Zoro">
             <img class="roster-card-img" src="assets/characters/zoro/select_avatar.png" alt="Zoro">
-            <div class="roster-card-name">ZORO</div>
           </div>
         </div>
       </div>
