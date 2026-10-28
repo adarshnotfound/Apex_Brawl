@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initMenuNavigation();
   initModals();
   initGamepadSupport();
+  initLANLobbyUI();
 });
 
 // ----------------------------------------------------
@@ -964,4 +965,271 @@ function initDojoSetup() {
       });
     });
   });
+}
+
+
+
+// ----------------------------------------------------
+// 5. LAN Multiplayer Lobby Controller
+// ----------------------------------------------------
+function openLANModal() {
+  openModal('modal-lan');
+  switchLANTab('host');
+}
+
+function switchLANTab(tab) {
+  document.querySelectorAll('.lan-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.lan-panel').forEach(p => p.classList.toggle('active', p.id === `lan-panel-${tab}`));
+
+  if (tab === 'host') {
+    startHostMode();
+  } else if (tab === 'join') {
+    startJoinMode();
+  }
+}
+
+async function startHostMode() {
+  const hostIPElem = document.getElementById('lanHostIP');
+  const banner = document.getElementById('lanHostBanner');
+  if (banner) {
+    banner.textContent = 'Initializing host server on LAN...';
+    banner.className = 'lan-status-banner info';
+  }
+
+  if (window.electronAPI && window.electronAPI.startHostServer) {
+    try {
+      const res = await window.electronAPI.startHostServer(8765);
+      const ip = (res && res.ip) || (await window.electronAPI.getLocalIP()) || '127.0.0.1';
+      if (hostIPElem) {
+        hostIPElem.textContent = `${ip}:8765`;
+      }
+      if (banner) {
+        banner.textContent = 'Host server running. Waiting for Challenger to join...';
+        banner.className = 'lan-status-banner success';
+      }
+      // Connect local client to server as Host
+      await window.lanManager.connect('127.0.0.1', 8765, 'host');
+    } catch (err) {
+      console.error('[Host Mode Error]', err);
+      if (banner) {
+        banner.textContent = `Server Error: ${err.message || err}`;
+        banner.className = 'lan-status-banner error';
+      }
+    }
+  } else {
+    if (banner) {
+      banner.textContent = 'Local LAN Server is supported in desktop app.';
+      banner.className = 'lan-status-banner info';
+    }
+  }
+}
+
+async function startJoinMode() {
+  if (window.lanManager && window.lanManager.role === 'HOST') {
+    window.lanManager.disconnect();
+  }
+  if (window.electronAPI && window.electronAPI.stopHostServer) {
+    await window.electronAPI.stopHostServer();
+  }
+
+  if (window.electronAPI && window.electronAPI.startDiscovery) {
+    await window.electronAPI.startDiscovery();
+  }
+}
+
+async function connectToHost(ip, port = 8765) {
+  const banner = document.getElementById('lanJoinBanner');
+  if (banner) {
+    banner.textContent = `Connecting to ${ip}:${port}...`;
+    banner.className = 'lan-status-banner info';
+  }
+
+  try {
+    await window.lanManager.connect(ip, port, 'client');
+    if (banner) {
+      banner.textContent = 'CONNECTED! Waiting for Host to start Character Select...';
+      banner.className = 'lan-status-banner success';
+    }
+    if (window.soundFX) window.soundFX.playSelect();
+  } catch (err) {
+    console.error('[LAN Connect Error]', err);
+    if (banner) {
+      banner.textContent = `Failed to connect: ${err.message || 'Host unreachable'}`;
+      banner.className = 'lan-status-banner error';
+    }
+  }
+}
+
+function escapeLANHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function initLANLobbyUI() {
+  // Tab switching
+  document.querySelectorAll('.lan-tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      switchLANTab(btn.dataset.tab);
+      if (window.soundFX) window.soundFX.playHover();
+    });
+  });
+
+  // Copy IP button
+  const copyBtn = document.getElementById('btnCopyHostIP');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', () => {
+      const ipText = document.getElementById('lanHostIP')?.textContent;
+      if (ipText && navigator.clipboard) {
+        navigator.clipboard.writeText(ipText).then(() => {
+          copyBtn.textContent = 'COPIED!';
+          setTimeout(() => { copyBtn.textContent = 'COPY IP'; }, 1500);
+        }).catch(() => {});
+      }
+    });
+  }
+
+  // Direct IP connect button
+  const directConnectBtn = document.getElementById('btnDirectConnect');
+  const inputIP = document.getElementById('lanInputIP');
+  if (directConnectBtn && inputIP) {
+    directConnectBtn.addEventListener('click', () => {
+      const targetIP = inputIP.value.trim();
+      if (targetIP) connectToHost(targetIP);
+    });
+    inputIP.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const targetIP = inputIP.value.trim();
+        if (targetIP) connectToHost(targetIP);
+      }
+    });
+  }
+
+  // Host Enter Character Select CTA
+  const btnHostSelect = document.getElementById('btnHostEnterSelect');
+  if (btnHostSelect) {
+    btnHostSelect.addEventListener('click', () => {
+      if (window.lanManager && window.lanManager.role === 'HOST') {
+        window.lanManager.send('OPEN_CHAR_SELECT');
+        openCharacterSelect('LAN');
+      }
+    });
+  }
+
+  // Auto-Discovery Room List
+  const discoveredHosts = new Map();
+  function renderDiscoveredRooms() {
+    const list = document.getElementById('lanRoomsList');
+    if (!list) return;
+    if (discoveredHosts.size === 0) {
+      list.innerHTML = '<div class="lan-no-rooms">Scanning your local Wi-Fi / LAN for active games...</div>';
+      return;
+    }
+    list.innerHTML = '';
+    discoveredHosts.forEach(host => {
+      const item = document.createElement('div');
+      item.className = 'lan-room-card';
+      item.innerHTML = `
+        <div class="lan-room-info">
+          <div class="lan-room-host">⚔️ ${escapeLANHtml(host.hostname || 'Apex Fighter Host')}</div>
+          <div class="lan-room-ip">${escapeLANHtml(host.ip)}:${escapeLANHtml(String(host.port || 8765))}</div>
+        </div>
+        <button class="lan-btn-join-room" data-ip="${escapeLANHtml(host.ip)}" data-port="${escapeLANHtml(String(host.port || 8765))}">JOIN ROOM</button>
+      `;
+      item.querySelector('.lan-btn-join-room').addEventListener('click', () => {
+        connectToHost(host.ip, host.port || 8765);
+      });
+      list.appendChild(item);
+    });
+  }
+
+  if (window.electronAPI && window.electronAPI.onHostDiscovered) {
+    window.electronAPI.onHostDiscovered((hostInfo) => {
+      if (hostInfo && hostInfo.ip) {
+        discoveredHosts.set(hostInfo.ip, hostInfo);
+        renderDiscoveredRooms();
+      }
+    });
+  }
+
+  // Hook LAN Manager Events
+  if (window.lanManager) {
+    window.lanManager.on('OPEN_CHAR_SELECT', () => {
+      openCharacterSelect('LAN');
+    });
+
+    window.lanManager.on('CHAR_SELECT', (data) => {
+      if (data && data.player && data.charId) {
+        setFighterSelection(String(data.player), data.charId);
+      }
+    });
+
+    window.lanManager.on('STAGE_SELECT', (data) => {
+      if (data && data.stage) {
+        window.selectedStage = data.stage;
+        updateStagePillUI();
+      }
+    });
+
+    window.lanManager.on('START_MATCH', (data) => {
+      closeAllModals();
+      window.selectedFighterP1 = data.p1Char;
+      window.selectedFighterP2 = data.p2Char;
+      window.selectedStage = data.stage || 'japanese_temple';
+      window.isLanMatch = true;
+      if (window.startMatchWithLoadingScreen) {
+        window.startMatchWithLoadingScreen({
+          p1Char: data.p1Char,
+          p2Char: data.p2Char,
+          stage: data.stage,
+          isLan: true
+        });
+      }
+    });
+
+    window.lanManager.on('PEER_JOINED', () => {
+      if (window.lanManager.role === 'HOST') {
+        const dot = document.getElementById('lanPeerDot');
+        const status = document.getElementById('lanPeerStatus');
+        const btn = document.getElementById('btnHostEnterSelect');
+        const banner = document.getElementById('lanHostBanner');
+        if (dot) dot.classList.add('connected');
+        if (status) status.textContent = 'CHALLENGER CONNECTED!';
+        if (btn) btn.disabled = false;
+        if (banner) {
+          banner.textContent = 'Challenger joined! Click START CHARACTER SELECT to proceed.';
+          banner.className = 'lan-status-banner success';
+        }
+        if (window.soundFX) window.soundFX.playSelect();
+      }
+    });
+
+    window.lanManager.on('PEER_DISCONNECTED', () => {
+      if (window.lanManager.role === 'HOST') {
+        const dot = document.getElementById('lanPeerDot');
+        const status = document.getElementById('lanPeerStatus');
+        const btn = document.getElementById('btnHostEnterSelect');
+        const banner = document.getElementById('lanHostBanner');
+        if (dot) dot.classList.remove('connected');
+        if (status) status.textContent = 'WAITING FOR CHALLENGER...';
+        if (btn) btn.disabled = true;
+        if (banner) {
+          banner.textContent = 'Challenger disconnected.';
+          banner.className = 'lan-status-banner error';
+        }
+      }
+    });
+
+    window.lanManager.on('ping', (ms) => {
+      const pill = document.getElementById('lanPingPill');
+      if (pill) {
+        pill.style.display = 'inline-block';
+        pill.textContent = `${ms}ms LAN`;
+      }
+    });
+  }
 }

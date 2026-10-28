@@ -36,17 +36,27 @@ class LANManager {
   }
 
   // Connect to Host WebSocket Server (e.g. 192.168.1.50:8765 or 127.0.0.1:8765)
-  connect(ip, port = 8765) {
+  connect(ip, port = 8765, role = null) {
     return new Promise((resolve, reject) => {
       this.disconnect();
 
-      const cleanIP = ip.trim().replace(/^ws:\/\//, '');
-      const wsUrl = `ws://${cleanIP}:${port}`;
+      let cleanIP = ip.trim().replace(/^ws:\/\//, '');
+      let hostPort = port;
+      if (cleanIP.includes(':')) {
+        const parts = cleanIP.split(':');
+        cleanIP = parts[0];
+        hostPort = parseInt(parts[1], 10) || port;
+      }
+
+      let wsUrl = `ws://${cleanIP}:${hostPort}`;
+      if (role) {
+        wsUrl += `?role=${encodeURIComponent(role)}`;
+      }
       console.log(`[LAN Manager] Connecting to ${wsUrl}...`);
 
       let connectionTimeout = setTimeout(() => {
         if (this.socket && this.socket.readyState !== WebSocket.OPEN) {
-          this.socket.close();
+          try { this.socket.close(); } catch (_) {}
           reject(new Error(`Connection to ${wsUrl} timed out.`));
         }
       }, 5000);

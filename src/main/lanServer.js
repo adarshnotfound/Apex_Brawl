@@ -21,8 +21,6 @@ class LANServer {
     this.udpBeaconSocket = null;
     this.beaconTimer = null;
     this.udpDiscoverySocket = null;
-
-    this.onStateChangeCallback = null;
   }
 
   // Get primary active non-internal IPv4 address (e.g. 192.168.x.x, 10.x.x.x)
@@ -46,10 +44,18 @@ class LANServer {
   }
 
   // Start WebSocket Host Server
-  startHost(port = DEFAULT_PORT, onEvent) {
-    this.stopHost();
+  startHost(port = DEFAULT_PORT) {
     this.port = port;
-    this.onEvent = onEvent;
+
+    if (this.wss) {
+      const localIP = this.getLocalIP();
+      return Promise.resolve({
+        success: true,
+        ip: localIP,
+        port: this.port,
+        hostname: os.hostname()
+      });
+    }
 
     return new Promise((resolve, reject) => {
       try {
@@ -84,9 +90,10 @@ class LANServer {
 
   handleConnection(ws, req) {
     const isLocalhost = req.socket.remoteAddress === '127.0.0.1' || req.socket.remoteAddress === '::1' || req.socket.remoteAddress === '::ffff:127.0.0.1';
+    const isHostReq = (req.url && req.url.includes('role=host')) || (!this.hostSocket && isLocalhost);
 
-    // Assign roles: First connection from localhost is usually Host (P1)
-    if (!this.hostSocket && isLocalhost) {
+    // Assign roles:
+    if (isHostReq && !this.hostSocket) {
       this.hostSocket = ws;
       ws.role = 'HOST';
       ws.playerNum = 1;
@@ -186,26 +193,27 @@ class LANServer {
     try {
       this.udpBeaconSocket = dgram.createSocket('udp4');
       this.udpBeaconSocket.bind(() => {
-        this.udpBeaconSocket.setBroadcast(true);
+        try {
+          this.udpBeaconSocket.setBroadcast(true);
 
-        const beaconData = Buffer.from(JSON.stringify({
-          app: 'APEX_BRAWL_LAN',
-          version: '1.0',
-          hostname: os.hostname(),
-          ip: ip,
-          port: port
-        }));
+          const beaconData = Buffer.from(JSON.stringify({
+            app: 'APEX_BRAWL_LAN',
+            version: '1.0',
+            hostname: os.hostname(),
+            ip: ip,
+            port: port
+          }));
 
-        this.beaconTimer = setInterval(() => {
-          if (this.udpBeaconSocket) {
-            // Broadcast to 255.255.255.255
-            this.udpBeaconSocket.send(beaconData, 0, beaconData.length, BROADCAST_PORT, '255.255.255.255', (err) => {
-              if (err && err.code !== 'ENETUNREACH') {
-                // Ignore transient network errors
-              }
-            });
-          }
-        }, BROADCAST_INTERVAL_MS);
+          this.beaconTimer = setInterval(() => {
+            if (this.udpBeaconSocket) {
+              this.udpBeaconSocket.send(beaconData, 0, beaconData.length, BROADCAST_PORT, '255.255.255.255', (err) => {
+                if (err && err.code !== 'ENETUNREACH') {
+                  // Ignore transient broadcast network errors
+                }
+              });
+            }
+          }, BROADCAST_INTERVAL_MS);
+        } catch (_) {}
       });
     } catch (e) {
       console.warn('[UDP Beacon Warning]', e);
@@ -231,6 +239,8 @@ class LANServer {
 
       this.udpDiscoverySocket.on('error', (err) => {
         console.warn('[UDP Discovery Error]', err);
+        try { this.udpDiscoverySocket.close(); } catch (_) {}
+        this.udpDiscoverySocket = null;
       });
 
       this.udpDiscoverySocket.on('message', (msg, rinfo) => {
