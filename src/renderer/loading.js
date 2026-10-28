@@ -1,5 +1,6 @@
 // =========================================================
 // Apex Brawl: Mystic Kombat - VS Loading Screen Controller
+// Directly synchronized with Phaser 3 Preload & Scene Ready
 // =========================================================
 
 (function() {
@@ -62,11 +63,16 @@
     'BEST OF 3: Win 2 rounds to be crowned the ultimate Apex Champion!'
   ];
 
-  let currentLoadingTimer = null;
   let isLoadingActive = false;
+  let isArenaReady = false;
+  let skipRequested = false;
+  let startTime = 0;
+  const MIN_DISPLAY_TIME_MS = 1400; // Minimum time to enjoy the VS presentation
+  let fallbackTimer = null;
+  let simulatedProgressTimer = null;
+  let currentVisualProgress = 0;
 
   function initLoadingScreenUI() {
-    // Listen for space / enter key to fast-forward loading screen
     window.addEventListener('keydown', (e) => {
       if (!isLoadingActive) return;
       if (e.key === ' ' || e.key === 'Enter') {
@@ -93,15 +99,18 @@
     const p2Data = FIGHTER_REGISTRY[p2Id] || FIGHTER_REGISTRY['strange'];
 
     const screen = document.getElementById('vs-loading-screen');
-    const flash = document.getElementById('screen-flash-burst');
     if (!screen) {
       if (window.startPhaserArena) window.startPhaserArena();
       return;
     }
 
     isLoadingActive = true;
+    isArenaReady = false;
+    skipRequested = false;
+    currentVisualProgress = 0;
+    startTime = Date.now();
 
-    // 1. Play dramatic launch boom
+    // 1. Play dramatic launch boom sound
     if (window.soundFX) {
       window.soundFX.playStartBoom();
     }
@@ -161,11 +170,7 @@
     if (p2Portrait) {
       p2Portrait.src = p2Data.portrait;
       p2Portrait.alt = p2Data.name;
-      if (isMirror) {
-        p2Portrait.style.filter = 'hue-rotate(240deg) brightness(1.15)';
-      } else {
-        p2Portrait.style.filter = 'none';
-      }
+      p2Portrait.style.filter = isMirror ? 'hue-rotate(240deg) brightness(1.15)' : 'none';
     }
     if (p2Frame) {
       p2Frame.style.boxShadow = `0 0 30px ${isMirror ? 'rgba(196, 181, 253, 0.6)' : p2Data.glowColor}`;
@@ -175,7 +180,7 @@
     if (p2Title) p2Title.textContent = p2Data.subtitle;
     if (p2Quote) p2Quote.textContent = p2Data.quote;
 
-    // 5. Select Pro Tip (matchup specific or general)
+    // 5. Select Pro Tip
     const tipText = document.getElementById('vs-tip-content');
     if (tipText) {
       const candidates = [...p1Data.tips, ...p2Data.tips, ...GENERAL_TIPS];
@@ -183,108 +188,126 @@
       tipText.innerHTML = `<strong>PRO TIP:</strong> ${randomTip}`;
     }
 
-    // 6. Reset progress bar
-    const fill = document.getElementById('vs-progress-fill');
-    const percentText = document.getElementById('vs-progress-pct');
-    const statusText = document.getElementById('vs-status-msg');
+    // 6. Reset visual progress UI
+    updateProgressUI(0, 'SYNCHRONIZING COMBATANTS...');
 
-    if (fill) fill.style.width = '0%';
-    if (percentText) percentText.textContent = '0%';
-    if (statusText) statusText.innerHTML = '<span class="vs-spinner"></span> SYNCHRONIZING FIGHTERS...';
-
-    // 7. Show screen with animation
+    // 7. Display the loading screen (it sits at z-index 150, fully covering viewport)
     screen.classList.remove('fade-out');
     screen.classList.add('active');
 
-    // Trigger restart of CSS animations on fighter cards
+    // Trigger CSS entrance animation replay
     if (p1Card) {
       p1Card.style.animation = 'none';
-      p1Card.offsetHeight; /* trigger reflow */
+      p1Card.offsetHeight;
       p1Card.style.animation = null;
     }
     if (p2Card) {
       p2Card.style.animation = 'none';
-      p2Card.offsetHeight; /* trigger reflow */
+      p2Card.offsetHeight;
       p2Card.style.animation = null;
     }
 
-    // 8. Progress Simulation (Total duration ~ 2.4s)
-    let progress = 0;
-    const stages = [
-      { at: 20, msg: 'WARPING INTO MIRROR DIMENSION...' },
-      { at: 50, msg: 'LOADING SPRITE ATLASES & COMBAT FRAMES...' },
-      { at: 80, msg: 'ENGAGING DETERMINISTIC HITBOX ENGINE...' },
-      { at: 96, msg: 'FINALIZING REALM SYNCHRONIZATION...' },
-      { at: 100, msg: 'BATTLE READY! COMMENCING MATCH...' }
-    ];
-
-    if (currentLoadingTimer) clearInterval(currentLoadingTimer);
-
-    const stepIntervalMs = 40;
-    const increment = 100 / (2200 / stepIntervalMs); // reaches 100% in ~2.2 seconds
-
-    currentLoadingTimer = setInterval(() => {
-      progress += increment + (Math.random() * 0.4);
-      if (progress >= 100) {
-        progress = 100;
-        clearInterval(currentLoadingTimer);
-        currentLoadingTimer = null;
-        updateProgressUI(100, 'BATTLE READY! COMMENCING MATCH...');
-        finishLoadingAndStartMatch();
-      } else {
-        const curStage = stages.find(s => progress <= s.at) || stages[stages.length - 1];
-        updateProgressUI(Math.floor(progress), curStage.msg);
+    // Smooth initial creep while Phaser initializes
+    if (simulatedProgressTimer) clearInterval(simulatedProgressTimer);
+    simulatedProgressTimer = setInterval(() => {
+      if (!isLoadingActive) {
+        clearInterval(simulatedProgressTimer);
+        return;
       }
-    }, stepIntervalMs);
-  }
+      if (currentVisualProgress < 25) {
+        currentVisualProgress += 2;
+        updateProgressUI(currentVisualProgress, 'INITIALIZING GAME ENGINE & STAGE...');
+      }
+    }, 60);
 
-  function updateProgressUI(pct, msg) {
-    const fill = document.getElementById('vs-progress-fill');
-    const percentText = document.getElementById('vs-progress-pct');
-    const statusText = document.getElementById('vs-status-msg');
-
-    if (fill) fill.style.width = `${pct}%`;
-    if (percentText) percentText.textContent = `${pct}%`;
-    if (statusText) {
-      statusText.innerHTML = pct >= 100 
-        ? `⚡ ${msg}` 
-        : `<span class="vs-spinner"></span> ${msg}`;
+    // 8. IMMEDIATELY start Phaser Arena in the background under the loading screen!
+    if (window.startPhaserArena) {
+      window.startPhaserArena();
     }
+
+    // Fallback safety timeout (8s max, will never get stuck)
+    if (fallbackTimer) clearTimeout(fallbackTimer);
+    fallbackTimer = setTimeout(() => {
+      if (isLoadingActive) {
+        console.warn('Loading screen fallback triggered');
+        onPhaserArenaReady();
+      }
+    }, 8000);
   }
 
-  function fastForwardLoading() {
+  // Hook called directly by Phaser's preload loader: this.load.on('progress')
+  function onPhaserPreloadProgress(ratio) {
     if (!isLoadingActive) return;
-    if (currentLoadingTimer) {
-      clearInterval(currentLoadingTimer);
-      currentLoadingTimer = null;
+    // Map ratio (0 to 1) to progress (25% to 85%)
+    const target = 25 + Math.floor(ratio * 60);
+    if (target > currentVisualProgress) {
+      currentVisualProgress = target;
+      updateProgressUI(currentVisualProgress, 'STREAMING SPRITE SHEETS & SOUNDS...');
     }
-    updateProgressUI(100, 'BATTLE READY! COMMENCING MATCH...');
-    finishLoadingAndStartMatch(100);
   }
 
-  function finishLoadingAndStartMatch(delayMs = 300) {
+  // Hook called by Phaser for each loaded asset file: this.load.on('fileprogress')
+  function onPhaserPreloadFile(fileKey) {
+    if (!isLoadingActive) return;
+    if (fileKey) {
+      const cleanName = String(fileKey).replace(/_/g, ' ').toUpperCase();
+      updateProgressUI(Math.max(currentVisualProgress, 35), `LOADING ${cleanName}...`);
+    }
+  }
+
+  // Hook called when Phaser finishes downloading all assets: this.load.on('complete')
+  function onPhaserPreloadComplete() {
+    if (!isLoadingActive) return;
+    currentVisualProgress = 90;
+    updateProgressUI(90, 'COMPILING ANIMATIONS & HITBOX ENGINES...');
+  }
+
+  // Hook called when ArenaScene.create() finishes completely and the arena is ready to render
+  function onPhaserArenaReady() {
+    if (!isLoadingActive) return;
+    isArenaReady = true;
+
+    if (simulatedProgressTimer) {
+      clearInterval(simulatedProgressTimer);
+      simulatedProgressTimer = null;
+    }
+
+    const elapsed = Date.now() - startTime;
+    const remainingTime = skipRequested ? 0 : Math.max(0, MIN_DISPLAY_TIME_MS - elapsed);
+
+    setTimeout(() => {
+      if (!isLoadingActive) return;
+      currentVisualProgress = 100;
+      updateProgressUI(100, 'BATTLE READY! COMMENCING MATCH...');
+
+      // Finish and reveal the arena with flash and fade
+      revealArena();
+    }, remainingTime);
+  }
+
+  function revealArena() {
     setTimeout(() => {
       if (!isLoadingActive) return;
       isLoadingActive = false;
+
+      if (fallbackTimer) {
+        clearTimeout(fallbackTimer);
+        fallbackTimer = null;
+      }
 
       // 1. Play gong impact sound on launch
       if (window.soundFX) {
         window.soundFX.playSelect();
       }
 
-      // 2. Screen Flash Burst effect
+      // 2. Full-screen flash burst
       const flash = document.getElementById('screen-flash-burst');
       if (flash) {
         flash.classList.add('flash');
         setTimeout(() => flash.classList.remove('flash'), 350);
       }
 
-      // 3. Launch Phaser Arena
-      if (window.startPhaserArena) {
-        window.startPhaserArena();
-      }
-
-      // 4. Fade out loading screen smoothly
+      // 3. Smoothly fade out the loading screen, revealing the already-rendered arena underneath!
       const screen = document.getElementById('vs-loading-screen');
       if (screen) {
         screen.classList.add('fade-out');
@@ -293,15 +316,39 @@
           screen.classList.remove('fade-out');
         }, 500);
       }
-    }, delayMs);
+    }, 250);
+  }
+
+  function fastForwardLoading() {
+    if (!isLoadingActive) return;
+    skipRequested = true;
+    if (isArenaReady) {
+      onPhaserArenaReady();
+    } else {
+      updateProgressUI(Math.max(currentVisualProgress, 95), 'FINALIZING REALM SYNCHRONIZATION...');
+    }
+  }
+
+  function updateProgressUI(pct, msg) {
+    const fill = document.getElementById('vs-progress-fill');
+    const percentText = document.getElementById('vs-progress-pct');
+    const statusText = document.getElementById('vs-status-msg');
+
+    const clampedPct = Math.min(100, Math.max(0, pct));
+    if (fill) fill.style.width = `${clampedPct}%`;
+    if (percentText) percentText.textContent = `${clampedPct}%`;
+    if (statusText) {
+      statusText.innerHTML = clampedPct >= 100 
+        ? `⚡ ${msg}` 
+        : `<span class="vs-spinner"></span> ${msg}`;
+    }
   }
 
   function hideLoadingScreen() {
     isLoadingActive = false;
-    if (currentLoadingTimer) {
-      clearInterval(currentLoadingTimer);
-      currentLoadingTimer = null;
-    }
+    isArenaReady = false;
+    if (fallbackTimer) clearTimeout(fallbackTimer);
+    if (simulatedProgressTimer) clearInterval(simulatedProgressTimer);
     const screen = document.getElementById('vs-loading-screen');
     if (screen) {
       screen.classList.remove('active');
@@ -312,6 +359,10 @@
   // Export to window
   window.startMatchWithLoadingScreen = startMatchWithLoadingScreen;
   window.hideLoadingScreen = hideLoadingScreen;
+  window.onPhaserPreloadProgress = onPhaserPreloadProgress;
+  window.onPhaserPreloadFile = onPhaserPreloadFile;
+  window.onPhaserPreloadComplete = onPhaserPreloadComplete;
+  window.onPhaserArenaReady = onPhaserArenaReady;
   window.FIGHTER_REGISTRY = FIGHTER_REGISTRY;
 
   document.addEventListener('DOMContentLoaded', initLoadingScreenUI);

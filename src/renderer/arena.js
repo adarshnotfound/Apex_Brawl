@@ -794,6 +794,25 @@ class ArenaScene extends Phaser.Scene {
   }
 
   preload() {
+    // Real-time synchronization with the VS loading screen
+    this.load.on('progress', (value) => {
+      if (window.onPhaserPreloadProgress) {
+        window.onPhaserPreloadProgress(value);
+      }
+    });
+
+    this.load.on('fileprogress', (file) => {
+      if (window.onPhaserPreloadFile && file && file.key) {
+        window.onPhaserPreloadFile(file.key);
+      }
+    });
+
+    this.load.on('complete', () => {
+      if (window.onPhaserPreloadComplete) {
+        window.onPhaserPreloadComplete();
+      }
+    });
+
     // 1. Doctor Strange Mirror Dimension Background & Character Portraits
     this.load.image('arena_bg', 'assets/mirror_dimension.png');
     this.load.image('harpy_portrait', '../../assets/characters/harpy/portrait.png');
@@ -923,6 +942,11 @@ class ArenaScene extends Phaser.Scene {
 
     // 7. Start Round 1
     this.startRound(1);
+
+    // Notify Loading Screen that arena is 100% created and ready
+    if (window.onPhaserArenaReady) {
+      window.onPhaserArenaReady();
+    }
   }
 
   registerHarpyAnimations() {
