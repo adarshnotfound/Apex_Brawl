@@ -660,7 +660,7 @@ class FighterEntity {
         }
       } else {
         // Ground attacks: precise floor anchoring & consistent character scale
-        if (animKey === 'steve_anim_atk_5a') {
+        if (animKey === 'steve_anim_atk_5a' || animKey === 'steve_anim_super') {
           this.sprite.setScale(0.421);
           this.sprite.setOrigin(0.5, 0.499);
           this.sprite.body.setSize(170, 438);
@@ -670,7 +670,7 @@ class FighterEntity {
           this.sprite.setOrigin(0.5, 0.506);
           this.sprite.body.setSize(156, 400);
           this.sprite.body.setOffset(152, 49);
-        } else if (animKey === 'steve_anim_atk_5c' || animKey === 'steve_anim_super') {
+        } else if (animKey === 'steve_anim_atk_5c') {
           this.sprite.setScale(0.509);
           this.sprite.setOrigin(0.5, 0.513);
           this.sprite.body.setSize(142, 362);
@@ -1395,13 +1395,14 @@ class FighterEntity {
         }
       } else if (this.charId === 'steve') {
         this.triggerAttack('MEGATON DETONATION (SUPER)', 'steve_anim_super', {
-          damage: 255,
-          rangeX: 310,
-          rangeY: 190,
-          knockbackX: 710,
-          knockbackY: -550,
+          damage: 260,
+          rangeX: 800,
+          rangeY: 600,
+          knockbackX: 720,
+          knockbackY: -560,
           isSpecial: true
-        }, 2200);
+        }, 750);
+        this.hasDealtDamage = true; // Damage applied when TNT auto-spawns on opponent and explodes to pieces!
         if (this.scene && this.scene.spawnMegatonSuperVFX) {
           this.scene.spawnMegatonSuperVFX(this);
         }
@@ -2454,7 +2455,7 @@ class ArenaScene extends Phaser.Scene {
 
     // Special & Super
     defineAnim('steve_anim_sp_tnt', 'steve_sheet_tnt_throw', 0, 19, 18, 0);
-    defineAnim('steve_anim_super', 'steve_sheet_pickaxe', 0, 23, 11, 0);
+    defineAnim('steve_anim_super', 'steve_sheet_punch', 0, 15, 24, 0);
 
     // Steve VFX & Projectiles
     defineAnim('steve_anim_tnt_flight', 'steve_sheet_tnt_flight', 0, 11, 18, -1);
@@ -3225,22 +3226,98 @@ class ArenaScene extends Phaser.Scene {
       caster.activeMegatonVFX.destroy();
     }
 
-    const facingDir = caster.getFacingDir ? caster.getFacingDir() : 1;
-    const facingRight = facingDir === 1;
-    const fuseX = caster.sprite.x + (facingRight ? 60 : -60);
-    const fuseY = caster.sprite.y + 10;
+    const target = caster.playerNum === 1 ? this.fighterP2 : this.fighterP1;
+    if (!target || !target.sprite || target.hp <= 0) return;
 
-    const fuse = this.add.sprite(fuseX, fuseY, 'steve_sheet_tnt_fuse');
-    fuse.setDepth(25);
-    fuse.setScale(0.38);
-    fuse.setFlipX(!facingRight);
-    fuse.play('steve_anim_tnt_fuse');
-    caster.activeMegatonVFX = fuse;
+    // 1. TNT auto-spawns directly on the opponent's body!
+    const tnt = this.add.sprite(target.sprite.x, target.sprite.y - 10, 'steve_sheet_tnt_fuse');
+    tnt.setDepth(26);
+    tnt.setScale(0.44);
+    tnt.play('steve_anim_tnt_fuse');
+    caster.activeMegatonVFX = tnt;
 
-    this.time.delayedCall(500, () => {
-      if (fuse && fuse.active) fuse.destroy();
-      if (!caster || !caster.sprite || caster.hp <= 0) return;
-      this.spawnTNTExplosion(fuseX, fuseY - 20, true);
+    // Red warning pulse on opponent while fuse sizzles
+    target.sprite.setTint(0xff6666);
+
+    // Keep TNT tracking opponent's body during fuse burning
+    const onUpdate = () => {
+      if (tnt && tnt.active && target && target.sprite) {
+        tnt.setPosition(target.sprite.x, target.sprite.y - 10);
+      }
+    };
+    this.events.on('update', onUpdate);
+
+    // 2. TNT explodes to pieces at ~300ms (timed with Steve's punch extension!)
+    this.time.delayedCall(300, () => {
+      this.events.off('update', onUpdate);
+      if (tnt && tnt.active) tnt.destroy();
+      caster.activeMegatonVFX = null;
+
+      if (!target || !target.sprite || target.hp <= 0) return;
+
+      // Clear warning tint
+      if (target.isMirror) {
+        target.sprite.setTint(0xc4b5fd);
+      } else {
+        target.sprite.clearTint();
+      }
+
+      const expX = target.sprite.x;
+      const expY = target.sprite.y - 15;
+
+      // A. Main massive TNT explosion fireball
+      const explosion = this.add.sprite(expX, expY, 'steve_sheet_tnt_explosion');
+      explosion.setDepth(28);
+      explosion.setScale(1.05);
+      explosion.play('steve_anim_tnt_explosion');
+      explosion.on('animationcomplete', () => { if (explosion.active) explosion.destroy(); });
+      this.time.delayedCall(1200, () => { if (explosion && explosion.active) explosion.destroy(); });
+
+      // B. Explodes to pieces! Spawn multiple flying TNT block fragments bursting in all directions
+      for (let i = 0; i < 10; i++) {
+        const angle = (i / 10) * Math.PI * 2 + (Math.random() * 0.4 - 0.2);
+        const speed = 280 + Math.random() * 240;
+        const vx = Math.cos(angle) * speed;
+        const vy = Math.sin(angle) * speed - 160;
+
+        const piece = this.physics.add.sprite(expX, expY, 'steve_sheet_tnt_flight');
+        piece.setDepth(27);
+        piece.setScale(0.18 + Math.random() * 0.08);
+        piece.play('steve_anim_tnt_flight');
+        piece.body.setAllowGravity(true);
+        piece.body.gravity.y = 850;
+        piece.setVelocity(vx, vy);
+        piece.setAngularVelocity((Math.random() - 0.5) * 800);
+
+        this.tweens.add({
+          targets: piece,
+          alpha: 0,
+          scaleX: 0.05,
+          scaleY: 0.05,
+          duration: 500 + Math.random() * 220,
+          ease: 'Quad.In',
+          onComplete: () => {
+            if (piece.active) piece.destroy();
+          }
+        });
+      }
+
+      // C. Expanding ground slam shockwave ring
+      const floorY = target.charId === 'strange' ? 395.80 : (target.charId === 'chunli' ? 477.04 : 476.60);
+      this.spawnSlamGroundEffect(expX, floorY);
+
+      // D. Heavy camera shake & audio
+      this.cameras.main.shake(380, 0.028);
+      if (window.soundFX) window.soundFX.playStartBoom();
+
+      // E. Apply full Super damage & launch knockback to opponent
+      const pushDir = target.sprite.x >= caster.sprite.x ? 1 : -1;
+      target.takeHit({
+        damage: 260,
+        isSpecial: true,
+        knockbackX: pushDir * 720,
+        knockbackY: -560
+      }, caster);
     });
   }
 
