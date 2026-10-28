@@ -20,8 +20,11 @@ class FighterEntity {
     this.activeHoyokuVFX = null;
     this.activePsystrikeVFX = null;
     this.activeMegatonVFX = null;
+    this.activeShadowBallChargeVFX = null;
     this.shadowBallFired = false;
     this.tntFired = false;
+    this.isStunned = false;
+    this.stunTimer = null;
 
     this.hp = charId === 'strange' ? 960 : (charId === 'chunli' ? 950 : (charId === 'mewtwo' ? 940 : (charId === 'steve' ? 980 : 920)));
     this.maxHp = this.hp;
@@ -48,19 +51,19 @@ class FighterEntity {
       this.sprite.body.setSize(100, 230);
       this.sprite.body.setOffset(78, 22);
     } else if (charId === 'mewtwo') {
-      // Mewtwo: standardized 320x320 frame, scale 0.78 gives visual height ~187px, matching ground line exactly!
+      // Mewtwo: standardized 256x256 frame, scale 0.78 gives visual height ~187px, matching ground line exactly!
       this.sprite.setScale(0.78);
       this.sprite.setCollideWorldBounds(true);
-      this.sprite.setDisplayOrigin(160, 160);
+      this.sprite.setOrigin(0.5, 0.5);
       this.sprite.body.setSize(110, 240);
-      this.sprite.body.setOffset(105, 80);
+      this.sprite.body.setOffset(73, 10);
     } else if (charId === 'steve') {
-      // Steve: standardized 640x640 frame, scale 0.40 gives visual height ~184px, matching ground line exactly!
+      // Steve: scale 0.40 gives visual height ~184px, matching ground line exactly!
       this.sprite.setScale(0.40);
       this.sprite.setCollideWorldBounds(true);
-      this.sprite.setDisplayOrigin(320, 320);
-      this.sprite.body.setSize(240, 460);
-      this.sprite.body.setOffset(200, 172);
+      this.sprite.setOrigin(0.5, 0.5);
+      this.sprite.body.setSize(180, 460);
+      this.sprite.body.setOffset(166, 42);
     } else {
       this.sprite.setScale(0.25);
       this.sprite.setCollideWorldBounds(true);
@@ -131,6 +134,10 @@ class FighterEntity {
       const textureFrameIdx = frame && frame.textureFrame !== undefined ? Number(frame.textureFrame) : -1;
       if (frameIdx >= 11 || textureFrameIdx >= 10) {
         this.shadowBallFired = true;
+        if (this.activeShadowBallChargeVFX && this.activeShadowBallChargeVFX.active) {
+          this.activeShadowBallChargeVFX.destroy();
+          this.activeShadowBallChargeVFX = null;
+        }
         if (this.scene && this.scene.spawnShadowBallProjectile) {
           this.scene.spawnShadowBallProjectile(this);
         }
@@ -153,10 +160,16 @@ class FighterEntity {
       if (this.scene && this.scene.spawnKikokenProjectile) {
         this.scene.spawnKikokenProjectile(this);
       }
-    } else if (key === 'mewtwo_anim_sp_shadow_ball' && !this.shadowBallFired) {
-      this.shadowBallFired = true;
-      if (this.scene && this.scene.spawnShadowBallProjectile) {
-        this.scene.spawnShadowBallProjectile(this);
+    } else if (key === 'mewtwo_anim_sp_shadow_ball') {
+      if (!this.shadowBallFired) {
+        this.shadowBallFired = true;
+        if (this.scene && this.scene.spawnShadowBallProjectile) {
+          this.scene.spawnShadowBallProjectile(this);
+        }
+      }
+      if (this.activeShadowBallChargeVFX && this.activeShadowBallChargeVFX.active) {
+        this.activeShadowBallChargeVFX.destroy();
+        this.activeShadowBallChargeVFX = null;
       }
     } else if (key === 'steve_anim_sp_tnt' && !this.tntFired) {
       this.tntFired = true;
@@ -165,27 +178,27 @@ class FighterEntity {
       }
     }
 
-    if (key.startsWith('harpy_anim_atk_') || 
-        key.startsWith('harpy_anim_sp_') || 
-        key === 'harpy_anim_taunt' || 
-        key === 'harpy_anim_dash' || 
-        key === 'harpy_anim_backdash' ||
-        key.startsWith('strange_anim_atk_') || 
-        key.startsWith('strange_anim_sp_') || 
-        key === 'strange_anim_super' || 
-        key === 'strange_anim_dash' ||
-        key.startsWith('chunli_anim_atk_') ||
-        key.startsWith('chunli_anim_sp_') ||
-        key === 'chunli_anim_super' ||
-        key === 'chunli_anim_dash' ||
-        key.startsWith('mewtwo_anim_atk_') ||
-        key.startsWith('mewtwo_anim_sp_') ||
-        key === 'mewtwo_anim_super' ||
-        key === 'mewtwo_anim_dash' ||
-        key.startsWith('steve_anim_atk_') ||
-        key.startsWith('steve_anim_sp_') ||
-        key === 'steve_anim_super' ||
-        key === 'steve_anim_dash') {
+    if (key.startsWith('harpy_anim_atk_') ||
+      key.startsWith('harpy_anim_sp_') ||
+      key === 'harpy_anim_taunt' ||
+      key === 'harpy_anim_dash' ||
+      key === 'harpy_anim_backdash' ||
+      key.startsWith('strange_anim_atk_') ||
+      key.startsWith('strange_anim_sp_') ||
+      key === 'strange_anim_super' ||
+      key === 'strange_anim_dash' ||
+      key.startsWith('chunli_anim_atk_') ||
+      key.startsWith('chunli_anim_sp_') ||
+      key === 'chunli_anim_super' ||
+      key === 'chunli_anim_dash' ||
+      key.startsWith('mewtwo_anim_atk_') ||
+      key.startsWith('mewtwo_anim_sp_') ||
+      key === 'mewtwo_anim_super' ||
+      key === 'mewtwo_anim_dash' ||
+      key.startsWith('steve_anim_atk_') ||
+      key.startsWith('steve_anim_sp_') ||
+      key === 'steve_anim_super' ||
+      key === 'steve_anim_dash') {
       this.isAttacking = false;
       this.currentAttackData = null;
       if (this.attackTimer) {
@@ -204,6 +217,11 @@ class FighterEntity {
         this.activeMegatonVFX.destroy();
         this.activeMegatonVFX = null;
       }
+      if (this.activeShadowBallChargeVFX && this.activeShadowBallChargeVFX.active) {
+        this.activeShadowBallChargeVFX.destroy();
+        this.activeShadowBallChargeVFX = null;
+      }
+      this.sprite.setAlpha(1);
       if (this.charId === 'chunli') {
         this.sprite.setDisplayOrigin(128, 128);
         this.sprite.body.setSize(100, 230);
@@ -211,8 +229,21 @@ class FighterEntity {
         if (this.sprite.body) {
           this.sprite.body.setAllowGravity(true);
         }
+      } else if (this.charId === 'mewtwo') {
+        this.sprite.setScale(0.78);
+        this.sprite.setOrigin(0.479, 0.5);
+        this.sprite.body.setSize(110, 240);
+        this.sprite.body.setOffset(73, 10);
+      } else if (this.charId === 'steve') {
+        this.sprite.setScale(0.40);
+        this.sprite.setOrigin(0.5, 0.5);
+        this.sprite.body.setSize(180, 460);
+        this.sprite.body.setOffset(166, 42);
       }
       this.updateTextureForState();
+      if (!this.isInAir) {
+        this.snapToGround();
+      }
     } else if (key === 'harpy_anim_knockback' || key === 'strange_anim_knockback' || key === 'chunli_anim_knockback' || key === 'mewtwo_anim_knockback' || key === 'steve_anim_knockback') {
       this.isKnockedBack = false;
       if (this.charId === 'chunli') {
@@ -222,9 +253,58 @@ class FighterEntity {
         if (this.sprite.body) {
           this.sprite.body.setAllowGravity(true);
         }
+      } else if (this.charId === 'mewtwo') {
+        this.sprite.setScale(0.78);
+        this.sprite.setOrigin(0.479, 0.5);
+        this.sprite.body.setSize(110, 240);
+        this.sprite.body.setOffset(73, 10);
+      } else if (this.charId === 'steve') {
+        this.sprite.setScale(0.40);
+        this.sprite.setOrigin(0.5, 0.5);
+        this.sprite.body.setSize(180, 460);
+        this.sprite.body.setOffset(166, 42);
       }
       this.updateTextureForState();
+      if (!this.isInAir) {
+        this.snapToGround();
+      }
     }
+  }
+
+  snapToGround() {
+    if (!this.sprite || !this.sprite.body) return;
+    const floorY = 575;
+
+    // Fixed ground Y anchors that seat feet flush on the platform at y = 575
+    if (this.charId === 'steve') {
+      this.sprite.y = 476.60;
+    } else if (this.charId === 'mewtwo') {
+      this.sprite.y = 479.84;
+    } else if (this.charId === 'chunli') {
+      this.sprite.y = 477.04;
+    } else if (this.charId === 'strange') {
+      this.sprite.y = 395.80;
+    } else if (this.charId === 'harpy') {
+      this.sprite.y = 443.00;
+    } else {
+      const scaleY = Math.abs(this.sprite.scaleY);
+      const bodyBottomRel = scaleY * (this.sprite.body.offset.y - this.sprite.displayOriginY + this.sprite.body.sourceHeight);
+      this.sprite.y = floorY - bodyBottomRel;
+    }
+
+    if (this.sprite.body.updateFromGameObject) {
+      this.sprite.body.updateFromGameObject();
+    }
+    this.sprite.body.position.y = floorY - this.sprite.body.height;
+    this.sprite.body.prev.y = this.sprite.body.position.y;
+    this.sprite.body.prev.x = this.sprite.body.position.x;
+    if (this.sprite.body.prevFrame) {
+      this.sprite.body.prevFrame.y = this.sprite.body.position.y;
+      this.sprite.body.prevFrame.x = this.sprite.body.position.x;
+    }
+    this.sprite.body.velocity.y = 0;
+    this.sprite.body.blocked.down = true;
+    this.sprite.body.touching.down = true;
   }
 
   updateTextureForState() {
@@ -283,21 +363,36 @@ class FighterEntity {
     if (this.charId === 'mewtwo') {
       if (this.isKnockedBack) {
         this.currentAction = 'KNOCKBACK / LAUNCH';
+        this.sprite.setScale(0.70);
+        this.sprite.setOrigin(0.472, 0.483);
+        this.sprite.body.setSize(110, 200);
+        this.sprite.body.setOffset(95, 80);
         this.sprite.setTexture('mewtwo_sheet_hit');
         this.sprite.play('mewtwo_anim_knockback', true);
         return;
       }
       if (this.isInAir) {
-        this.sprite.setOrigin(0.5, 0.5);
+        this.sprite.setScale(0.86);
+        this.sprite.setOrigin(0.484, 0.510);
+        this.sprite.body.setSize(110, 216);
+        this.sprite.body.setOffset(60, 10);
         this.currentAction = this.sprite.body.velocity.y < 0 ? 'JUMP / ASCENT' : 'AIR FALL';
         this.sprite.setTexture('mewtwo_sheet_jump');
         this.sprite.play('mewtwo_anim_jump', true);
       } else {
         if (this.isCrouching) {
           this.currentAction = 'CROUCH';
+          this.sprite.setScale(0.68);
+          this.sprite.setOrigin(0.462, 0.504);
+          this.sprite.body.setSize(110, 160);
+          this.sprite.body.setOffset(95, 130);
           this.sprite.play('mewtwo_anim_crouch_hold', true);
         } else {
           this.currentAction = 'IDLE';
+          this.sprite.setScale(0.78);
+          this.sprite.setOrigin(0.479, 0.5);
+          this.sprite.body.setSize(110, 240);
+          this.sprite.body.setOffset(73, 10);
           this.sprite.setTexture('mewtwo_sheet_idle');
           this.sprite.play('mewtwo_anim_idle', true);
         }
@@ -308,21 +403,36 @@ class FighterEntity {
     if (this.charId === 'steve') {
       if (this.isKnockedBack) {
         this.currentAction = 'KNOCKBACK / LAUNCH';
+        this.sprite.setScale(0.343);
+        this.sprite.setOrigin(0.5, 0.488);
+        this.sprite.body.setSize(210, 525);
+        this.sprite.body.setOffset(195, 53);
         this.sprite.setTexture('steve_sheet_hit');
         this.sprite.play('steve_anim_knockback', true);
         return;
       }
       if (this.isInAir) {
-        this.sprite.setOrigin(0.5, 0.5);
+        this.sprite.setScale(0.519);
+        this.sprite.setOrigin(0.5, 0.509);
+        this.sprite.body.setSize(140, 355);
+        this.sprite.body.setOffset(160, 71);
         this.currentAction = this.sprite.body.velocity.y < 0 ? 'JUMP / ASCENT' : 'AIR FALL';
         this.sprite.setTexture('steve_sheet_jump');
         this.sprite.play('steve_anim_jump', true);
       } else {
         if (this.isCrouching) {
           this.currentAction = 'CROUCH';
+          this.sprite.setScale(0.343);
+          this.sprite.setOrigin(0.5, 0.503);
+          this.sprite.body.setSize(210, 465);
+          this.sprite.body.setOffset(195, 122);
           this.sprite.play('steve_anim_crouch_hold', true);
         } else {
           this.currentAction = 'IDLE';
+          this.sprite.setScale(0.40);
+          this.sprite.setOrigin(0.5, 0.5);
+          this.sprite.body.setSize(180, 460);
+          this.sprite.body.setOffset(166, 42);
           this.sprite.setTexture('steve_sheet_idle');
           this.sprite.play('steve_anim_idle', true);
         }
@@ -379,6 +489,16 @@ class FighterEntity {
       this.activeMegatonVFX.destroy();
       this.activeMegatonVFX = null;
     }
+    if (this.activeShadowBallChargeVFX && this.activeShadowBallChargeVFX.active) {
+      this.activeShadowBallChargeVFX.destroy();
+      this.activeShadowBallChargeVFX = null;
+    }
+    this.isStunned = false;
+    if (this.stunTimer) {
+      this.stunTimer.remove();
+      this.stunTimer = null;
+    }
+    this.sprite.setAlpha(1);
     this.shadowBallFired = false;
     this.tntFired = false;
 
@@ -409,10 +529,25 @@ class FighterEntity {
       this.sprite.body.setOffset(78, 22);
       this.sprite.setTexture('chunli_sheet_idle');
       this.sprite.play('chunli_anim_idle', true);
+    } else if (this.charId === 'mewtwo') {
+      this.sprite.setScale(0.78);
+      this.sprite.setOrigin(0.479, 0.5);
+      this.sprite.body.setSize(110, 240);
+      this.sprite.body.setOffset(73, 10);
+      this.sprite.setTexture('mewtwo_sheet_idle');
+      this.sprite.play('mewtwo_anim_idle', true);
+    } else if (this.charId === 'steve') {
+      this.sprite.setScale(0.40);
+      this.sprite.setOrigin(0.5, 0.5);
+      this.sprite.body.setSize(180, 460);
+      this.sprite.body.setOffset(166, 42);
+      this.sprite.setTexture('steve_sheet_idle');
+      this.sprite.play('steve_anim_idle', true);
     } else {
       this.sprite.setTexture('harpy_sheet_idle');
       this.sprite.play('harpy_anim_idle', true);
     }
+    this.snapToGround();
   }
 
   triggerAttack(actionKey, animKey, attackData, duration = 480) {
@@ -446,9 +581,100 @@ class FighterEntity {
           this.sprite.body.velocity.y = 0;
         }
       }
+    } else if (this.charId === 'mewtwo') {
+      if (this.isInAir) {
+        if (animKey === 'mewtwo_anim_atk_8a') {
+          this.sprite.setScale(0.78);
+          this.sprite.setOrigin(0.473, 0.5);
+          this.sprite.body.setSize(110, 240);
+          this.sprite.body.setOffset(73, 10);
+        } else if (animKey === 'mewtwo_anim_atk_8c') {
+          this.sprite.setScale(0.98);
+          this.sprite.setOrigin(0.483, 0.509);
+          this.sprite.body.setSize(110, 195);
+          this.sprite.body.setOffset(50, 10);
+        }
+      } else {
+        if (animKey === 'mewtwo_anim_atk_5a') {
+          this.sprite.setScale(0.78);
+          this.sprite.setOrigin(0.473, 0.5);
+          this.sprite.body.setSize(110, 240);
+          this.sprite.body.setOffset(73, 10);
+        } else if (animKey === 'mewtwo_anim_atk_5b') {
+          this.sprite.setScale(0.98);
+          this.sprite.setOrigin(0.479, 0.523);
+          this.sprite.body.setSize(110, 198);
+          this.sprite.body.setOffset(50, 10);
+        } else if (animKey === 'mewtwo_anim_atk_5c') {
+          this.sprite.setScale(0.98);
+          this.sprite.setOrigin(0.483, 0.509);
+          this.sprite.body.setSize(110, 195);
+          this.sprite.body.setOffset(50, 10);
+        } else if (animKey === 'mewtwo_anim_sp_shadow_ball') {
+          this.sprite.setScale(0.86);
+          this.sprite.setOrigin(0.457, 0.497);
+          this.sprite.body.setSize(110, 216);
+          this.sprite.body.setOffset(60, 10);
+        } else if (animKey === 'mewtwo_anim_super') {
+          this.sprite.setScale(0.98);
+          this.sprite.setOrigin(0.476, 0.523);
+          this.sprite.body.setSize(110, 198);
+          this.sprite.body.setOffset(50, 10);
+        } else {
+          this.sprite.setScale(0.78);
+          this.sprite.setOrigin(0.479, 0.5);
+          this.sprite.body.setSize(110, 240);
+          this.sprite.body.setOffset(73, 10);
+        }
+      }
+    } else if (this.charId === 'steve') {
+      if (this.isInAir) {
+        if (animKey === 'steve_anim_atk_8a') {
+          this.sprite.setScale(0.421);
+          this.sprite.setOrigin(0.5, 0.501);
+          this.sprite.body.setSize(170, 436);
+          this.sprite.body.setOffset(171, 51);
+        } else if (animKey === 'steve_anim_atk_8c') {
+          this.sprite.setScale(0.458);
+          this.sprite.setOrigin(0.5, 0.502);
+          this.sprite.body.setSize(156, 400);
+          this.sprite.body.setOffset(152, 49);
+        }
+      } else {
+        // Ground attacks: precise floor anchoring & consistent character scale
+        if (animKey === 'steve_anim_atk_5a') {
+          this.sprite.setScale(0.421);
+          this.sprite.setOrigin(0.5, 0.499);
+          this.sprite.body.setSize(170, 438);
+          this.sprite.body.setOffset(171, 51);
+        } else if (animKey === 'steve_anim_atk_5b') {
+          this.sprite.setScale(0.459);
+          this.sprite.setOrigin(0.5, 0.506);
+          this.sprite.body.setSize(156, 400);
+          this.sprite.body.setOffset(152, 49);
+        } else if (animKey === 'steve_anim_atk_5c' || animKey === 'steve_anim_super') {
+          this.sprite.setScale(0.509);
+          this.sprite.setOrigin(0.5, 0.513);
+          this.sprite.body.setSize(142, 362);
+          this.sprite.body.setOffset(139, 49);
+        } else if (animKey === 'steve_anim_sp_tnt') {
+          this.sprite.setScale(0.437);
+          this.sprite.setOrigin(0.5, 0.487);
+          this.sprite.body.setSize(164, 422);
+          this.sprite.body.setOffset(148, 29);
+        } else {
+          this.sprite.setScale(0.40);
+          this.sprite.setOrigin(0.5, 0.5);
+          this.sprite.body.setSize(180, 460);
+          this.sprite.body.setOffset(166, 42);
+        }
+      }
     }
 
     this.sprite.play(animKey, true);
+    if (!this.isInAir) {
+      this.snapToGround();
+    }
 
     // Guaranteed recovery failsafe: after animation duration, always release attack lock!
     if (this.attackTimer) this.attackTimer.remove();
@@ -456,10 +682,22 @@ class FighterEntity {
       if (this.isAttacking) {
         if (this.charId === 'chunli' && this.sprite && this.sprite.body) {
           this.sprite.body.setAllowGravity(true);
+        } else if (this.charId === 'mewtwo' && this.sprite && this.sprite.body) {
+          this.sprite.setScale(0.78);
+          this.sprite.setOrigin(0.479, 0.5);
+          this.sprite.body.setSize(110, 240);
+          this.sprite.body.setOffset(73, 10);
+        } else if (this.charId === 'steve' && this.sprite && this.sprite.body) {
+          this.sprite.setOrigin(0.5, 0.5);
+          this.sprite.body.setSize(180, 460);
+          this.sprite.body.setOffset(166, 42);
         }
         this.isAttacking = false;
         this.currentAttackData = null;
         this.updateTextureForState();
+        if (!this.isInAir) {
+          this.snapToGround();
+        }
       }
     });
 
@@ -496,17 +734,13 @@ class FighterEntity {
       this.activeMegatonVFX.destroy();
       this.activeMegatonVFX = null;
     }
+    if (this.activeShadowBallChargeVFX && this.activeShadowBallChargeVFX.active) {
+      this.activeShadowBallChargeVFX.destroy();
+      this.activeShadowBallChargeVFX = null;
+    }
+    this.sprite.setAlpha(1);
     this.shadowBallFired = false;
     this.tntFired = false;
-
-    if (this.activePsystrikeVFX && this.activePsystrikeVFX.active) {
-      this.activePsystrikeVFX.destroy();
-      this.activePsystrikeVFX = null;
-    }
-    if (this.activeMegatonVFX && this.activeMegatonVFX.active) {
-      this.activeMegatonVFX.destroy();
-      this.activeMegatonVFX = null;
-    }
     // Spawn floating damage text (adjusted for character scale)
     const textY = this.charId === 'strange' ? this.sprite.y - 120 : (this.charId === 'steve' ? this.sprite.y - 110 : this.sprite.y - 95);
     this.scene.spawnDamageNumber(this.sprite.x, textY, attackData.damage, attackData.isSpecial);
@@ -543,6 +777,20 @@ class FighterEntity {
         this.sprite.body.setSize(100, 210);
         this.sprite.body.setOffset(100, 82);
         this.sprite.play('chunli_anim_knockback', true);
+      } else if (this.charId === 'mewtwo') {
+        this.sprite.setScale(0.70);
+        this.sprite.setOrigin(0.472, 0.483);
+        this.sprite.body.setSize(110, 200);
+        this.sprite.body.setOffset(95, 80);
+        this.sprite.setTexture('mewtwo_sheet_hit');
+        this.sprite.play('mewtwo_anim_knockback', true);
+      } else if (this.charId === 'steve') {
+        this.sprite.setScale(0.343);
+        this.sprite.setOrigin(0.5, 0.488);
+        this.sprite.body.setSize(210, 525);
+        this.sprite.body.setOffset(195, 53);
+        this.sprite.setTexture('steve_sheet_hit');
+        this.sprite.play('steve_anim_knockback', true);
       } else if (this.charId === 'harpy') {
         this.sprite.setTexture('harpy_sheet_8c');
         this.sprite.play('harpy_anim_knockback', true);
@@ -554,12 +802,23 @@ class FighterEntity {
         this.sprite.setVelocityY(attackData.knockbackY);
         this.isInAir = true;
       }
+      if (attackData.isStun) {
+        this.isStunned = true;
+        this.currentAction = 'STUNNED / RECOIL';
+        if (this.stunTimer) this.stunTimer.remove();
+        this.stunTimer = this.scene.time.delayedCall(attackData.stunDuration || 340, () => {
+          this.isStunned = false;
+          this.stunTimer = null;
+          this.updateTextureForState();
+        });
+      }
       this.updateTextureForState();
     }
   }
 
   handleControls(input) {
     if (!this.sprite || !this.sprite.body) return;
+    if (this.isStunned) return;
     if (this.hp <= 0 || (this.scene && this.scene.roundState !== 'FIGHTING')) {
       if (this.hp <= 0) {
         this.currentAction = 'DEFEATED (K.O.)';
@@ -573,9 +832,9 @@ class FighterEntity {
     // Ground Check: physical contact or world bottom
     const onGround = Boolean(
       this.isCrouching ||
-      this.sprite.body.blocked.down || 
-      this.sprite.body.touching.down || 
-      this.sprite.body.bottom >= 573
+      this.sprite.body.blocked.down ||
+      this.sprite.body.touching.down ||
+      this.sprite.body.bottom >= 568
     );
 
     // Landing detection
@@ -584,6 +843,7 @@ class FighterEntity {
         // Do not abort active attack animation upon ground contact
         this.isInAir = false;
         this.isKnockedBack = false;
+        this.snapToGround();
       } else {
         this.isInAir = false;
         this.isKnockedBack = false;
@@ -593,6 +853,7 @@ class FighterEntity {
           this.sprite.body.setAllowGravity(true);
         }
         this.updateTextureForState();
+        this.snapToGround();
       }
     } else if (!onGround) {
       this.isInAir = true;
@@ -605,10 +866,10 @@ class FighterEntity {
     if (this.isAttacking) {
       // Keep Spinning Bird Kick locked stationary in one position throughout the entire move
       if (this.charId === 'chunli' && (
-          this.currentAction.includes('SPINNING BIRD') ||
-          this.sprite.anims.currentAnim?.key === 'chunli_anim_atk_5c' ||
-          this.sprite.anims.currentAnim?.key === 'chunli_anim_atk_8c' ||
-          this.sprite.anims.currentAnim?.key === 'chunli_anim_sp_spinning_bird')) {
+        this.currentAction.includes('SPINNING BIRD') ||
+        this.sprite.anims.currentAnim?.key === 'chunli_anim_atk_5c' ||
+        this.sprite.anims.currentAnim?.key === 'chunli_anim_atk_8c' ||
+        this.sprite.anims.currentAnim?.key === 'chunli_anim_sp_spinning_bird')) {
         this.sprite.setVelocity(0, 0);
         if (this.sprite.body) {
           this.sprite.body.setAllowGravity(false);
@@ -699,7 +960,7 @@ class FighterEntity {
             knockbackX: 170,
             knockbackY: 0,
             isSpecial: false
-          }, 460);
+          }, 500);
         }
       } else {
         if (this.isInAir) {
@@ -790,27 +1051,27 @@ class FighterEntity {
           }, 500);
         } else {
           this.triggerAttack('PSYCHIC CRUSH (5B)', 'mewtwo_anim_atk_5b', {
-            damage: 85,
-            rangeX: 195,
-            rangeY: 90,
-            knockbackX: 240,
-            knockbackY: -30,
+            damage: 95,
+            rangeX: 800,
+            rangeY: 160,
+            knockbackX: 250,
+            knockbackY: -80,
             isSpecial: false
-          }, 600);
+          }, 750);
           if (this.scene && this.scene.spawnPsychicCrushVFX) {
             this.scene.spawnPsychicCrushVFX(this);
           }
         }
       } else if (this.charId === 'steve') {
         if (this.isInAir) {
-          this.triggerAttack('AIR SWORD SWEEP (8B)', 'steve_anim_atk_8a', {
+          this.triggerAttack('AIR SWORD SWEEP (8B)', 'steve_anim_atk_8c', {
             damage: 84,
             rangeX: 180,
             rangeY: 100,
             knockbackX: 230,
             knockbackY: 80,
             isSpecial: false
-          }, 500);
+          }, 550);
         } else {
           this.triggerAttack('DIAMOND SWORD SLASH (5B)', 'steve_anim_atk_5b', {
             damage: 84,
@@ -819,7 +1080,7 @@ class FighterEntity {
             knockbackX: 230,
             knockbackY: -30,
             isSpecial: false
-          }, 600);
+          }, 750);
         }
       } else {
         if (this.isInAir) {
@@ -919,9 +1180,9 @@ class FighterEntity {
             knockbackX: 360,
             knockbackY: -120,
             isSpecial: false
-          }, 650);
-          if (this.scene && this.scene.spawnTeleportVFX) {
-            this.scene.spawnTeleportVFX(this.sprite.x, this.sprite.y);
+          }, 750);
+          if (this.scene && this.scene.executeTeleportStrike) {
+            this.scene.executeTeleportStrike(this);
           }
         }
       } else if (this.charId === 'steve') {
@@ -942,7 +1203,7 @@ class FighterEntity {
             knockbackX: 350,
             knockbackY: -130,
             isSpecial: false
-          }, 650);
+          }, 850);
         }
       } else {
         if (this.isInAir) {
@@ -1011,7 +1272,10 @@ class FighterEntity {
           knockbackX: 470,
           knockbackY: -270,
           isSpecial: true
-        }, 1200);
+        }, 1100);
+        if (this.scene && this.scene.spawnShadowBallChargeVFX) {
+          this.scene.spawnShadowBallChargeVFX(this);
+        }
       } else if (this.charId === 'steve') {
         this.triggerAttack('TNT TOSS (PROJECTILE)', 'steve_anim_sp_tnt', {
           damage: 150,
@@ -1020,7 +1284,7 @@ class FighterEntity {
           knockbackX: 450,
           knockbackY: -260,
           isSpecial: true
-        }, 1200);
+        }, 1000);
       } else {
         if (input.up) {
           this.triggerAttack('SKY DRAGON DP (262C)', 'harpy_anim_sp_262c', {
@@ -1153,7 +1417,10 @@ class FighterEntity {
         });
       } else if (this.charId === 'steve') {
         this.currentAction = 'SPRINT DASH';
-        this.sprite.setOrigin(0.5, 0.5);
+        this.sprite.setScale(0.40);
+        this.sprite.setOrigin(0.492, 0.502);
+        this.sprite.body.setSize(180, 460);
+        this.sprite.body.setOffset(166, 42);
         this.sprite.play('steve_anim_dash', true);
         this.sprite.setTint(0x2dd4bf);
         this.scene.time.delayedCall(180, () => {
@@ -1186,11 +1453,17 @@ class FighterEntity {
           this.sprite.setTexture('chunli_sheet_jump');
           this.sprite.play('chunli_anim_jump');
         } else if (this.charId === 'mewtwo') {
-          this.sprite.setOrigin(0.5, 0.5);
+          this.sprite.setScale(0.86);
+          this.sprite.setOrigin(0.484, 0.510);
+          this.sprite.body.setSize(110, 216);
+          this.sprite.body.setOffset(60, 10);
           this.sprite.setTexture('mewtwo_sheet_jump');
           this.sprite.play('mewtwo_anim_jump');
         } else if (this.charId === 'steve') {
-          this.sprite.setOrigin(0.5, 0.5);
+          this.sprite.setScale(0.519);
+          this.sprite.setOrigin(0.5, 0.509);
+          this.sprite.body.setSize(140, 355);
+          this.sprite.body.setOffset(160, 71);
           this.sprite.setTexture('steve_sheet_jump');
           this.sprite.play('steve_anim_jump');
         } else {
@@ -1223,9 +1496,19 @@ class FighterEntity {
           } else if (this.charId === 'chunli') {
             this.sprite.play('chunli_anim_crouch_down').chain('chunli_anim_crouch_hold');
           } else if (this.charId === 'mewtwo') {
+            this.sprite.setScale(0.68);
+            this.sprite.setOrigin(0.462, 0.504);
+            this.sprite.body.setSize(110, 160);
+            this.sprite.body.setOffset(95, 130);
             this.sprite.play('mewtwo_anim_crouch_down').chain('mewtwo_anim_crouch_hold');
+            this.snapToGround();
           } else if (this.charId === 'steve') {
+            this.sprite.setScale(0.343);
+            this.sprite.setOrigin(0.5, 0.503);
+            this.sprite.body.setSize(210, 465);
+            this.sprite.body.setOffset(195, 122);
             this.sprite.play('steve_anim_crouch_down').chain('steve_anim_crouch_hold');
+            this.snapToGround();
           } else {
             this.sprite.play('harpy_anim_crouch_down').chain('harpy_anim_crouch_hold');
           }
@@ -1239,11 +1522,21 @@ class FighterEntity {
             this.sprite.setTexture('chunli_sheet_idle');
             this.sprite.play('chunli_anim_idle', true);
           } else if (this.charId === 'mewtwo') {
+            this.sprite.setScale(0.78);
+            this.sprite.setOrigin(0.479, 0.5);
+            this.sprite.body.setSize(110, 240);
+            this.sprite.body.setOffset(73, 10);
             this.sprite.setTexture('mewtwo_sheet_idle');
             this.sprite.play('mewtwo_anim_idle', true);
+            this.snapToGround();
           } else if (this.charId === 'steve') {
+            this.sprite.setScale(0.40);
+            this.sprite.setOrigin(0.5, 0.5);
+            this.sprite.body.setSize(180, 460);
+            this.sprite.body.setOffset(166, 42);
             this.sprite.setTexture('steve_sheet_idle');
             this.sprite.play('steve_anim_idle', true);
+            this.snapToGround();
           }
         }
 
@@ -1257,10 +1550,16 @@ class FighterEntity {
               this.sprite.setOrigin(0.5, 0.5);
               this.sprite.play('chunli_anim_walk', true);
             } else if (this.charId === 'mewtwo') {
-              this.sprite.setOrigin(0.5, 0.5);
+              this.sprite.setScale(0.78);
+              this.sprite.setOrigin(0.471, 0.5);
+              this.sprite.body.setSize(110, 240);
+              this.sprite.body.setOffset(73, 10);
               this.sprite.play('mewtwo_anim_walk', true);
             } else if (this.charId === 'steve') {
-              this.sprite.setOrigin(0.5, 0.5);
+              this.sprite.setScale(0.40);
+              this.sprite.setOrigin(0.492, 0.502);
+              this.sprite.body.setSize(180, 460);
+              this.sprite.body.setOffset(166, 42);
               this.sprite.play('steve_anim_walk', true);
             } else this.sprite.play('harpy_anim_walk', true);
           }
@@ -1274,10 +1573,16 @@ class FighterEntity {
               this.sprite.setOrigin(0.5, 0.5);
               this.sprite.play('chunli_anim_walk', true);
             } else if (this.charId === 'mewtwo') {
-              this.sprite.setOrigin(0.5, 0.5);
+              this.sprite.setScale(0.78);
+              this.sprite.setOrigin(0.471, 0.5);
+              this.sprite.body.setSize(110, 240);
+              this.sprite.body.setOffset(73, 10);
               this.sprite.play('mewtwo_anim_walk', true);
             } else if (this.charId === 'steve') {
-              this.sprite.setOrigin(0.5, 0.5);
+              this.sprite.setScale(0.40);
+              this.sprite.setOrigin(0.492, 0.502);
+              this.sprite.body.setSize(180, 460);
+              this.sprite.body.setOffset(166, 42);
               this.sprite.play('steve_anim_walk', true);
             } else this.sprite.play('harpy_anim_walk', true);
           }
@@ -1290,11 +1595,19 @@ class FighterEntity {
               this.sprite.setOrigin(0.5, 0.5);
               this.sprite.play('chunli_anim_idle', true);
             } else if (this.charId === 'mewtwo') {
-              this.sprite.setOrigin(0.5, 0.5);
+              this.sprite.setScale(0.78);
+              this.sprite.setOrigin(0.479, 0.5);
+              this.sprite.body.setSize(110, 240);
+              this.sprite.body.setOffset(73, 10);
               this.sprite.play('mewtwo_anim_idle', true);
+              this.snapToGround();
             } else if (this.charId === 'steve') {
+              this.sprite.setScale(0.40);
               this.sprite.setOrigin(0.5, 0.5);
+              this.sprite.body.setSize(180, 460);
+              this.sprite.body.setOffset(166, 42);
               this.sprite.play('steve_anim_idle', true);
+              this.snapToGround();
             } else this.sprite.play('harpy_anim_idle', true);
           }
         }
@@ -1329,11 +1642,17 @@ class FighterEntity {
         this.sprite.setTexture('chunli_sheet_jump');
         this.sprite.play('chunli_anim_jump', true);
       } else if (this.charId === 'mewtwo' && this.sprite.anims.currentAnim?.key !== 'mewtwo_anim_jump') {
-        this.sprite.setOrigin(0.5, 0.5);
+        this.sprite.setScale(0.86);
+        this.sprite.setOrigin(0.484, 0.510);
+        this.sprite.body.setSize(110, 216);
+        this.sprite.body.setOffset(60, 10);
         this.sprite.setTexture('mewtwo_sheet_jump');
         this.sprite.play('mewtwo_anim_jump', true);
       } else if (this.charId === 'steve' && this.sprite.anims.currentAnim?.key !== 'steve_anim_jump') {
-        this.sprite.setOrigin(0.5, 0.5);
+        this.sprite.setScale(0.519);
+        this.sprite.setOrigin(0.5, 0.509);
+        this.sprite.body.setSize(140, 355);
+        this.sprite.body.setOffset(160, 71);
         this.sprite.setTexture('steve_sheet_jump');
         this.sprite.play('steve_anim_jump', true);
       } else if (this.charId === 'harpy' && this.sprite.anims.currentAnim?.key !== 'harpy_anim_jump') {
@@ -1456,18 +1775,18 @@ class ArenaScene extends Phaser.Scene {
     this.load.spritesheet('chunli_sheet_vfx_spinning_bird', cBase + '14_SpinningBird_VFX.png', { frameWidth: 256, frameHeight: 256 });
     this.load.spritesheet('chunli_sheet_vfx_hoyoku', cBase + '15_HoyokuSen_Finisher_VFX.png', { frameWidth: 256, frameHeight: 256 });
 
-    // 5. Mewtwo Sprite Sheets & VFX (Standardized 320x320 Body Frames)
+    // 5. Mewtwo Sprite Sheets & VFX (Exact Grid Dimensions)
     const mBase = '../../assets/characters/Mewtwo/';
-    this.load.spritesheet('mewtwo_sheet_idle', mBase + '01_Mewtwo_Idle.png', { frameWidth: 320, frameHeight: 320 });
-    this.load.spritesheet('mewtwo_sheet_walk', mBase + '02_Mewtwo_Walk.png', { frameWidth: 320, frameHeight: 320 });
-    this.load.spritesheet('mewtwo_sheet_jump', mBase + '03_Mewtwo_Jump.png', { frameWidth: 320, frameHeight: 320 });
-    this.load.spritesheet('mewtwo_sheet_crouch', mBase + '04_Mewtwo_Crouch.png', { frameWidth: 320, frameHeight: 320 });
-    this.load.spritesheet('mewtwo_sheet_hit', mBase + '05_Mewtwo_HitReaction.png', { frameWidth: 320, frameHeight: 320 });
-    this.load.spritesheet('mewtwo_sheet_basic_strike', mBase + '06_Mewtwo_BasicStrike.png', { frameWidth: 320, frameHeight: 320 });
-    this.load.spritesheet('mewtwo_sheet_shadow_ball', mBase + '07_Mewtwo_ShadowBall.png', { frameWidth: 320, frameHeight: 320 });
-    this.load.spritesheet('mewtwo_sheet_psychic_crush', mBase + '08_Mewtwo_PsychicCrush.png', { frameWidth: 320, frameHeight: 320 });
-    this.load.spritesheet('mewtwo_sheet_teleport_strike', mBase + '09_Mewtwo_TeleportStrike.png', { frameWidth: 320, frameHeight: 320 });
-    this.load.spritesheet('mewtwo_sheet_psystrike', mBase + '10_Mewtwo_Psystrike.png', { frameWidth: 320, frameHeight: 320 });
+    this.load.spritesheet('mewtwo_sheet_idle', mBase + '01_Mewtwo_Idle.png', { frameWidth: 256, frameHeight: 256 });
+    this.load.spritesheet('mewtwo_sheet_walk', mBase + '02_Mewtwo_Walk.png', { frameWidth: 256, frameHeight: 256 });
+    this.load.spritesheet('mewtwo_sheet_jump', mBase + '03_Mewtwo_Jump.png', { frameWidth: 230, frameHeight: 232 });
+    this.load.spritesheet('mewtwo_sheet_crouch', mBase + '04_Mewtwo_Crouch.png', { frameWidth: 300, frameHeight: 298 });
+    this.load.spritesheet('mewtwo_sheet_hit', mBase + '05_Mewtwo_HitReaction.png', { frameWidth: 300, frameHeight: 298 });
+    this.load.spritesheet('mewtwo_sheet_basic_strike', mBase + '06_Mewtwo_BasicStrike.png', { frameWidth: 256, frameHeight: 256 });
+    this.load.spritesheet('mewtwo_sheet_shadow_ball', mBase + '07_Mewtwo_ShadowBall.png', { frameWidth: 230, frameHeight: 232 });
+    this.load.spritesheet('mewtwo_sheet_psychic_crush', mBase + '08_Mewtwo_PsychicCrush.png', { frameWidth: 210, frameHeight: 212 });
+    this.load.spritesheet('mewtwo_sheet_teleport_strike', mBase + '09_Mewtwo_TeleportStrike.png', { frameWidth: 210, frameHeight: 212 });
+    this.load.spritesheet('mewtwo_sheet_psystrike', mBase + '10_Mewtwo_Psystrike.png', { frameWidth: 210, frameHeight: 212 });
 
     // Mewtwo VFX & Projectiles
     this.load.spritesheet('mewtwo_sheet_projectile', mBase + '11_ShadowBall_Projectile.png', { frameWidth: 256, frameHeight: 256 });
@@ -1476,24 +1795,24 @@ class ArenaScene extends Phaser.Scene {
     this.load.spritesheet('mewtwo_sheet_vfx_disappear', mBase + '14_Teleport_Disappear.png', { frameWidth: 256, frameHeight: 256 });
     this.load.spritesheet('mewtwo_sheet_vfx_reappear', mBase + '15_Teleport_Reappear.png', { frameWidth: 256, frameHeight: 256 });
     this.load.spritesheet('mewtwo_sheet_vfx_forcefield', mBase + '16_PsychicCrush_ForceField.png', { frameWidth: 256, frameHeight: 256 });
-    this.load.spritesheet('mewtwo_sheet_vfx_psystrike', mBase + '17_Psystrike_Explosion.png', { frameWidth: 316, frameHeight: 212 });
+    this.load.spritesheet('mewtwo_sheet_vfx_psystrike', mBase + '17_Psystrike_Explosion.png', { frameWidth: 210, frameHeight: 212 });
 
-    // 6. Steve Sprite Sheets & VFX (Standardized 640x640 Body Frames)
+    // 6. Steve Sprite Sheets & VFX (Exact Grid Dimensions)
     const stBase = '../../assets/characters/Steve/';
-    this.load.spritesheet('steve_sheet_idle', stBase + 'Steve_Idle.png', { frameWidth: 640, frameHeight: 640 });
-    this.load.spritesheet('steve_sheet_walk', stBase + 'Steve_Walk.png', { frameWidth: 640, frameHeight: 640 });
-    this.load.spritesheet('steve_sheet_jump', stBase + 'Steve_Jump.png', { frameWidth: 640, frameHeight: 640 });
-    this.load.spritesheet('steve_sheet_crouch', stBase + 'Steve_Crouch.png', { frameWidth: 640, frameHeight: 640 });
-    this.load.spritesheet('steve_sheet_hit', stBase + 'Steve_HitReaction.png', { frameWidth: 640, frameHeight: 640 });
-    this.load.spritesheet('steve_sheet_punch', stBase + 'Steve_Punch.png', { frameWidth: 640, frameHeight: 640 });
-    this.load.spritesheet('steve_sheet_sword', stBase + 'Steve_SwordSlash.png', { frameWidth: 640, frameHeight: 640 });
-    this.load.spritesheet('steve_sheet_pickaxe', stBase + 'Steve_PickaxeSmash.png', { frameWidth: 640, frameHeight: 640 });
-    this.load.spritesheet('steve_sheet_tnt_throw', stBase + 'Steve_TNT_Throw.png', { frameWidth: 640, frameHeight: 640 });
+    this.load.spritesheet('steve_sheet_idle', stBase + 'Steve_Idle.png', { frameWidth: 512, frameHeight: 512 });
+    this.load.spritesheet('steve_sheet_walk', stBase + 'Steve_Walk.png', { frameWidth: 512, frameHeight: 512 });
+    this.load.spritesheet('steve_sheet_jump', stBase + 'Steve_Jump.png', { frameWidth: 460, frameHeight: 464 });
+    this.load.spritesheet('steve_sheet_crouch', stBase + 'Steve_Crouch.png', { frameWidth: 600, frameHeight: 597 });
+    this.load.spritesheet('steve_sheet_hit', stBase + 'Steve_HitReaction.png', { frameWidth: 600, frameHeight: 597 });
+    this.load.spritesheet('steve_sheet_punch', stBase + 'Steve_Punch.png', { frameWidth: 512, frameHeight: 512 });
+    this.load.spritesheet('steve_sheet_sword', stBase + 'Steve_SwordSlash.png', { frameWidth: 460, frameHeight: 464 });
+    this.load.spritesheet('steve_sheet_pickaxe', stBase + 'Steve_PickaxeSmash.png', { frameWidth: 421, frameHeight: 424 });
+    this.load.spritesheet('steve_sheet_tnt_throw', stBase + 'Steve_TNT_Throw.png', { frameWidth: 460, frameHeight: 464 });
 
     // Steve VFX & Projectiles
-    this.load.spritesheet('steve_sheet_tnt_flight', stBase + 'TNT_Flight.png', { frameWidth: 600, frameHeight: 448 });
-    this.load.spritesheet('steve_sheet_tnt_fuse', stBase + 'TNT_Fuse.png', { frameWidth: 600, frameHeight: 448 });
-    this.load.spritesheet('steve_sheet_tnt_explosion', stBase + 'TNT_Explosion.png', { frameWidth: 632, frameHeight: 424 });
+    this.load.spritesheet('steve_sheet_tnt_flight', stBase + 'TNT_Flight.png', { frameWidth: 600, frameHeight: 597 });
+    this.load.spritesheet('steve_sheet_tnt_fuse', stBase + 'TNT_Fuse.png', { frameWidth: 600, frameHeight: 597 });
+    this.load.spritesheet('steve_sheet_tnt_explosion', stBase + 'TNT_Explosion.png', { frameWidth: 421, frameHeight: 424 });
   }
 
   create() {
@@ -1833,28 +2152,28 @@ class ArenaScene extends Phaser.Scene {
       }
     };
 
-    // Mewtwo Movement & Stances (Standardized 320x320)
+    // Mewtwo Movement & Stances
     defineAnim('mewtwo_anim_idle', 'mewtwo_sheet_idle', 0, 15, 14, -1);
     defineAnim('mewtwo_anim_walk', 'mewtwo_sheet_walk', 0, 15, 16, -1);
     defineAnim('mewtwo_anim_dash', 'mewtwo_sheet_walk', 0, 7, 18, 0);
     defineAnim('mewtwo_anim_crouch_down', 'mewtwo_sheet_crouch', 0, 4, 16, 0);
-    defineAnim('mewtwo_anim_crouch_hold', 'mewtwo_sheet_crouch', 4, 6, 8, -1);
-    defineAnim('mewtwo_anim_crouch', 'mewtwo_sheet_crouch', 4, 6, 8, -1);
-    defineAnim('mewtwo_anim_jump', 'mewtwo_sheet_jump', 0, 10, 14, 0);
-    defineAnim('mewtwo_anim_knockback', 'mewtwo_sheet_hit', 0, 15, 15, 0);
+    defineAnim('mewtwo_anim_crouch_hold', 'mewtwo_sheet_crouch', 4, 7, 8, -1);
+    defineAnim('mewtwo_anim_crouch', 'mewtwo_sheet_crouch', 4, 7, 8, -1);
+    defineAnim('mewtwo_anim_jump', 'mewtwo_sheet_jump', 0, 19, 16, 0);
+    defineAnim('mewtwo_anim_knockback', 'mewtwo_sheet_hit', 0, 11, 15, 0);
 
     // Normal Attacks
-    defineAnim('mewtwo_anim_atk_5a', 'mewtwo_sheet_basic_strike', 0, 15, 18, 0);
-    defineAnim('mewtwo_anim_atk_5b', 'mewtwo_sheet_psychic_crush', 0, 15, 18, 0);
-    defineAnim('mewtwo_anim_atk_5c', 'mewtwo_sheet_teleport_strike', 0, 15, 18, 0);
+    defineAnim('mewtwo_anim_atk_5a', 'mewtwo_sheet_basic_strike', 0, 15, 22, 0);
+    defineAnim('mewtwo_anim_atk_5b', 'mewtwo_sheet_psychic_crush', 0, 23, 22, 0);
+    defineAnim('mewtwo_anim_atk_5c', 'mewtwo_sheet_teleport_strike', 0, 23, 22, 0);
 
     // Air Attacks
-    defineAnim('mewtwo_anim_atk_8a', 'mewtwo_sheet_jump', 4, 10, 16, 0);
-    defineAnim('mewtwo_anim_atk_8c', 'mewtwo_sheet_teleport_strike', 4, 14, 18, 0);
+    defineAnim('mewtwo_anim_atk_8a', 'mewtwo_sheet_basic_strike', 2, 10, 18, 0);
+    defineAnim('mewtwo_anim_atk_8c', 'mewtwo_sheet_teleport_strike', 6, 18, 20, 0);
 
     // Special & Super
-    defineAnim('mewtwo_anim_sp_shadow_ball', 'mewtwo_sheet_shadow_ball', 0, 15, 16, 0);
-    defineAnim('mewtwo_anim_super', 'mewtwo_sheet_psystrike', 0, 15, 9, 0);
+    defineAnim('mewtwo_anim_sp_shadow_ball', 'mewtwo_sheet_shadow_ball', 0, 19, 18, 0);
+    defineAnim('mewtwo_anim_super', 'mewtwo_sheet_psystrike', 0, 23, 11, 0);
 
     // VFX & Projectiles
     defineAnim('mewtwo_anim_projectile', 'mewtwo_sheet_projectile', 0, 15, 20, -1);
@@ -1863,7 +2182,7 @@ class ArenaScene extends Phaser.Scene {
     defineAnim('mewtwo_anim_vfx_disappear', 'mewtwo_sheet_vfx_disappear', 0, 14, 20, 0);
     defineAnim('mewtwo_anim_vfx_reappear', 'mewtwo_sheet_vfx_reappear', 0, 14, 20, 0);
     defineAnim('mewtwo_anim_vfx_forcefield', 'mewtwo_sheet_vfx_forcefield', 0, 14, 18, 0);
-    defineAnim('mewtwo_anim_vfx_psystrike', 'mewtwo_sheet_vfx_psystrike', 0, 15, 12, 0);
+    defineAnim('mewtwo_anim_vfx_psystrike', 'mewtwo_sheet_vfx_psystrike', 0, 23, 14, 0);
   }
 
   registerSteveAnimations() {
@@ -1878,33 +2197,33 @@ class ArenaScene extends Phaser.Scene {
       }
     };
 
-    // Steve Movement & Stances (Standardized 640x640)
+    // Steve Movement & Stances
     defineAnim('steve_anim_idle', 'steve_sheet_idle', 0, 15, 14, -1);
     defineAnim('steve_anim_walk', 'steve_sheet_walk', 0, 15, 16, -1);
     defineAnim('steve_anim_dash', 'steve_sheet_walk', 0, 7, 20, 0);
     defineAnim('steve_anim_crouch_down', 'steve_sheet_crouch', 0, 4, 16, 0);
-    defineAnim('steve_anim_crouch_hold', 'steve_sheet_crouch', 4, 6, 8, -1);
-    defineAnim('steve_anim_crouch', 'steve_sheet_crouch', 4, 6, 8, -1);
-    defineAnim('steve_anim_jump', 'steve_sheet_jump', 0, 10, 14, 0);
-    defineAnim('steve_anim_knockback', 'steve_sheet_hit', 0, 15, 15, 0);
+    defineAnim('steve_anim_crouch_hold', 'steve_sheet_crouch', 4, 7, 8, -1);
+    defineAnim('steve_anim_crouch', 'steve_sheet_crouch', 4, 7, 8, -1);
+    defineAnim('steve_anim_jump', 'steve_sheet_jump', 0, 19, 16, 0);
+    defineAnim('steve_anim_knockback', 'steve_sheet_hit', 0, 11, 15, 0);
 
     // Normal Attacks
-    defineAnim('steve_anim_atk_5a', 'steve_sheet_punch', 0, 15, 20, 0);
-    defineAnim('steve_anim_atk_5b', 'steve_sheet_sword', 0, 15, 18, 0);
-    defineAnim('steve_anim_atk_5c', 'steve_sheet_pickaxe', 0, 15, 16, 0);
+    defineAnim('steve_anim_atk_5a', 'steve_sheet_punch', 0, 15, 24, 0);
+    defineAnim('steve_anim_atk_5b', 'steve_sheet_sword', 0, 19, 22, 0);
+    defineAnim('steve_anim_atk_5c', 'steve_sheet_pickaxe', 0, 23, 22, 0);
 
     // Air Attacks
-    defineAnim('steve_anim_atk_8a', 'steve_sheet_punch', 2, 8, 18, 0);
-    defineAnim('steve_anim_atk_8c', 'steve_sheet_sword', 4, 14, 18, 0);
+    defineAnim('steve_anim_atk_8a', 'steve_sheet_punch', 2, 10, 18, 0);
+    defineAnim('steve_anim_atk_8c', 'steve_sheet_sword', 4, 15, 20, 0);
 
     // Special & Super
-    defineAnim('steve_anim_sp_tnt', 'steve_sheet_tnt_throw', 0, 15, 16, 0);
-    defineAnim('steve_anim_super', 'steve_sheet_pickaxe', 0, 15, 10, 0);
+    defineAnim('steve_anim_sp_tnt', 'steve_sheet_tnt_throw', 0, 19, 18, 0);
+    defineAnim('steve_anim_super', 'steve_sheet_pickaxe', 0, 23, 11, 0);
 
     // Steve VFX & Projectiles
-    defineAnim('steve_anim_tnt_flight', 'steve_sheet_tnt_flight', 0, 15, 18, -1);
-    defineAnim('steve_anim_tnt_fuse', 'steve_sheet_tnt_fuse', 0, 15, 20, 0);
-    defineAnim('steve_anim_tnt_explosion', 'steve_sheet_tnt_explosion', 0, 15, 20, 0);
+    defineAnim('steve_anim_tnt_flight', 'steve_sheet_tnt_flight', 0, 11, 18, -1);
+    defineAnim('steve_anim_tnt_fuse', 'steve_sheet_tnt_fuse', 0, 11, 20, 0);
+    defineAnim('steve_anim_tnt_explosion', 'steve_sheet_tnt_explosion', 0, 23, 22, 0);
   }
 
   spawnMysticProjectile(caster) {
@@ -2109,6 +2428,25 @@ class ArenaScene extends Phaser.Scene {
     });
   }
 
+  spawnShadowBallChargeVFX(caster) {
+    if (!caster || !caster.sprite) return;
+    const facingDir = caster.getFacingDir ? caster.getFacingDir() : 1;
+    const facingRight = facingDir === 1;
+    const chargeX = caster.sprite.x + (facingRight ? 55 : -55);
+    const chargeY = caster.sprite.y - 20;
+
+    const charge = this.add.sprite(chargeX, chargeY, 'mewtwo_sheet_vfx_charge');
+    charge.setDepth(25);
+    charge.setScale(0.70);
+    charge.play('mewtwo_anim_vfx_charge');
+    caster.activeShadowBallChargeVFX = charge;
+
+    this.time.delayedCall(500, () => {
+      if (charge && charge.active) charge.destroy();
+      if (caster.activeShadowBallChargeVFX === charge) caster.activeShadowBallChargeVFX = null;
+    });
+  }
+
   spawnShadowBallProjectile(caster) {
     if (!caster || !caster.sprite) return;
     const facingDir = caster.getFacingDir ? caster.getFacingDir() : (caster.sprite.flipX ? -1 : 1);
@@ -2131,7 +2469,7 @@ class ArenaScene extends Phaser.Scene {
     proj.isShadowBall = true;
     proj.setFlipX(!facingRight);
 
-    const speed = 640;
+    const speed = 660;
     proj.setVelocityX(facingRight ? speed : -speed);
     proj.setVelocityY(0);
 
@@ -2151,27 +2489,131 @@ class ArenaScene extends Phaser.Scene {
 
   spawnPsychicCrushVFX(caster) {
     if (!caster || !caster.sprite) return;
+    const target = caster.playerNum === 1 ? this.fighterP2 : this.fighterP1;
+    if (!target || !target.sprite) return;
+
     const facingDir = caster.getFacingDir ? caster.getFacingDir() : 1;
     const facingRight = facingDir === 1;
-    const vfxX = caster.sprite.x + (facingRight ? 90 : -90);
-    const vfxY = caster.sprite.y - 15;
 
-    const vfx = this.add.sprite(vfxX, vfxY, 'mewtwo_sheet_vfx_forcefield');
-    vfx.setDepth(25);
-    vfx.setScale(0.85);
-    vfx.setFlipX(!facingRight);
-    vfx.play('mewtwo_anim_vfx_forcefield');
-    vfx.on('animationcomplete', () => { if (vfx.active) vfx.destroy(); });
-    this.time.delayedCall(1000, () => { if (vfx && vfx.active) vfx.destroy(); });
+    // After brief focus/clench startup (~200ms), psychic forcefield compresses directly around opponent!
+    this.time.delayedCall(200, () => {
+      if (!caster || !caster.sprite || caster.hp <= 0) return;
+      if (!target || !target.sprite || target.hp <= 0) return;
+
+      // Forcefield VFX occurs directly centered around the opponent
+      const vfxX = target.sprite.x;
+      const vfxY = target.sprite.y - 10;
+
+      const vfx = this.add.sprite(vfxX, vfxY, 'mewtwo_sheet_vfx_forcefield');
+      vfx.setDepth(25);
+      vfx.setScale(1.1);
+      vfx.setFlipX(!facingRight);
+      vfx.play('mewtwo_anim_vfx_forcefield');
+
+      // Keep forcefield tracking opponent so it firmly encapsulates them
+      const onUpdate = () => {
+        if (vfx && vfx.active && target && target.sprite) {
+          vfx.setPosition(target.sprite.x, target.sprite.y - 10);
+        }
+      };
+      this.events.on('update', onUpdate);
+
+      vfx.on('animationcomplete', () => {
+        this.events.off('update', onUpdate);
+        if (vfx.active) vfx.destroy();
+      });
+      this.time.delayedCall(1000, () => {
+        this.events.off('update', onUpdate);
+        if (vfx && vfx.active) vfx.destroy();
+      });
+
+      // Forcefield telekinetically compresses around opponent: impact effect, damage, and brief suspension!
+      this.spawnShadowBallImpact(vfxX, vfxY);
+      target.takeHit({
+        damage: 95,
+        isSpecial: false,
+        isStun: true,
+        stunDuration: 340,
+        knockbackX: 250,
+        knockbackY: -80
+      }, caster);
+      caster.hasDealtDamage = true;
+      this.cameras.main.shake(180, 0.012);
+      if (window.soundFX) window.soundFX.playStartBoom();
+    });
   }
 
-  spawnTeleportVFX(x, y) {
+  executeTeleportStrike(caster) {
+    if (!caster || !caster.sprite) return;
+    const startX = caster.sprite.x;
+    const startY = caster.sprite.y;
+
+    // 1. Startup: Disappear VFX at origin
+    this.spawnTeleportDisappearVFX(startX, startY);
+
+    // 2. Body dissolves into purple teleport energy
+    this.time.delayedCall(120, () => {
+      if (!caster || !caster.sprite || caster.hp <= 0) return;
+      caster.sprite.setAlpha(0);
+
+      // 3. Move actual position to opponent
+      this.time.delayedCall(130, () => {
+        if (!caster || !caster.sprite || caster.hp <= 0) return;
+        const target = caster.playerNum === 1 ? this.fighterP2 : this.fighterP1;
+        let destX = startX;
+        if (target && target.sprite) {
+          const targetX = target.sprite.x;
+          const facingDir = caster.getFacingDir ? caster.getFacingDir() : 1;
+          const offset = facingDir === 1 ? -95 : 95;
+          destX = targetX + offset;
+
+          // Arena bounds avoidance (keep within platform 180..1740)
+          if (destX < 180) {
+            destX = targetX + 95;
+            caster.setFacingDir(-1);
+          } else if (destX > 1740) {
+            destX = targetX - 95;
+            caster.setFacingDir(1);
+          } else {
+            caster.setFacingDir(destX <= targetX ? 1 : -1);
+          }
+        }
+
+        destX = Phaser.Math.Clamp(destX, 180, 1740);
+        caster.sprite.setPosition(destX, 479.84);
+        caster.snapToGround();
+
+        // 4. Reappear VFX at destination & restore visibility
+        this.spawnTeleportReappearVFX(destX, 479.84);
+        caster.sprite.setAlpha(1);
+
+        // Quick camera shake on sudden relocation
+        this.cameras.main.shake(120, 0.008);
+        if (window.soundFX) window.soundFX.playSelect();
+      });
+    });
+  }
+
+  spawnTeleportDisappearVFX(x, y) {
     const vfx = this.add.sprite(x, y, 'mewtwo_sheet_vfx_disappear');
     vfx.setDepth(25);
-    vfx.setScale(0.78);
+    vfx.setScale(0.85);
     vfx.play('mewtwo_anim_vfx_disappear');
     vfx.on('animationcomplete', () => { if (vfx.active) vfx.destroy(); });
     this.time.delayedCall(800, () => { if (vfx && vfx.active) vfx.destroy(); });
+  }
+
+  spawnTeleportReappearVFX(x, y) {
+    const vfx = this.add.sprite(x, y, 'mewtwo_sheet_vfx_reappear');
+    vfx.setDepth(25);
+    vfx.setScale(0.85);
+    vfx.play('mewtwo_anim_vfx_reappear');
+    vfx.on('animationcomplete', () => { if (vfx.active) vfx.destroy(); });
+    this.time.delayedCall(800, () => { if (vfx && vfx.active) vfx.destroy(); });
+  }
+
+  spawnTeleportVFX(x, y) {
+    this.spawnTeleportDisappearVFX(x, y);
   }
 
   spawnPsystrikeVFX(caster) {
@@ -2183,36 +2625,58 @@ class ArenaScene extends Phaser.Scene {
     const facingDir = caster.getFacingDir ? caster.getFacingDir() : 1;
     const facingRight = facingDir === 1;
 
-    // Psychic charge aura on Mewtwo
+    // 1. Swirling psychic charge aura on Mewtwo during charging pose
     const charge = this.add.sprite(caster.sprite.x, caster.sprite.y - 10, 'mewtwo_sheet_vfx_charge');
     charge.setDepth(25);
-    charge.setScale(0.80);
+    charge.setScale(0.85);
     charge.play('mewtwo_anim_vfx_charge');
     charge.on('animationcomplete', () => { if (charge.active) charge.destroy(); });
 
-    // Detonate Psystrike blast
+    // 2. Releases powerful ranged blast shot across the stage in the facing direction
     this.time.delayedCall(300, () => {
       if (!caster || !caster.sprite || caster.hp <= 0) return;
-      const vfxX = caster.sprite.x + (facingRight ? 110 : -110);
-      const vfxY = caster.sprite.y - 30;
+      const spawnX = caster.sprite.x + (facingRight ? 95 : -95);
+      const spawnY = caster.sprite.y - 25;
 
-      const vfx = this.add.sprite(vfxX, vfxY, 'mewtwo_sheet_vfx_psystrike');
-      vfx.setDepth(25);
-      vfx.setScale(1.1);
-      vfx.setFlipX(!facingRight);
-      vfx.play('mewtwo_anim_vfx_psystrike');
-      caster.activePsystrikeVFX = vfx;
-      this.cameras.main.shake(350, 0.025);
+      const proj = this.physics.add.sprite(spawnX, spawnY, 'mewtwo_sheet_vfx_psystrike');
+      this.projectiles.add(proj);
+      proj.setDepth(26);
+      proj.setScale(1.15);
+      proj.setFlipX(!facingRight);
+      proj.play('mewtwo_anim_vfx_psystrike');
 
-      vfx.on('animationcomplete', () => {
-        if (caster.activePsystrikeVFX === vfx) caster.activePsystrikeVFX = null;
-        if (vfx.active) vfx.destroy();
-      });
-      this.time.delayedCall(2200, () => {
-        if (caster.activePsystrikeVFX === vfx) caster.activePsystrikeVFX = null;
-        if (vfx && vfx.active) vfx.destroy();
+      proj.body.allowGravity = false;
+      proj.body.setAllowGravity(false);
+      proj.body.gravity.y = 0;
+      proj.body.setSize(180, 160);
+      proj.body.setOffset(15, 26);
+
+      proj.caster = caster;
+      proj.isPsystrike = true;
+
+      const speed = 900;
+      proj.setVelocityX(facingRight ? speed : -speed);
+      proj.setVelocityY(0);
+
+      caster.activePsystrikeVFX = proj;
+      this.cameras.main.shake(220, 0.018);
+      if (window.soundFX) window.soundFX.playStartBoom();
+
+      this.time.delayedCall(2500, () => {
+        if (proj && proj.active) proj.destroy();
+        if (caster.activePsystrikeVFX === proj) caster.activePsystrikeVFX = null;
       });
     });
+  }
+
+  spawnPsystrikeExplosion(x, y) {
+    const explosion = this.add.sprite(x, y, 'mewtwo_sheet_vfx_psystrike');
+    explosion.setDepth(28);
+    explosion.setScale(1.3);
+    explosion.play('mewtwo_anim_vfx_psystrike');
+    explosion.on('animationcomplete', () => { if (explosion.active) explosion.destroy(); });
+    this.time.delayedCall(1200, () => { if (explosion && explosion.active) explosion.destroy(); });
+    this.spawnShadowBallImpact(x, y);
   }
 
   spawnTNTProjectile(caster) {
@@ -2231,7 +2695,7 @@ class ArenaScene extends Phaser.Scene {
     proj.body.setAllowGravity(false);
     proj.body.gravity.y = 0;
     proj.body.setSize(180, 180);
-    proj.body.setOffset(210, 134);
+    proj.body.setOffset(210, 208);
     proj.play('steve_anim_tnt_flight');
     proj.caster = caster;
     proj.isTNT = true;
@@ -2293,6 +2757,7 @@ class ArenaScene extends Phaser.Scene {
     const isKikoken = Boolean(proj.isKikoken);
     const isShadowBall = Boolean(proj.isShadowBall);
     const isTNT = Boolean(proj.isTNT);
+    const isPsystrike = Boolean(proj.isPsystrike);
     const caster = proj.caster;
 
     if (proj.active) {
@@ -2305,17 +2770,19 @@ class ArenaScene extends Phaser.Scene {
       this.spawnShadowBallImpact(hitX, hitY);
     } else if (isTNT) {
       this.spawnTNTExplosion(hitX, hitY, false);
+    } else if (isPsystrike) {
+      this.spawnPsystrikeExplosion(hitX, hitY);
     }
 
     const atkData = {
-      damage: isShadowBall ? 155 : (isTNT ? 150 : (isKikoken ? 150 : 155)),
+      damage: isPsystrike ? 260 : (isShadowBall ? 155 : (isTNT ? 150 : (isKikoken ? 150 : 155))),
       isSpecial: true,
-      knockbackX: isShadowBall ? 470 : (isTNT ? 450 : (isKikoken ? 460 : 450)),
-      knockbackY: isShadowBall ? -270 : (isTNT ? -260 : (isKikoken ? -270 : -280))
+      knockbackX: isPsystrike ? 720 : (isShadowBall ? 470 : (isTNT ? 450 : (isKikoken ? 460 : 450))),
+      knockbackY: isPsystrike ? -560 : (isShadowBall ? -270 : (isTNT ? -260 : (isKikoken ? -270 : -280)))
     };
 
     target.takeHit(atkData, caster);
-    this.cameras.main.shake(240, 0.018);
+    this.cameras.main.shake(isPsystrike ? 380 : 240, isPsystrike ? 0.026 : 0.018);
     if (window.soundFX) window.soundFX.playStartBoom();
   }
 
@@ -2556,7 +3023,7 @@ class ArenaScene extends Phaser.Scene {
     // Verify attacker is facing towards defender using character-accurate facing logic
     const facingDir = attacker.getFacingDir();
     const isInFront = (facingDir === 1 && dx > -20 && dx <= atkData.rangeX) ||
-                      (facingDir === -1 && dx < 20 && dx >= -atkData.rangeX);
+      (facingDir === -1 && dx < 20 && dx >= -atkData.rangeX);
 
     if (isInFront && dy <= atkData.rangeY) {
       attacker.hasDealtDamage = true;
