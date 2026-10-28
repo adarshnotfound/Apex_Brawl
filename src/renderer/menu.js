@@ -800,16 +800,7 @@ function openCharacterSelect(mode = 'VERSUS') {
   const fightBtn = document.getElementById('btnLaunchFight');
   const fightBtnText = document.querySelector('#btnLaunchFight .mk1-fight-btn-text');
   
-  // Update Top Floating Opponent Mode and Difficulty Buttons
-  const toggleOppBtn = document.getElementById('btnToggleOpponentMode');
-  const cycleDiffBtn = document.getElementById('btnCycleDifficulty');
-  if (toggleOppBtn) {
-    toggleOppBtn.style.display = (mode === 'VERSUS') ? 'inline-flex' : 'none';
-  }
-  if (cycleDiffBtn) {
-    cycleDiffBtn.style.display = (mode === 'VERSUS' && window.isCpuMatch) ? 'inline-flex' : 'none';
-  }
-  updateOpponentModeUI();
+
 
   if (fightBtnText) {
     if (mode === 'TRAINING') {
@@ -1281,46 +1272,7 @@ function initLANLobbyUI() {
 // ----------------------------------------------------
 // 6. Arcade Mode Ladder & AI Opponent Controls
 // ----------------------------------------------------
-function updateOpponentModeUI() {
-  const icon = document.getElementById('opponentModeIcon');
-  const label = document.getElementById('opponentModeLabel');
-  const cycleDiffBtn = document.getElementById('btnCycleDifficulty');
-  const diffLabel = document.getElementById('cpuDifficultyLabel');
-
-  if (icon) icon.textContent = window.isCpuMatch ? '🤖' : '🎮';
-  if (label) label.textContent = window.isCpuMatch ? 'VS CPU' : 'LOCAL 1v1';
-  if (cycleDiffBtn && !window.isTrainingModeSelected && !window.isLanMatch && !window.isArcadeMode) {
-    cycleDiffBtn.style.display = window.isCpuMatch ? 'inline-flex' : 'none';
-  }
-  if (diffLabel) {
-    diffLabel.textContent = (window.cpuDifficulty || 'MEDIUM').toUpperCase();
-  }
-}
-
 function initArcadeAndAIControls() {
-  // Opponent mode toggle button in MK1 character select
-  const toggleOppBtn = document.getElementById('btnToggleOpponentMode');
-  if (toggleOppBtn) {
-    toggleOppBtn.addEventListener('click', () => {
-      window.isCpuMatch = !window.isCpuMatch;
-      updateOpponentModeUI();
-      if (window.soundFX) window.soundFX.playSelect();
-    });
-  }
-
-  // CPU Difficulty cycle button in MK1 character select
-  const cycleDiffBtn = document.getElementById('btnCycleDifficulty');
-  if (cycleDiffBtn) {
-    cycleDiffBtn.addEventListener('click', () => {
-      const diffs = ['EASY', 'MEDIUM', 'HARD', 'INSANE'];
-      const current = (window.cpuDifficulty || 'MEDIUM').toUpperCase();
-      const nextIdx = (diffs.indexOf(current) + 1) % diffs.length;
-      window.cpuDifficulty = diffs[nextIdx];
-      updateOpponentModeUI();
-      if (window.soundFX) window.soundFX.playSelect();
-    });
-  }
-
   // Arcade Modal Difficulty Buttons
   document.querySelectorAll('.arcade-diff-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1331,7 +1283,6 @@ function initArcadeAndAIControls() {
       btn.classList.add('active');
       btn.style.background = 'rgba(245, 158, 11, 0.25)';
       window.cpuDifficulty = btn.dataset.diff || 'MEDIUM';
-      updateOpponentModeUI();
       if (window.soundFX) window.soundFX.playSelect();
     });
   });

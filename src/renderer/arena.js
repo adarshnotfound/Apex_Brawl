@@ -1907,6 +1907,8 @@ class ArenaScene extends Phaser.Scene {
 
   create() {
     this.isGameOver = false;
+    this.isPaused = false;
+    this.pauseObjects = [];
     this.currentRound = 1;
     this.p1RoundWins = 0;
     this.fightingAI = window.fightingAI || (typeof FightingAI !== 'undefined' ? new FightingAI() : null);
@@ -3126,8 +3128,103 @@ class ArenaScene extends Phaser.Scene {
     });
 
     this.p1Keys.esc.on('down', () => {
-      if (window.exitArenaToMenu) window.exitArenaToMenu();
+      this.togglePauseMenu();
     });
+  }
+
+  togglePauseMenu() {
+    if (this.roundState === 'MATCH_OVER' || this.isGameOver) return;
+    if (window.isLanMatch) return; // Disallow pausing during active LAN matches
+
+    if (this.isPaused) {
+      this.resumeMatch();
+    } else {
+      this.pauseMatch();
+    }
+  }
+
+  pauseMatch() {
+    this.isPaused = true;
+    this.physics.world.pause();
+
+    // Semi-transparent frosted dark glass overlay
+    this.pauseOverlay = this.add.rectangle(640, 360, 1280, 720, 0x050408, 0.48).setScrollFactor(0).setDepth(300);
+
+    // Centered glass card panel matching main menu translucent design
+    this.pauseCard = this.add.rectangle(640, 360, 480, 330, 0x0e0b16, 0.52).setScrollFactor(0).setDepth(301);
+    this.pauseCard.setStrokeStyle(1.5, 0xf59e0b, 0.85);
+
+    this.pauseTitle = this.add.text(640, 235, '⏸️ KOMBAT PAUSED', {
+      fontFamily: 'Bebas Neue, Cinzel, Rajdhani, sans-serif',
+      fontSize: '36px',
+      color: '#fef08a',
+      stroke: '#000000',
+      strokeThickness: 4
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(302);
+
+    this.pauseObjects = [this.pauseOverlay, this.pauseCard, this.pauseTitle];
+
+    const createPauseBtn = (y, text, icon, onClick, isDanger = false) => {
+      const btnBg = this.add.rectangle(640, y, 380, 44, isDanger ? 0x220f14 : 0x140f1f, 0.6)
+        .setScrollFactor(0)
+        .setDepth(302)
+        .setInteractive({ useHandCursor: true });
+      btnBg.setStrokeStyle(1.2, isDanger ? 0xef4444 : 0xf59e0b, 0.7);
+
+      const btnText = this.add.text(640, y, `${icon} ${text}`, {
+        fontFamily: 'Cinzel, Oswald, Rajdhani, sans-serif',
+        fontSize: '15px',
+        fontStyle: 'bold',
+        letterSpacing: 2,
+        color: isDanger ? '#fca5a5' : '#fef3c7'
+      }).setOrigin(0.5).setScrollFactor(0).setDepth(303);
+
+      btnBg.on('pointerover', () => {
+        btnBg.setFillStyle(isDanger ? 0xdc2626 : 0xd97706, 0.85);
+        btnBg.setStrokeStyle(1.5, 0xffffff, 1);
+        btnText.setColor('#ffffff');
+      });
+      btnBg.on('pointerout', () => {
+        btnBg.setFillStyle(isDanger ? 0x220f14 : 0x140f1f, 0.6);
+        btnBg.setStrokeStyle(1.2, isDanger ? 0xef4444 : 0xf59e0b, 0.7);
+        btnText.setColor(isDanger ? '#fca5a5' : '#fef3c7');
+      });
+      btnBg.on('pointerdown', onClick);
+
+      this.pauseObjects.push(btnBg, btnText);
+    };
+
+    // 1. RESUME KOMBAT
+    createPauseBtn(295, 'RESUME KOMBAT', '▶️', () => this.resumeMatch());
+
+    // 2. RESTART MATCH
+    createPauseBtn(355, 'RESTART MATCH', '🔄', () => {
+      this.clearPauseUI();
+      this.restartMatch();
+    });
+
+    // 3. EXIT TO MAIN MENU
+    createPauseBtn(415, 'EXIT TO MAIN MENU', '🚪', () => {
+      this.clearPauseUI();
+      if (window.exitArenaToMenu) window.exitArenaToMenu();
+      else window.location.reload();
+    }, true);
+  }
+
+  resumeMatch() {
+    this.clearPauseUI();
+    this.physics.world.resume();
+    this.isPaused = false;
+  }
+
+  clearPauseUI() {
+    if (this.pauseObjects) {
+      this.pauseObjects.forEach(obj => {
+        if (obj && obj.destroy) obj.destroy();
+      });
+      this.pauseObjects = [];
+    }
+    this.isPaused = false;
   }
 
   buildDualPlayerHUD(p1Id, p2Id) {
@@ -4064,8 +4161,8 @@ class ArenaScene extends Phaser.Scene {
     if (window.soundFX) window.soundFX.playStartBoom();
     this.cameras.main.shake(500, 0.02);
 
-    // Dark semi-transparent overlay (screen-fixed)
-    const overlay = this.add.rectangle(640, 360, 1280, 720, 0x07060a, 0.76).setScrollFactor(0).setDepth(120);
+    // Transparent glass overlay (screen-fixed)
+    const overlay = this.add.rectangle(640, 360, 1280, 720, 0x07060a, 0.48).setScrollFactor(0).setDepth(120);
     this.bannerObjects.push(overlay);
 
     const titleText = this.add.text(640, 220, 'MATCH COMPLETE', {
@@ -4094,50 +4191,74 @@ class ArenaScene extends Phaser.Scene {
     }).setOrigin(0.5).setAlpha(0).setScrollFactor(0).setDepth(121);
     this.bannerObjects.push(scoreText);
 
-    const rematchBox = this.add.rectangle(640, 430, 460, 46, 0x0f111a, 0.9).setScrollFactor(0).setDepth(122);
-    rematchBox.setStrokeStyle(1.5, 0xf59e0b);
-    rematchBox.setInteractive({ useHandCursor: true });
-    rematchBox.on('pointerdown', () => this.restartMatch());
-    rematchBox.on('pointerover', () => rematchBox.setFillStyle(0x1e2235, 1));
-    rematchBox.on('pointerout', () => rematchBox.setFillStyle(0x0f111a, 0.9));
-    this.bannerObjects.push(rematchBox);
-
-    let promptLabel = '[ ENTER / SPACE ] REMATCH';
+    let rematchLabel = '🔄 REMATCH';
     const isArcade = Boolean(window.isArcadeMode);
     const p1WonMatch = (this.p1RoundWins >= this.maxRoundsToWin);
 
     if (isArcade) {
       const stage = window.arcadeStage || 1;
       if (p1WonMatch) {
-        if (stage < 3) {
-          promptLabel = `[ ENTER / SPACE ] ADVANCE TO FLOOR ${stage + 1}`;
-          rematchBox.removeAllListeners();
-          rematchBox.on('pointerdown', () => this.advanceArcadeFloor());
-        } else {
-          promptLabel = '🏆 TOWER CONQUERED! [ ENTER ] RETURN TO MENU';
-          rematchBox.removeAllListeners();
-          rematchBox.on('pointerdown', () => window.location.reload());
-        }
+        rematchLabel = (stage < 3) ? `⚔️ ADVANCE TO FLOOR ${stage + 1}` : '🏆 TOWER CONQUERED';
       } else {
-        promptLabel = `[ ENTER / SPACE ] RETRY FLOOR ${stage}`;
+        rematchLabel = `🔄 RETRY FLOOR ${stage}`;
       }
     }
 
-    const promptText = this.add.text(640, 430, promptLabel, {
-      fontFamily: 'Rajdhani, sans-serif',
-      fontSize: '18px',
+    // Rematch / Next Floor Button (Left)
+    const btnRematch = this.add.rectangle(510, 435, 230, 46, 0x140f1f, 0.6).setScrollFactor(0).setDepth(122).setInteractive({ useHandCursor: true });
+    btnRematch.setStrokeStyle(1.5, 0xf59e0b, 0.8);
+    const txtRematch = this.add.text(510, 435, rematchLabel, {
+      fontFamily: 'Cinzel, Oswald, Rajdhani, sans-serif',
+      fontSize: '15px',
       fontStyle: 'bold',
-      color: '#fbbf24'
+      color: '#fef3c7'
     }).setOrigin(0.5).setAlpha(0).setScrollFactor(0).setDepth(123);
-    this.bannerObjects.push(promptText);
 
-    const escText = this.add.text(640, 485, '[ ESC ] RETURN TO MAIN MENU', {
-      fontFamily: 'Rajdhani, sans-serif',
-      fontSize: '14px',
-      color: '#94a3b8',
-      fontStyle: 'bold'
+    btnRematch.on('pointerover', () => {
+      btnRematch.setFillStyle(0xd97706, 0.9);
+      btnRematch.setStrokeStyle(1.5, 0xffffff, 1);
+      txtRematch.setColor('#ffffff');
+    });
+    btnRematch.on('pointerout', () => {
+      btnRematch.setFillStyle(0x140f1f, 0.6);
+      btnRematch.setStrokeStyle(1.5, 0xf59e0b, 0.8);
+      txtRematch.setColor('#fef3c7');
+    });
+    btnRematch.on('pointerdown', () => {
+      if (isArcade && p1WonMatch) {
+        if ((window.arcadeStage || 1) < 3) this.advanceArcadeFloor();
+        else window.location.reload();
+      } else {
+        this.restartMatch();
+      }
+    });
+
+    // Exit Button (Right)
+    const btnExit = this.add.rectangle(770, 435, 230, 46, 0x220f14, 0.6).setScrollFactor(0).setDepth(122).setInteractive({ useHandCursor: true });
+    btnExit.setStrokeStyle(1.5, 0xef4444, 0.7);
+    const txtExit = this.add.text(770, 435, '🚪 EXIT TO MENU', {
+      fontFamily: 'Cinzel, Oswald, Rajdhani, sans-serif',
+      fontSize: '15px',
+      fontStyle: 'bold',
+      color: '#fca5a5'
     }).setOrigin(0.5).setAlpha(0).setScrollFactor(0).setDepth(123);
-    this.bannerObjects.push(escText);
+
+    btnExit.on('pointerover', () => {
+      btnExit.setFillStyle(0xdc2626, 0.9);
+      btnExit.setStrokeStyle(1.5, 0xffffff, 1);
+      txtExit.setColor('#ffffff');
+    });
+    btnExit.on('pointerout', () => {
+      btnExit.setFillStyle(0x220f14, 0.6);
+      btnExit.setStrokeStyle(1.5, 0xef4444, 0.7);
+      txtExit.setColor('#fca5a5');
+    });
+    btnExit.on('pointerdown', () => {
+      if (window.exitArenaToMenu) window.exitArenaToMenu();
+      else window.location.reload();
+    });
+
+    this.bannerObjects.push(btnRematch, txtRematch, btnExit, txtExit);
 
     this.tweens.add({
       targets: titleText,
@@ -4146,7 +4267,7 @@ class ArenaScene extends Phaser.Scene {
       ease: 'Back.Out',
       onComplete: () => {
         this.tweens.add({
-          targets: [champText, scoreText, promptText, escText],
+          targets: [champText, scoreText, txtRematch, txtExit],
           alpha: 1,
           duration: 400
         });
@@ -4206,6 +4327,7 @@ class ArenaScene extends Phaser.Scene {
   }
 
   update(time, delta) {
+    if (this.isPaused) return;
     if (!this.fighterP1 || !this.fighterP2) return;
 
     // Check Rematch key press in Match Over state
