@@ -124,7 +124,9 @@
   function startMatchWithLoadingScreen(options = {}) {
     const p1Id = options.p1Char || window.selectedFighterP1 || 'harpy';
     const p2Id = options.p2Char || window.selectedFighterP2 || 'strange';
-    const stageName = options.stageName || 'MIRROR DIMENSION • SACRED SANCTUM';
+    const selectedStage = options.stage || window.selectedStage || 'japanese_temple';
+    window.selectedStage = selectedStage;
+    const stageName = options.stageName || (selectedStage === 'sky_temple' ? 'THE ETERNAL SKY TEMPLE • CELESTIAL ABYSS' : 'MOONLIT MOUNTAIN SHRINE • GEKKA NO REIBYŌ');
     const matchType = options.matchType || 'BEST OF 3 ROUNDS • 120s TIMER';
 
     const p1Data = FIGHTER_REGISTRY[p1Id] || FIGHTER_REGISTRY['harpy'];

@@ -1394,6 +1394,12 @@ class ArenaScene extends Phaser.Scene {
     this.load.spritesheet('japan_brazier', jBase + 'kagaribi_fire_brazier_spritesheet_transparent.png', { frameWidth: 344, frameHeight: 768 });
     this.load.spritesheet('japan_sakura', jBase + 'sakura_petals_spritesheet_transparent.png', { frameWidth: 229, frameHeight: 256 });
 
+    // 1.5. Sky Temple Arena Assets (The Eternal Sky Temple - Modern Clean AAA 2.5D Environment)
+    const skBase = 'assets/backgrounds/sky_temple/';
+    this.load.image('sky_backdrop', skBase + 'sky_temple_backdrop_1080p.png');
+    this.load.image('sky_distant', skBase + 'sky_temple_sky_distant_720p.png');
+    this.load.image('sky_floor', skBase + 'sky_temple_floor_transparent.png');
+
     // Character Portraits
     this.load.image('harpy_portrait', '../../assets/characters/harpy/portrait.png');
     this.load.image('strange_portrait', '../../assets/characters/Dr Strange/portrait.png');
@@ -1520,8 +1526,13 @@ class ArenaScene extends Phaser.Scene {
     this.registerMewtwoAnimations();
     this.registerSteveAnimations();
 
-    // 3. Build Multi-Layer Japanese Temple Arena (Parallax, Braziers, Lanterns, Sakura, Mist)
-    this.buildJapaneseEnvironment();
+    // 3. Build Selected Arena Environment (Japanese Mountain Shrine or Eternal Sky Temple)
+    this.currentStage = window.selectedStage || 'japanese_temple';
+    if (this.currentStage === 'sky_temple') {
+      this.buildSkyTempleEnvironment();
+    } else {
+      this.buildJapaneseEnvironment();
+    }
 
     // 3.5. Projectiles Group (no gravity so projectiles fly straight horizontally)
     this.projectiles = this.physics.add.group({ allowGravity: false });
@@ -1562,6 +1573,159 @@ class ArenaScene extends Phaser.Scene {
     // Notify Loading Screen that arena is 100% created and ready
     if (window.onPhaserArenaReady) {
       window.onPhaserArenaReady();
+    }
+  }
+
+  buildSkyTempleEnvironment() {
+    // Generate crisp vector-based celestial glowing particle texture if not already created
+    if (!this.textures.exists('celestial_mote_tex')) {
+      const g = this.make.graphics({ x: 0, y: 0, add: false });
+      // Inner glowing core
+      g.fillStyle(0xffffff, 1);
+      g.fillCircle(12, 12, 4);
+      // Outer aura
+      g.fillStyle(0x38bdf8, 0.45);
+      g.fillCircle(12, 12, 8);
+      g.fillStyle(0x06b6d4, 0.20);
+      g.fillCircle(12, 12, 12);
+      g.generateTexture('celestial_mote_tex', 24, 24);
+      g.destroy();
+    }
+
+    // Layer 1: Distant Celestial Night Sky & Mountaintops (Parallax 0.12x, 0)
+    this.skyDistant = this.add.image(0, 0, 'sky_distant').setOrigin(0, 0);
+    this.skyDistant.setDisplaySize(2100, 720);
+    this.skyDistant.setScrollFactor(0.12, 0);
+    this.skyDistant.setDepth(1);
+
+    // Dynamic Celestial Ambient Pulse
+    this.tweens.add({
+      targets: this.skyDistant,
+      alpha: { from: 0.94, to: 1.0 },
+      duration: 3800,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.InOut'
+    });
+
+    // Layer 2: Master Midground Celestial Sanctuary & Floating Shrines (Parallax 0.55x, 0.35x)
+    this.skyMaster = this.add.image(0, 0, 'sky_backdrop').setOrigin(0, 0);
+    this.skyMaster.setDisplaySize(1920, 720);
+    this.skyMaster.setScrollFactor(0.55, 0.35);
+    this.skyMaster.setDepth(2);
+
+    // Subtle Sanctuary Levitation Oscillation
+    this.tweens.add({
+      targets: this.skyMaster,
+      y: { from: -4, to: 4 },
+      duration: 4200,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.InOut'
+    });
+
+    // Layer 3: Pristine Walkable Ancient Stone Combat Floor (Direct 1.0x, 1.0x Scroll Factor)
+    this.skyFloor = this.add.image(0, 0, 'sky_floor').setOrigin(0, 0);
+    this.skyFloor.setDisplaySize(1920, 720);
+    this.skyFloor.setScrollFactor(1.0, 1.0);
+    this.skyFloor.setDepth(3);
+
+    // Floor Boundary Mystic Leyline Glow (Cyan Surge along stone edge at y = 575)
+    this.skyFloorGlow = this.add.rectangle(960, 576, 1920, 5, 0x06b6d4, 0.45).setDepth(4);
+    this.skyFloorGlowWide = this.add.rectangle(960, 576, 1920, 14, 0x38bdf8, 0.20).setDepth(4);
+    this.tweens.add({
+      targets: [this.skyFloorGlow, this.skyFloorGlowWide],
+      alpha: { from: 0.25, to: 0.65 },
+      scaleY: { from: 0.85, to: 1.25 },
+      duration: 1300,
+      yoyo: true,
+      repeat: -1
+    });
+
+    // Stage Perimeter Framing: Floating Ancient Celestial Crystal Beacons at extreme left & right edges
+    // Framing elements are placed far out (x = 160 and x = 1760) so the entire combat area is 100% unobstructed!
+    this.skyBeacons = [];
+    [160, 1760].forEach(bx => {
+      // Beacon base aura
+      const beaconAura = this.add.circle(bx, 480, 55, 0x06b6d4, 0.22).setDepth(4);
+      // Floating crystal core diamond
+      const beaconCore = this.add.polygon(bx, 480, [0, -28, 16, 0, 0, 28, -16, 0], 0x38bdf8, 0.85).setDepth(5);
+      const beaconGlow = this.add.polygon(bx, 480, [0, -32, 19, 0, 0, 32, -19, 0], 0xffffff, 0.45).setDepth(5);
+
+      this.tweens.add({
+        targets: [beaconCore, beaconGlow],
+        y: '-=12',
+        duration: 2200 + Math.random() * 500,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.InOut'
+      });
+
+      this.tweens.add({
+        targets: beaconAura,
+        scale: { from: 0.85, to: 1.20 },
+        alpha: { from: 0.15, to: 0.35 },
+        duration: 1100 + Math.random() * 300,
+        yoyo: true,
+        repeat: -1
+      });
+
+      this.skyBeacons.push({ aura: beaconAura, core: beaconCore, glow: beaconGlow });
+    });
+
+    // Dynamic Atmospheric Ground Mist Ribbons (Swirling across the stone platform)
+    this.groundMist1 = this.add.rectangle(0, 556, 2600, 32, 0x67e8f9, 0.10).setOrigin(0, 0).setDepth(4);
+    this.groundMist2 = this.add.rectangle(-400, 566, 2600, 24, 0x0284c7, 0.12).setOrigin(0, 0).setDepth(4);
+
+    // Procedural Dynamic Celestial Energy Particles (Luminous rising motes, zero sprite sheet borders)
+    this.skyParticles = [];
+    for (let i = 0; i < 35; i++) {
+      const p = this.add.image(
+        Phaser.Math.Between(-100, 2020),
+        Phaser.Math.Between(150, 720),
+        'celestial_mote_tex'
+      );
+      p.setScale(Phaser.Math.FloatBetween(0.4, 1.1));
+      p.setAlpha(Phaser.Math.FloatBetween(0.35, 0.85));
+      p.setDepth(5);
+      p.setBlendMode(Phaser.BlendModes.ADD);
+      p.speedX = Phaser.Math.FloatBetween(-25, 35);
+      p.speedY = Phaser.Math.FloatBetween(-35, -85);
+      p.wobblePhase = Math.random() * Math.PI * 2;
+      p.wobbleSpeed = Phaser.Math.FloatBetween(1.5, 3.2);
+      this.skyParticles.push(p);
+    }
+  }
+
+  updateSkyTempleEnvironment(delta) {
+    const dt = delta / 1000;
+
+    // 1. Horizontal Mist Ribbons Flow
+    if (this.groundMist1) {
+      this.groundMist1.x -= 20 * dt;
+      if (this.groundMist1.x < -300) this.groundMist1.x = 0;
+    }
+    if (this.groundMist2) {
+      this.groundMist2.x += 16 * dt;
+      if (this.groundMist2.x > 0) this.groundMist2.x = -400;
+    }
+
+    // 2. Rising Procedural Celestial Particles with Sinusoidal Sway
+    if (this.skyParticles) {
+      for (let i = 0; i < this.skyParticles.length; i++) {
+        const p = this.skyParticles[i];
+        p.wobblePhase += p.wobbleSpeed * dt;
+        p.x += (p.speedX + Math.sin(p.wobblePhase) * 16) * dt;
+        p.y += p.speedY * dt;
+
+        if (p.y < -30) {
+          p.y = 730;
+          p.x = Phaser.Math.Between(-100, 2020);
+          p.setAlpha(Phaser.Math.FloatBetween(0.35, 0.85));
+        }
+        if (p.x < -120) p.x = 2040;
+        else if (p.x > 2040) p.x = -120;
+      }
     }
   }
 
@@ -3084,7 +3248,10 @@ class ArenaScene extends Phaser.Scene {
       );
     }
 
-    // --- DYNAMIC JAPANESE ENVIRONMENTAL MOTION SIMULATION ---
+    // --- DYNAMIC ENVIRONMENTAL MOTION SIMULATION (Selected Stage) ---
+    if (this.currentStage === 'sky_temple') {
+      this.updateSkyTempleEnvironment(delta);
+    }
     const dt = delta / 1000;
     // Midground Ambient Sakura Petals
     if (this.sakuraParticles) {

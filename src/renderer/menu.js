@@ -252,7 +252,8 @@ function initModals() {
       if (window.startMatchWithLoadingScreen) {
         window.startMatchWithLoadingScreen({
           p1Char: window.selectedFighterP1,
-          p2Char: window.selectedFighterP2
+          p2Char: window.selectedFighterP2,
+          stage: window.selectedStage || 'japanese_temple'
         });
       } else if (window.startPhaserArena) {
         window.startPhaserArena();
@@ -265,10 +266,53 @@ function initModals() {
 
   // Character Picker for Player 1 and Player 2
   initCharacterSelection();
+
+  // Battle Arena Selection
+  initStageSelection();
 }
 
 window.selectedFighterP1 = 'harpy';
 window.selectedFighterP2 = 'strange';
+window.selectedStage = 'japanese_temple';
+
+function initStageSelection() {
+  document.querySelectorAll('.stage-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const stageId = card.dataset.stage;
+      window.selectedStage = stageId;
+
+      document.querySelectorAll('.stage-card').forEach(c => {
+        c.classList.remove('active');
+        c.style.opacity = '0.75';
+        c.style.borderColor = 'rgba(255,255,255,0.2)';
+        c.style.boxShadow = 'none';
+      });
+
+      card.classList.add('active');
+      card.style.opacity = '1';
+      const isSky = stageId === 'sky_temple';
+      card.style.borderColor = isSky ? '#06b6d4' : '#f59e0b';
+      card.style.boxShadow = isSky ? '0 0 18px rgba(6, 182, 212, 0.45)' : '0 0 18px rgba(245, 158, 11, 0.45)';
+
+      const tag = document.getElementById('selected-stage-tag');
+      if (tag) {
+        if (isSky) {
+          tag.textContent = '☁️ SKY TEMPLE SELECTED';
+          tag.style.color = '#67e8f9';
+          tag.style.borderColor = '#06b6d4';
+          tag.style.background = 'rgba(6, 182, 212, 0.2)';
+        } else {
+          tag.textContent = '⛩️ MOONLIT SHRINE SELECTED';
+          tag.style.color = '#fde047';
+          tag.style.borderColor = '#f59e0b';
+          tag.style.background = 'rgba(245, 158, 11, 0.2)';
+        }
+      }
+
+      if (window.soundFX) window.soundFX.playSelect();
+    });
+  });
+}
 
 function initCharacterSelection() {
   document.querySelectorAll('.char-picker-btn').forEach(btn => {
