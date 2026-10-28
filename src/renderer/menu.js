@@ -1,6 +1,6 @@
 // Main Menu Controller for Apex Brawl (Mystic Kombat)
 window.cpuDifficulty = 'MEDIUM';
-window.isCpuMatch = true; // Default single player matches to VS CPU!
+window.isCpuMatch = false; // Local 1v1 Kombat defaults to human 2-player!
 window.isArcadeMode = false;
 window.arcadeStage = 1;
 
@@ -271,9 +271,9 @@ function initModals() {
       }
 
       closeAllModals();
-      const isTraining = window.isTrainingModeSelected === true;
-      const isArcade = window.isArcadeMode === true;
-      const isCpu = window.isCpuMatch === true || isArcade;
+      const isTraining = (window.isTrainingModeSelected === true);
+      const isArcade = (window.isArcadeMode === true);
+      const isCpu = !isTraining && !window.isLanMatch && (isArcade || window.isCpuMatch === true);
       if (window.startMatchWithLoadingScreen) {
         window.startMatchWithLoadingScreen({
           p1Char: window.selectedFighterP1,
@@ -791,6 +791,10 @@ function openCharacterSelect(mode = 'VERSUS') {
   if (mode === 'ARCADE') {
     window.isCpuMatch = true;
     window.arcadeStage = window.arcadeStage || 1;
+  } else if (mode === 'VERSUS') {
+    window.isCpuMatch = false; // Always default Local 1v1 Kombat to human 2-player!
+  } else {
+    window.isCpuMatch = false;
   }
 
   const fightBtn = document.getElementById('btnLaunchFight');

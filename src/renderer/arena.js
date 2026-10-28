@@ -1910,7 +1910,7 @@ class ArenaScene extends Phaser.Scene {
     this.currentRound = 1;
     this.p1RoundWins = 0;
     this.fightingAI = window.fightingAI || (typeof FightingAI !== 'undefined' ? new FightingAI() : null);
-    this.isCpuMatch = (window.isCpuMatch === true) || (window.isArcadeMode === true);
+    this.isCpuMatch = !this.isTrainingMode && !window.isLanMatch && (window.isCpuMatch === true || window.isArcadeMode === true);
     this.cpuDifficulty = window.cpuDifficulty || 'MEDIUM';
     this.p2RoundWins = 0;
     this.roundState = 'INTRO';
@@ -3185,7 +3185,7 @@ class ArenaScene extends Phaser.Scene {
     let p2Title = `${p2Prefix}: ${p2DisplayName}`;
     if (window.isLanMatch && window.lanManager) {
       p2Title = window.lanManager.role === 'CLIENT' ? `2P (YOU): ${p2DisplayName}` : `2P (CHALLENGER): ${p2DisplayName}`;
-    } else if (window.isCpuMatch || this.isCpuMatch || window.isArcadeMode) {
+    } else if (this.isCpuMatch && !window.isLanMatch && !this.isTrainingMode) {
       const diff = (window.cpuDifficulty || this.cpuDifficulty || 'MEDIUM').toUpperCase();
       p2Title = `CPU (${diff}): ${p2DisplayName}`;
     }
@@ -4408,7 +4408,7 @@ class ArenaScene extends Phaser.Scene {
           }
         }
       }
-    } else if ((this.isCpuMatch || window.isCpuMatch || window.isArcadeMode) && !window.isLanMatch) {
+    } else if (this.isCpuMatch && !window.isLanMatch && !this.isTrainingMode) {
       // Single Player VS CPU Match / Arcade Mode Ladder
       const aiEngine = this.fightingAI || window.fightingAI;
       if (aiEngine) {

@@ -142,10 +142,10 @@
     const p2Id = options.p2Char || window.selectedFighterP2 || 'strange';
     const selectedStage = options.stage || window.selectedStage || 'japanese_temple';
     window.selectedStage = selectedStage;
-    window.isTrainingMode = options.isTraining === true;
-    window.isLanMatch = options.isLan === true;
-    const isArcade = options.isArcade === true || window.isArcadeMode === true;
-    const isCpu = options.isCpu === true || isArcade || window.isCpuMatch === true;
+    window.isTrainingMode = (options.isTraining === true);
+    window.isLanMatch = (options.isLan === true);
+    const isArcade = (options.isArcade === true);
+    const isCpu = !window.isTrainingMode && !window.isLanMatch && (options.isCpu === true || isArcade);
     window.isArcadeMode = isArcade;
     window.isCpuMatch = isCpu;
     window.cpuDifficulty = options.difficulty || window.cpuDifficulty || 'MEDIUM';
