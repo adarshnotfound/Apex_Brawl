@@ -1,0 +1,622 @@
+/* =========================================================
+   Apex Brawl: Mystic Kombat - VS Matchup & Loading Screen
+   ========================================================= */
+
+#vs-loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 150;
+  background-color: #060509;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2.5rem 3.5rem;
+  box-sizing: border-box;
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+  transition: opacity 0.35s ease, visibility 0.35s ease;
+  overflow: hidden;
+  user-select: none;
+  font-family: var(--font-ui, 'Rajdhani', sans-serif);
+}
+
+#vs-loading-screen.active {
+  opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
+}
+
+#vs-loading-screen.fade-out {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+
+/* Dynamic Duel Atmospheric Background */
+.vs-bg-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  background:
+    radial-gradient(circle at 18% 50%, rgba(6, 182, 212, 0.18) 0%, transparent 60%),
+    radial-gradient(circle at 82% 50%, rgba(245, 158, 11, 0.18) 0%, transparent 60%),
+    linear-gradient(135deg, rgba(8, 6, 14, 0.96) 0%, rgba(14, 10, 22, 0.98) 50%, rgba(8, 6, 14, 0.96) 100%);
+  background-size: cover;
+  pointer-events: none;
+}
+
+/* Slanted Divider / Energy Slash across the screen */
+.vs-divider-slash {
+  position: absolute;
+  top: -10%;
+  left: 50%;
+  width: 3px;
+  height: 120%;
+  background: linear-gradient(180deg, 
+    transparent 0%, 
+    rgba(245, 158, 11, 0.3) 25%, 
+    rgba(254, 240, 138, 0.9) 50%, 
+    rgba(220, 38, 38, 0.4) 75%, 
+    transparent 100%);
+  transform: translateX(-50%) rotate(16deg);
+  box-shadow: 0 0 25px rgba(245, 158, 11, 0.6);
+  z-index: 2;
+  opacity: 0.6;
+}
+
+/* Background animated subtle grid */
+.vs-grid-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 50px 50px;
+  pointer-events: none;
+}
+
+/* =========================================================
+   Top Matchup Header
+   ========================================================= */
+.vs-header {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  animation: vsHeaderDrop 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.vs-match-type {
+  font-family: var(--font-heading, 'Cinzel', serif);
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 0.28em;
+  color: #fde047;
+  text-transform: uppercase;
+  text-shadow: 0 0 15px rgba(245, 158, 11, 0.7);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.vs-match-badge {
+  display: inline-block;
+  padding: 0.25rem 0.85rem;
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  border-radius: 20px;
+  font-size: 0.8rem;
+  letter-spacing: 0.15em;
+  color: #fff;
+}
+
+.vs-stage-name {
+  font-family: var(--font-ui, 'Rajdhani', sans-serif);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #94a3b8;
+  letter-spacing: 0.15em;
+}
+
+/* =========================================================
+   Center Dual Face-Off Arenas
+   ========================================================= */
+.vs-clash-arena {
+  position: relative;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  width: 100%;
+  max-width: 1200px;
+  gap: 1.5rem;
+  margin: auto 0;
+}
+
+/* Fighter Card Base */
+.vs-fighter-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1.6rem;
+  padding: 1.8rem 2.2rem;
+  background: rgba(18, 14, 25, 0.75);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 35px rgba(0, 0, 0, 0.7);
+  border-radius: 6px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+/* Player 1 (Left): Slanted toward right */
+.vs-fighter-card.p1 {
+  clip-path: polygon(0 0, 100% 0, calc(100% - 24px) 100%, 0 100%);
+  animation: slideInLeftFighter 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  border-left: 4px solid var(--p1-color, #06b6d4);
+}
+
+/* Player 2 (Right): Slanted toward left */
+.vs-fighter-card.p2 {
+  flex-direction: row-reverse;
+  text-align: right;
+  clip-path: polygon(24px 0, 100% 0, 100% 100%, 0 100%);
+  animation: slideInRightFighter 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  border-right: 4px solid var(--p2-color, #f59e0b);
+}
+
+/* Ambient glow card backdrop */
+.vs-fighter-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.15;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(circle at center, var(--fighter-theme-color, #f59e0b) 0%, transparent 80%);
+}
+
+/* Portrait Wrapper */
+.vs-portrait-frame {
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0;
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  padding: 5px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(0, 0, 0, 0.6));
+  box-shadow: 0 0 25px var(--fighter-glow-color, rgba(6, 182, 212, 0.5));
+  animation: portraitPulse 3s infinite ease-in-out;
+}
+
+.vs-portrait-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  background: #000;
+  border: 2px solid #ffffff;
+}
+
+.vs-fighter-info {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.vs-player-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--fighter-accent-color, #a5f3fc);
+}
+
+.vs-fighter-name {
+  font-family: var(--font-heading, 'Cinzel', serif);
+  font-size: 2.1rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  color: #ffffff;
+  line-height: 1.1;
+  text-shadow: 0 0 16px rgba(0, 0, 0, 0.8), 0 0 20px var(--fighter-glow-color, rgba(245, 158, 11, 0.5));
+  white-space: nowrap;
+}
+
+.vs-fighter-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--fighter-theme-color, #67e8f9);
+  letter-spacing: 0.06em;
+}
+
+.vs-fighter-quote {
+  font-size: 0.84rem;
+  font-style: italic;
+  color: #cbd5e1;
+  line-height: 1.4;
+  margin-top: 0.2rem;
+  opacity: 0.85;
+}
+
+.vs-fighter-card.p2 .vs-fighter-info {
+  align-items: flex-end;
+}
+
+/* =========================================================
+   Center Glowing VS Emblem
+   ========================================================= */
+.vs-center-emblem {
+  position: relative;
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1rem;
+}
+
+.vs-mandala-ring {
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  border: 2px dashed rgba(245, 158, 11, 0.45);
+  border-radius: 50%;
+  animation: rotateMandala 16s linear infinite;
+  box-shadow: 0 0 35px rgba(245, 158, 11, 0.35);
+  pointer-events: none;
+}
+
+.vs-mandala-ring.inner {
+  width: 100px;
+  height: 100px;
+  border: 1px dotted rgba(239, 68, 68, 0.5);
+  animation: rotateMandalaReverse 10s linear infinite;
+}
+
+.vs-symbol {
+  font-family: var(--font-title, 'Cinzel Decorative', 'Cinzel', serif);
+  font-size: 4.2rem;
+  font-weight: 900;
+  line-height: 1;
+  color: #ffffff;
+  background: linear-gradient(180deg, #fff 0%, #fef08a 35%, #f59e0b 70%, #dc2626 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 18px rgba(245, 158, 11, 0.85)) drop-shadow(0 0 35px rgba(220, 38, 38, 0.6));
+  animation: vsSlam 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  letter-spacing: -0.05em;
+  position: relative;
+  z-index: 2;
+}
+
+.vs-subtext {
+  font-family: var(--font-heading, 'Cinzel', serif);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.25em;
+  color: #fde047;
+  text-shadow: 0 0 10px rgba(245, 158, 11, 0.7);
+  margin-top: -0.2rem;
+  position: relative;
+  z-index: 2;
+}
+
+/* =========================================================
+   Matchup Tips & Guide Banner
+   ========================================================= */
+.vs-pro-tip-box {
+  position: relative;
+  z-index: 10;
+  max-width: 820px;
+  width: 90%;
+  margin-bottom: 0.8rem;
+  padding: 0.85rem 1.4rem;
+  background: rgba(14, 11, 20, 0.65);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  animation: tipFadeIn 0.8s ease forwards;
+}
+
+.vs-tip-icon {
+  font-size: 1.35rem;
+  color: #f59e0b;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.6));
+}
+
+.vs-tip-text {
+  font-size: 0.88rem;
+  color: #e2e8f0;
+  line-height: 1.45;
+  letter-spacing: 0.03em;
+}
+
+.vs-tip-text strong {
+  color: #fde047;
+}
+
+/* =========================================================
+   Bottom Loading Progress Bar
+   ========================================================= */
+.vs-progress-section {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 960px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  animation: vsFooterRise 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.vs-progress-labels {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.vs-status-msg {
+  color: #fef08a;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+}
+
+.vs-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(254, 240, 138, 0.25);
+  border-top-color: #f59e0b;
+  border-radius: 50%;
+  animation: vsSpin 0.75s linear infinite;
+  display: inline-block;
+}
+
+.vs-percentage {
+  font-family: monospace;
+  font-size: 1.15rem;
+  font-weight: bold;
+  color: #ffffff;
+  text-shadow: 0 0 12px rgba(245, 158, 11, 0.7);
+}
+
+/* The Progress Track & Shimmering Fill */
+.vs-progress-track {
+  position: relative;
+  width: 100%;
+  height: 14px;
+  background: rgba(12, 10, 18, 0.9);
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8), 0 0 15px rgba(245, 158, 11, 0.2);
+  border-radius: 7px;
+  overflow: hidden;
+  padding: 2px;
+}
+
+.vs-progress-fill {
+  width: 0%;
+  height: 100%;
+  background: linear-gradient(90deg, #dc2626 0%, #ea580c 40%, #f59e0b 75%, #fef08a 100%);
+  border-radius: 5px;
+  position: relative;
+  transition: width 0.12s linear;
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.8);
+}
+
+.vs-progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.7) 50%, transparent 100%);
+  background-size: 150px 100%;
+  animation: barShimmer 1.4s infinite;
+}
+
+.vs-skip-prompt {
+  text-align: center;
+  font-size: 0.78rem;
+  color: #64748b;
+  letter-spacing: 0.15em;
+  margin-top: 0.2rem;
+  transition: color 0.2s ease;
+}
+
+.vs-skip-prompt:hover {
+  color: #cbd5e1;
+}
+
+/* =========================================================
+   Screen Flash Overlay on Launch
+   ========================================================= */
+#screen-flash-burst {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 200;
+  background: #ffffff;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease-out;
+}
+
+#screen-flash-burst.flash {
+  opacity: 1;
+}
+
+/* =========================================================
+   Animations
+   ========================================================= */
+@keyframes slideInLeftFighter {
+  0% {
+    opacity: 0;
+    transform: translateX(-120px) skewX(-4deg);
+  }
+  70% {
+    transform: translateX(8px) skewX(0deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) skewX(0deg);
+  }
+}
+
+@keyframes slideInRightFighter {
+  0% {
+    opacity: 0;
+    transform: translateX(120px) skewX(4deg);
+  }
+  70% {
+    transform: translateX(-8px) skewX(0deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) skewX(0deg);
+  }
+}
+
+@keyframes vsSlam {
+  0% {
+    opacity: 0;
+    transform: scale(3.5);
+  }
+  60% {
+    transform: scale(0.9);
+  }
+  80% {
+    transform: scale(1.08);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes rotateMandala {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes rotateMandalaReverse {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+@keyframes portraitPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.03);
+  }
+}
+
+@keyframes barShimmer {
+  0% {
+    background-position: -150px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes vsSpin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes vsHeaderDrop {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes vsFooterRise {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes tipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =========================================================
+   Responsive Breakpoints
+   ========================================================= */
+@media (max-width: 1024px) {
+  #vs-loading-screen {
+    padding: 1.5rem 1.8rem;
+  }
+  .vs-fighter-card {
+    padding: 1.2rem 1.4rem;
+    gap: 1rem;
+  }
+  .vs-fighter-name {
+    font-size: 1.6rem;
+  }
+  .vs-symbol {
+    font-size: 3.2rem;
+  }
+  .vs-portrait-frame {
+    width: 95px;
+    height: 95px;
+  }
+}

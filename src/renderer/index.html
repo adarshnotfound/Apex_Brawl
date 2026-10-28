@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Apex Brawl: Mystic Kombat</title>
   <link rel="stylesheet" href="styles/menu.css">
+  <link rel="stylesheet" href="styles/loading.css">
 </head>
 <body>
 
@@ -28,6 +29,94 @@
     <button class="icon-btn" onclick="window.exitArenaToMenu()" style="background: rgba(127, 29, 29, 0.85); border-color: #ef4444; color: #fff; cursor: pointer;">
       🚪 EXIT TO MENU (ESC)
     </button>
+  </div>
+
+  <!-- Screen Flash Burst (on loading 100% / battle launch) -->
+  <div id="screen-flash-burst"></div>
+
+  <!-- High-Octane VS Matchup & Loading Screen -->
+  <div id="vs-loading-screen" role="dialog" aria-label="Battle Loading Screen">
+    <!-- Atmospheric Background Layers -->
+    <div class="vs-bg-layer"></div>
+    <div class="vs-grid-overlay"></div>
+    <div class="vs-divider-slash"></div>
+
+    <!-- Top Match Header -->
+    <header class="vs-header">
+      <div class="vs-match-type" id="vs-match-type">
+        <span class="vs-match-badge">⚔️ 1v1 DUEL</span> BEST OF 3 ROUNDS • 120s TIMER
+      </div>
+      <div class="vs-stage-name" id="vs-stage-name">
+        ARENA: THE MIRROR DIMENSION • SACRED SANCTUM
+      </div>
+    </header>
+
+    <!-- Center Clash: Player 1 VS Player 2 -->
+    <div class="vs-clash-arena">
+      <!-- Player 1 Card -->
+      <div class="vs-fighter-card p1" id="vs-card-p1">
+        <div class="vs-portrait-frame" id="vs-p1-frame">
+          <img class="vs-portrait-img" id="vs-p1-portrait" src="../../assets/characters/harpy/portrait.png" alt="Player 1">
+        </div>
+        <div class="vs-fighter-info">
+          <div class="vs-player-badge">
+            <span>👑 CHALLENGER (1P)</span>
+          </div>
+          <h2 class="vs-fighter-name" id="vs-p1-name">HARPY</h2>
+          <div class="vs-fighter-title" id="vs-p1-title">The Sky Terror • Aerial Striker</div>
+          <div class="vs-fighter-quote" id="vs-p1-quote">"The skies belong to the apex predator!"</div>
+        </div>
+      </div>
+
+      <!-- Center VS Emblem -->
+      <div class="vs-center-emblem">
+        <div class="vs-mandala-ring"></div>
+        <div class="vs-mandala-ring inner"></div>
+        <div class="vs-symbol">VS</div>
+        <div class="vs-subtext">CLASH OF APEX</div>
+      </div>
+
+      <!-- Player 2 Card -->
+      <div class="vs-fighter-card p2" id="vs-card-p2">
+        <div class="vs-portrait-frame" id="vs-p2-frame">
+          <img class="vs-portrait-img" id="vs-p2-portrait" src="../../assets/characters/Dr Strange/portrait.png" alt="Player 2">
+        </div>
+        <div class="vs-fighter-info">
+          <div class="vs-player-badge" id="vs-p2-badge">
+            <span>👤 DEFENDER (2P)</span>
+          </div>
+          <h2 class="vs-fighter-name" id="vs-p2-name">DR. STRANGE</h2>
+          <div class="vs-fighter-title" id="vs-p2-title">Master of the Mystic Arts</div>
+          <div class="vs-fighter-quote" id="vs-p2-quote">"Dormammu, I have come to bargain."</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Matchup Tips & Guide Banner -->
+    <div class="vs-pro-tip-box">
+      <div class="vs-tip-icon">💡</div>
+      <div class="vs-tip-text" id="vs-tip-content">
+        <strong>PRO TIP:</strong> Normal attacks chain naturally: Light (5A) → Medium (5B) → Heavy (5C)!
+      </div>
+    </div>
+
+    <!-- Bottom Loading Progress Section -->
+    <footer class="vs-progress-section">
+      <div class="vs-progress-labels">
+        <div class="vs-status-msg" id="vs-status-msg">
+          <span class="vs-spinner"></span> SYNCHRONIZING COMBATANTS...
+        </div>
+        <div class="vs-percentage" id="vs-progress-pct">0%</div>
+      </div>
+
+      <div class="vs-progress-track">
+        <div class="vs-progress-fill" id="vs-progress-fill"></div>
+      </div>
+
+      <div class="vs-skip-prompt" title="Click or press Space/Enter to start immediately">
+        PRESS [SPACE] OR [ENTER] TO SKIP • INITIALIZING DETERMINISTIC ENGINE
+      </div>
+    </footer>
   </div>
 
   <!-- Main Menu UI: Key Options Only (Clean Minimal Altar Display) -->
@@ -377,6 +466,7 @@
   <script src="config.js"></script>
   <script src="arena.js"></script>
   <script src="audio.js"></script>
+  <script src="loading.js"></script>
   <script src="menu.js"></script>
 </body>
 </html>

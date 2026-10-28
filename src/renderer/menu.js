@@ -112,9 +112,14 @@ function initMenuNavigation() {
 
   // Keyboard navigation
   window.addEventListener('keydown', (e) => {
-    // If arena is active, ignore menu key events completely!
+    // If arena or loading screen is active, ignore menu key events completely!
     const phaserContainer = document.getElementById('phaser-container');
     if (phaserContainer && phaserContainer.style.display !== 'none') {
+      return;
+    }
+
+    const vsLoading = document.getElementById('vs-loading-screen');
+    if (vsLoading && vsLoading.classList.contains('active')) {
       return;
     }
 
@@ -243,15 +248,15 @@ function initModals() {
   const fightBtn = document.getElementById('btnLaunchFight');
   if (fightBtn) {
     fightBtn.addEventListener('click', () => {
-      if (window.soundFX) window.soundFX.playStartBoom();
-      fightBtn.textContent = 'ENTERING THE ARENA...';
-      setTimeout(() => {
-        closeAllModals();
-        fightBtn.textContent = 'ENTER ARENA & KOMBAT';
-        if (window.startPhaserArena) {
-          window.startPhaserArena();
-        }
-      }, 500);
+      closeAllModals();
+      if (window.startMatchWithLoadingScreen) {
+        window.startMatchWithLoadingScreen({
+          p1Char: window.selectedFighterP1,
+          p2Char: window.selectedFighterP2
+        });
+      } else if (window.startPhaserArena) {
+        window.startPhaserArena();
+      }
     });
   }
 

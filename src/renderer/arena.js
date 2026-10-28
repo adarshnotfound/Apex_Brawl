@@ -1939,6 +1939,7 @@ window.startPhaserArena = function() {
 };
 
 window.exitArenaToMenu = function() {
+  if (window.hideLoadingScreen) window.hideLoadingScreen();
   const container = document.getElementById('phaser-container');
   const menuWrapper = document.getElementById('menuWrapper');
   const arenaUI = document.getElementById('arenaControlBar');
