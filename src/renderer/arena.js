@@ -272,7 +272,7 @@ class FighterEntity {
   }
 
   snapToGround() {
-    if (!this.sprite || !this.sprite.body) return;
+    if (!this.sprite || !this.sprite.body || this.isCaptured) return;
     const floorY = 575;
 
     // Fixed ground Y anchors that seat feet flush on the platform at y = 575
@@ -472,6 +472,10 @@ class FighterEntity {
     this.currentAttackData = null;
     this.currentAction = 'IDLE';
     this.isCrouching = false;
+    this.isCaptured = false;
+    if (this.sprite && this.sprite.body) {
+      this.sprite.body.setAllowGravity(true);
+    }
     if (this.sprite && this.sprite.chain) this.sprite.chain();
     if (this.attackTimer) {
       this.attackTimer.remove();
@@ -818,7 +822,7 @@ class FighterEntity {
 
   handleControls(input) {
     if (!this.sprite || !this.sprite.body) return;
-    if (this.isStunned) return;
+    if (this.isStunned || this.isCaptured) return;
     if (this.hp <= 0 || (this.scene && this.scene.roundState !== 'FIGHTING')) {
       if (this.hp <= 0) {
         this.currentAction = 'DEFEATED (K.O.)';
@@ -1057,7 +1061,8 @@ class FighterEntity {
             knockbackX: 250,
             knockbackY: -80,
             isSpecial: false
-          }, 750);
+          }, 1000);
+          this.hasDealtDamage = true; // Damage applied on ground slam impact in spawnPsychicCrushVFX
           if (this.scene && this.scene.spawnPsychicCrushVFX) {
             this.scene.spawnPsychicCrushVFX(this);
           }
@@ -1551,9 +1556,9 @@ class FighterEntity {
               this.sprite.play('chunli_anim_walk', true);
             } else if (this.charId === 'mewtwo') {
               this.sprite.setScale(0.78);
-              this.sprite.setOrigin(0.471, 0.5);
+              this.sprite.setOrigin(0.502, 0.5);
               this.sprite.body.setSize(110, 240);
-              this.sprite.body.setOffset(73, 10);
+              this.sprite.body.setOffset(73, 20);
               this.sprite.play('mewtwo_anim_walk', true);
             } else if (this.charId === 'steve') {
               this.sprite.setScale(0.40);
@@ -1574,9 +1579,9 @@ class FighterEntity {
               this.sprite.play('chunli_anim_walk', true);
             } else if (this.charId === 'mewtwo') {
               this.sprite.setScale(0.78);
-              this.sprite.setOrigin(0.471, 0.5);
+              this.sprite.setOrigin(0.502, 0.5);
               this.sprite.body.setSize(110, 240);
-              this.sprite.body.setOffset(73, 10);
+              this.sprite.body.setOffset(73, 20);
               this.sprite.play('mewtwo_anim_walk', true);
             } else if (this.charId === 'steve') {
               this.sprite.setScale(0.40);
@@ -1784,7 +1789,7 @@ class ArenaScene extends Phaser.Scene {
     // 5. Mewtwo Sprite Sheets & VFX (Exact Grid Dimensions)
     const mBase = '../../assets/characters/Mewtwo/';
     this.load.spritesheet('mewtwo_sheet_idle', mBase + '01_Mewtwo_Idle.png', { frameWidth: 256, frameHeight: 256 });
-    this.load.spritesheet('mewtwo_sheet_walk', mBase + '02_Mewtwo_Walk.png', { frameWidth: 256, frameHeight: 256 });
+    this.load.spritesheet('mewtwo_sheet_walk', mBase + '02_Mewtwo_Walk.png', { frameWidth: 256, frameHeight: 272 });
     this.load.spritesheet('mewtwo_sheet_jump', mBase + '03_Mewtwo_Jump.png', { frameWidth: 230, frameHeight: 232 });
     this.load.spritesheet('mewtwo_sheet_crouch', mBase + '04_Mewtwo_Crouch.png', { frameWidth: 300, frameHeight: 298 });
     this.load.spritesheet('mewtwo_sheet_hit', mBase + '05_Mewtwo_HitReaction.png', { frameWidth: 300, frameHeight: 298 });
@@ -2596,12 +2601,12 @@ class ArenaScene extends Phaser.Scene {
     if (!caster || !caster.sprite) return;
     const facingDir = caster.getFacingDir ? caster.getFacingDir() : 1;
     const facingRight = facingDir === 1;
-    const chargeX = caster.sprite.x + (facingRight ? 55 : -55);
-    const chargeY = caster.sprite.y - 20;
+    const chargeX = caster.sprite.x + (facingRight ? 52 : -52);
+    const chargeY = caster.sprite.y - 18;
 
     const charge = this.add.sprite(chargeX, chargeY, 'mewtwo_sheet_vfx_charge');
     charge.setDepth(25);
-    charge.setScale(0.70);
+    charge.setScale(0.42);
     charge.play('mewtwo_anim_vfx_charge');
     caster.activeShadowBallChargeVFX = charge;
 
@@ -2615,19 +2620,19 @@ class ArenaScene extends Phaser.Scene {
     if (!caster || !caster.sprite) return;
     const facingDir = caster.getFacingDir ? caster.getFacingDir() : (caster.sprite.flipX ? -1 : 1);
     const facingRight = facingDir === 1;
-    const spawnX = caster.sprite.x + (facingRight ? 75 : -75);
-    const spawnY = caster.sprite.y - 25;
+    const spawnX = caster.sprite.x + (facingRight ? 65 : -65);
+    const spawnY = caster.sprite.y - 20;
 
     const proj = this.physics.add.sprite(spawnX, spawnY, 'mewtwo_sheet_projectile');
     this.projectiles.add(proj);
     proj.setDepth(20);
 
-    proj.setScale(0.65);
+    proj.setScale(0.40);
     proj.body.allowGravity = false;
     proj.body.setAllowGravity(false);
     proj.body.gravity.y = 0;
-    proj.body.setSize(120, 120);
-    proj.body.setOffset(68, 68);
+    proj.body.setSize(75, 75);
+    proj.body.setOffset(90, 90);
     proj.play('mewtwo_anim_projectile');
     proj.caster = caster;
     proj.isShadowBall = true;
@@ -2645,10 +2650,60 @@ class ArenaScene extends Phaser.Scene {
   spawnShadowBallImpact(x, y) {
     const impact = this.add.sprite(x, y, 'mewtwo_sheet_impact');
     impact.setDepth(25);
-    impact.setScale(0.85);
+    impact.setScale(0.55);
     impact.play('mewtwo_anim_impact');
     impact.on('animationcomplete', () => impact.destroy());
     this.time.delayedCall(800, () => { if (impact && impact.active) impact.destroy(); });
+  }
+
+  spawnSlamGroundEffect(x, y) {
+    if (!this.textures.exists('psychic_slam_ring')) {
+      const g = this.make.graphics({ x: 0, y: 0, add: false });
+      // Layer 1: Outer cosmic purple glow
+      g.lineStyle(6, 0xc084fc, 0.95);
+      g.strokeEllipse(80, 40, 150, 68);
+      // Layer 2: Vivid psychic cyan ring
+      g.lineStyle(3, 0x38bdf8, 1.0);
+      g.strokeEllipse(80, 40, 130, 56);
+      // Layer 3: Blinding white core
+      g.lineStyle(1.5, 0xffffff, 1.0);
+      g.strokeEllipse(80, 40, 110, 44);
+      g.generateTexture('psychic_slam_ring', 160, 80);
+      g.destroy();
+    }
+
+    // Outer shockwave expansion across the platform floor
+    const wave1 = this.add.image(x, y + 14, 'psychic_slam_ring');
+    wave1.setDepth(24);
+    wave1.setScale(0.3, 0.2);
+    wave1.setAlpha(1);
+    this.tweens.add({
+      targets: wave1,
+      scaleX: 2.5,
+      scaleY: 0.95,
+      alpha: 0,
+      duration: 360,
+      ease: 'Quad.Out',
+      onComplete: () => wave1.destroy()
+    });
+
+    // Layered inner shockwave ripple (delayed slightly)
+    this.time.delayedCall(45, () => {
+      const wave2 = this.add.image(x, y + 14, 'psychic_slam_ring');
+      wave2.setDepth(24);
+      wave2.setScale(0.2, 0.15);
+      wave2.setAlpha(0.9);
+      wave2.setTint(0x9333ea);
+      this.tweens.add({
+        targets: wave2,
+        scaleX: 1.9,
+        scaleY: 0.75,
+        alpha: 0,
+        duration: 300,
+        ease: 'Cubic.Out',
+        onComplete: () => wave2.destroy()
+      });
+    });
   }
 
   spawnPsychicCrushVFX(caster) {
@@ -2659,22 +2714,51 @@ class ArenaScene extends Phaser.Scene {
     const facingDir = caster.getFacingDir ? caster.getFacingDir() : 1;
     const facingRight = facingDir === 1;
 
-    // After brief focus/clench startup (~200ms), psychic forcefield compresses directly around opponent!
-    this.time.delayedCall(200, () => {
+    // Check distance: target must be in front within reach
+    const dx = target.sprite.x - caster.sprite.x;
+    const dy = Math.abs(target.sprite.y - caster.sprite.y);
+    const isInFront = (facingRight && dx > -30 && dx <= 550) ||
+                      (!facingRight && dx < 30 && dx >= -550);
+
+    // If target is out of range or dead, don't trap them
+    if (!isInFront || dy > 160 || target.hp <= 0) return;
+
+    // Phase 1: Startup & telekinetic capture at ~180ms
+    this.time.delayedCall(180, () => {
       if (!caster || !caster.sprite || caster.hp <= 0) return;
       if (!target || !target.sprite || target.hp <= 0) return;
+      if (this.roundState !== 'FIGHTING') return;
+
+      // Telekinetically capture the opponent
+      target.isCaptured = true;
+      target.isStunned = true;
+      target.isAttacking = false;
+      target.isCrouching = false;
+      target.currentAttackData = null;
+      if (target.attackTimer) {
+        target.attackTimer.remove();
+        target.attackTimer = null;
+      }
+      target.sprite.setVelocity(0, 0);
+      if (target.sprite.body) {
+        target.sprite.body.setAllowGravity(false);
+        target.sprite.body.velocity.x = 0;
+        target.sprite.body.velocity.y = 0;
+      }
+      target.currentAction = 'PSYCHIC CAPTURED';
+      target.sprite.setTint(0xd8b4fe);
 
       // Forcefield VFX occurs directly centered around the opponent
       const vfxX = target.sprite.x;
       const vfxY = target.sprite.y - 10;
 
       const vfx = this.add.sprite(vfxX, vfxY, 'mewtwo_sheet_vfx_forcefield');
-      vfx.setDepth(25);
-      vfx.setScale(1.1);
+      vfx.setDepth(26);
+      vfx.setScale(1.15);
       vfx.setFlipX(!facingRight);
       vfx.play('mewtwo_anim_vfx_forcefield');
 
-      // Keep forcefield tracking opponent so it firmly encapsulates them
+      // Keep forcefield tracking opponent as they are levitated
       const onUpdate = () => {
         if (vfx && vfx.active && target && target.sprite) {
           vfx.setPosition(target.sprite.x, target.sprite.y - 10);
@@ -2682,28 +2766,91 @@ class ArenaScene extends Phaser.Scene {
       };
       this.events.on('update', onUpdate);
 
-      vfx.on('animationcomplete', () => {
-        this.events.off('update', onUpdate);
-        if (vfx.active) vfx.destroy();
-      });
-      this.time.delayedCall(1000, () => {
-        this.events.off('update', onUpdate);
-        if (vfx && vfx.active) vfx.destroy();
-      });
+      // Phase 2: Telekinetic lift upwards over 420ms
+      const startY = target.sprite.y;
+      const peakY = Math.max(160, startY - 140);
 
-      // Forcefield telekinetically compresses around opponent: impact effect, damage, and brief suspension!
-      this.spawnShadowBallImpact(vfxX, vfxY);
-      target.takeHit({
-        damage: 95,
-        isSpecial: false,
-        isStun: true,
-        stunDuration: 340,
-        knockbackX: 250,
-        knockbackY: -80
-      }, caster);
-      caster.hasDealtDamage = true;
-      this.cameras.main.shake(180, 0.012);
-      if (window.soundFX) window.soundFX.playStartBoom();
+      this.tweens.add({
+        targets: target.sprite,
+        y: peakY,
+        duration: 420,
+        ease: 'Cubic.Out',
+        onComplete: () => {
+          if (this.roundState !== 'FIGHTING' || caster.hp <= 0) {
+            this.events.off('update', onUpdate);
+            if (vfx.active) vfx.destroy();
+            target.isCaptured = false;
+            if (target.sprite.body) target.sprite.body.setAllowGravity(true);
+            target.snapToGround();
+            return;
+          }
+
+          // Phase 3: Hold briefly at peak (~160ms) while Mewtwo raises hands overhead
+          this.time.delayedCall(160, () => {
+            if (this.roundState !== 'FIGHTING' || caster.hp <= 0) {
+              this.events.off('update', onUpdate);
+              if (vfx.active) vfx.destroy();
+              target.isCaptured = false;
+              if (target.sprite.body) target.sprite.body.setAllowGravity(true);
+              target.snapToGround();
+              return;
+            }
+
+            // Phase 4: THE SLAM! Mewtwo thrusts his hands downward violently!
+            const landingY = target.charId === 'steve' ? 476.60 :
+                             (target.charId === 'mewtwo' ? 479.84 :
+                             (target.charId === 'chunli' ? 477.04 :
+                             (target.charId === 'strange' ? 395.80 : 443.00)));
+
+            // Opponent slammed down at extreme velocity (120ms)
+            this.tweens.add({
+              targets: target.sprite,
+              y: landingY,
+              duration: 120,
+              ease: 'Quad.In',
+              onComplete: () => {
+                this.events.off('update', onUpdate);
+                if (vfx.active) vfx.destroy();
+
+                // Release hold & restore gravity
+                target.isCaptured = false;
+                if (target.sprite.body) {
+                  target.sprite.body.setAllowGravity(true);
+                }
+                target.snapToGround();
+
+                // Clear psychic tint
+                if (target.isMirror) {
+                  target.sprite.setTint(0xc4b5fd);
+                } else {
+                  target.sprite.clearTint();
+                }
+
+                // --- GROUND SLAM IMPACT EFFECTS ---
+                // 1. Expanding Ground Slam Shockwave Ring along the floor
+                this.spawnSlamGroundEffect(target.sprite.x, landingY);
+
+                // 2. Heavy Shadow Ball Impact Explosion at the impact point
+                this.spawnShadowBallImpact(target.sprite.x, landingY);
+
+                // 3. Violent Screen Shake on impact
+                this.cameras.main.shake(280, 0.024);
+
+                // 4. Heavy Boom Audio
+                if (window.soundFX) window.soundFX.playStartBoom();
+
+                // 5. Apply slam damage and trigger knockdown launch reaction!
+                target.takeHit({
+                  damage: 105,
+                  isSpecial: true,
+                  knockbackX: 200,
+                  knockbackY: -220
+                }, caster);
+              }
+            });
+          });
+        }
+      });
     });
   }
 
