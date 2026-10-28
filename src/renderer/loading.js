@@ -143,8 +143,13 @@
     const selectedStage = options.stage || window.selectedStage || 'japanese_temple';
     window.selectedStage = selectedStage;
     window.isTrainingMode = options.isTraining === true;
+    window.isLanMatch = options.isLan === true;
     const stageName = options.stageName || (selectedStage === 'sky_temple' ? 'THE ETERNAL SKY TEMPLE • CELESTIAL ABYSS' : 'MOONLIT MOUNTAIN SHRINE • GEKKA NO REIBYŌ');
-    const matchType = options.isTraining ? '🥋 DOJO PRACTICE • TRAINING MODE' : (options.matchType || 'BEST OF 3 ROUNDS • 120s TIMER');
+    const matchType = options.isTraining
+      ? '🥋 DOJO PRACTICE • TRAINING MODE'
+      : (options.isLan
+        ? '🌐 LAN MULTIPLAYER • 1v1 KOMBAT'
+        : (options.matchType || 'BEST OF 3 ROUNDS • 120s TIMER'));
 
     const p1Data = FIGHTER_REGISTRY[p1Id] || FIGHTER_REGISTRY['harpy'];
     const p2Data = FIGHTER_REGISTRY[p2Id] || FIGHTER_REGISTRY['strange'];

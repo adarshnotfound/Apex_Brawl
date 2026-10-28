@@ -1957,6 +1957,46 @@ class ArenaScene extends Phaser.Scene {
     // 6. Visual Screen-Locked HUD
     this.buildDualPlayerHUD(p1Char, p2Char);
 
+    // 6.4. LAN Disconnection Guard
+    if (window.isLanMatch && window.lanManager) {
+      window.lanManager.on('PEER_DISCONNECTED', () => {
+        if (this.lanDisconnected) return;
+        this.lanDisconnected = true;
+
+        const overlay = this.add.rectangle(640, 360, 1280, 720, 0x000000, 0.75).setScrollFactor(0).setDepth(999);
+        const modalBox = this.add.rectangle(640, 360, 560, 220, 0x18181b, 0.95).setScrollFactor(0).setDepth(1000);
+        modalBox.setStrokeStyle(2, 0xef4444);
+
+        this.add.text(640, 290, '⚠️ CONNECTION TERMINATED', {
+          fontFamily: 'Bebas Neue, Rajdhani, sans-serif',
+          fontSize: '32px',
+          color: '#ef4444'
+        }).setOrigin(0.5).setScrollFactor(0).setDepth(1001);
+
+        this.add.text(640, 335, 'The remote opponent disconnected or left the LAN match.', {
+          fontFamily: 'Rajdhani, sans-serif',
+          fontSize: '16px',
+          color: '#e4e4e7'
+        }).setOrigin(0.5).setScrollFactor(0).setDepth(1001);
+
+        const btnReturn = this.add.rectangle(640, 395, 220, 44, 0x27272a).setScrollFactor(0).setDepth(1001).setInteractive({ useHandCursor: true });
+        btnReturn.setStrokeStyle(1, 0xef4444);
+        this.add.text(640, 395, 'RETURN TO MAIN MENU', {
+          fontFamily: 'Rajdhani, sans-serif',
+          fontSize: '15px',
+          color: '#ffffff',
+          fontStyle: 'bold'
+        }).setOrigin(0.5).setScrollFactor(0).setDepth(1002);
+
+        btnReturn.on('pointerdown', () => {
+          window.isLanMatch = false;
+          window.location.reload();
+        });
+        btnReturn.on('pointerover', () => btnReturn.setFillStyle(0x7f1d1d));
+        btnReturn.on('pointerout', () => btnReturn.setFillStyle(0x27272a));
+      });
+    }
+
     // 6.5. Modern Feature-Complete Training Mode Initialization
     this.setupTrainingMode();
 
@@ -3086,7 +3126,11 @@ class ArenaScene extends Phaser.Scene {
     const p1Img = this.add.image(75, 60, p1PortraitKey).setScrollFactor(0).setDepth(101);
     p1Img.setDisplaySize(68, 68);
 
-    this.p1Name = this.add.text(125, 34, `P1: ${p1DisplayName}`, {
+    let p1Title = `P1: ${p1DisplayName}`;
+    if (window.isLanMatch && window.lanManager) {
+      p1Title = window.lanManager.role === 'HOST' ? `1P (YOU): ${p1DisplayName}` : `1P (HOST): ${p1DisplayName}`;
+    }
+    this.p1Name = this.add.text(125, 34, p1Title, {
       fontFamily: 'Bebas Neue, Rajdhani, sans-serif',
       fontSize: '22px',
       color: '#fef08a'
@@ -3122,7 +3166,11 @@ class ArenaScene extends Phaser.Scene {
     p2Img.setDisplaySize(68, 68);
 
     const p2Prefix = this.isTrainingMode ? 'DUMMY' : 'P2';
-    this.p2Name = this.add.text(1155, 34, `${p2Prefix}: ${p2DisplayName}`, {
+    let p2Title = `${p2Prefix}: ${p2DisplayName}`;
+    if (window.isLanMatch && window.lanManager) {
+      p2Title = window.lanManager.role === 'CLIENT' ? `2P (YOU): ${p2DisplayName}` : `2P (CHALLENGER): ${p2DisplayName}`;
+    }
+    this.p2Name = this.add.text(1155, 34, p2Title, {
       fontFamily: 'Bebas Neue, Rajdhani, sans-serif',
       fontSize: '22px',
       color: '#fef08a'
@@ -4180,7 +4228,7 @@ class ArenaScene extends Phaser.Scene {
     const p1Right = this.p1Keys.d.isDown;
     const p1Down = this.p1Keys.s.isDown;
 
-    const p1Input = {
+    let p1Input = {
       up: p1Up,
       upJustDown: p1UpJustDown,
       down: p1Down,
@@ -4304,6 +4352,76 @@ class ArenaScene extends Phaser.Scene {
             dashJustDown: (absDist > 400 && Math.random() < 0.03),
             tauntJustDown: false
           };
+        }
+      }
+    }
+
+    // --- LAN MULTIPLAYER INPUT SYNCHRONIZATION ---
+    if (window.isLanMatch && window.lanManager && window.lanManager.isConnected) {
+      if (window.lanManager.role === 'HOST') {
+        // Host controls Player 1 -> broadcast input to Client
+        window.lanManager.send('PLAYER_INPUT', { input: p1Input });
+        // Player 2 is driven by Client's input received over LAN
+        p2Input = window.lanManager.latestOpponentInput;
+
+        // Periodic State Authority Sync (every 80ms)
+        if (!this.lastLanSyncTime || time - this.lastLanSyncTime > 80) {
+          this.lastLanSyncTime = time;
+          window.lanManager.send('STATE_SYNC', {
+            p1: { x: this.fighterP1.sprite.x, y: this.fighterP1.sprite.y, hp: this.fighterP1.hp },
+            p2: { x: this.fighterP2.sprite.x, y: this.fighterP2.sprite.y, hp: this.fighterP2.hp },
+            roundTimer: this.roundTimer,
+            roundState: this.roundState,
+            p1Wins: this.p1RoundWins,
+            p2Wins: this.p2RoundWins
+          });
+        }
+      } else if (window.lanManager.role === 'CLIENT') {
+        // Client controls Player 2!
+        // Client can use either WASD (P1 keys) or Arrows (P2 keys)
+        const clientUp = p1Up || p2Up;
+        const clientUpJustDown = p1UpJustDown || p2UpJustDown;
+        const clientLeft = p1Left || p2Left;
+        const clientRight = p1Right || p2Right;
+        const clientDown = p1Down || p2Down;
+
+        const myInput = {
+          up: clientUp,
+          upJustDown: clientUpJustDown,
+          down: clientDown,
+          left: clientLeft,
+          right: clientRight,
+          isHoldingForward: this.fighterP2.getFacingDir() === 1 ? clientRight : clientLeft,
+          lightJustDown: p1Input.lightJustDown || p2Input.lightJustDown,
+          mediumJustDown: p1Input.mediumJustDown || p2Input.mediumJustDown,
+          heavyJustDown: p1Input.heavyJustDown || p2Input.heavyJustDown,
+          specialJustDown: p1Input.specialJustDown || p2Input.specialJustDown,
+          superJustDown: p1Input.superJustDown || p2Input.superJustDown,
+          dashJustDown: p1Input.dashJustDown || p2Input.dashJustDown,
+          tauntJustDown: p1Input.tauntJustDown || p2Input.tauntJustDown
+        };
+
+        // Send local input to Host
+        window.lanManager.send('PLAYER_INPUT', { input: myInput });
+
+        // Player 1 on client is driven by Host
+        p1Input = window.lanManager.latestOpponentInput;
+        p2Input = myInput;
+
+        // Reconcile with Host's State Authority
+        if (window.lanManager.latestStateSync) {
+          const sync = window.lanManager.latestStateSync;
+          if (Math.abs(this.fighterP1.sprite.x - sync.p1.x) > 35) {
+            this.fighterP1.sprite.x = Phaser.Math.Linear(this.fighterP1.sprite.x, sync.p1.x, 0.25);
+          }
+          if (Math.abs(this.fighterP2.sprite.x - sync.p2.x) > 35) {
+            this.fighterP2.sprite.x = Phaser.Math.Linear(this.fighterP2.sprite.x, sync.p2.x, 0.25);
+          }
+          this.fighterP1.hp = sync.p1.hp;
+          this.fighterP2.hp = sync.p2.hp;
+          this.roundTimer = sync.roundTimer;
+          this.p1RoundWins = sync.p1Wins;
+          this.p2RoundWins = sync.p2Wins;
         }
       }
     }

@@ -12,7 +12,13 @@
     "type": "git",
     "url": "git+https://github.com/adarshnotfound/Apex_Brawl.git"
   },
-  "keywords": ["game", "fighting-game", "electron", "phaser", "softablitz"],
+  "keywords": [
+    "game",
+    "fighting-game",
+    "electron",
+    "phaser",
+    "softablitz"
+  ],
   "author": "",
   "license": "MIT",
   "type": "commonjs",
@@ -24,6 +30,7 @@
     "electron": "^45.0.0"
   },
   "dependencies": {
-    "phaser": "^3.90.0"
+    "phaser": "^3.90.0",
+    "ws": "^8.22.0"
   }
 }

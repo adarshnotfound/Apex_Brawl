@@ -165,6 +165,9 @@ function executeMenuItem(action) {
     case 'arcade':
       openModal('modal-arcade');
       break;
+    case 'lan':
+      openLANModal();
+      break;
     case 'training':
       openCharacterSelect('TRAINING');
       break;
@@ -248,6 +251,18 @@ function initModals() {
   const fightBtn = document.getElementById('btnLaunchFight');
   if (fightBtn) {
     fightBtn.addEventListener('click', () => {
+      if (window.isLanMatch && window.lanManager) {
+        if (window.lanManager.role !== 'HOST') {
+          // Client cannot launch until host triggers it
+          return;
+        }
+        window.lanManager.send('START_MATCH', {
+          p1Char: window.selectedFighterP1,
+          p2Char: window.selectedFighterP2,
+          stage: window.selectedStage || 'japanese_temple'
+        });
+      }
+
       closeAllModals();
       const isTraining = window.isTrainingModeSelected === true;
       if (window.startMatchWithLoadingScreen) {
@@ -255,7 +270,8 @@ function initModals() {
           p1Char: window.selectedFighterP1,
           p2Char: window.selectedFighterP2,
           stage: window.selectedStage || 'japanese_temple',
-          isTraining: isTraining
+          isTraining: isTraining,
+          isLan: window.isLanMatch
         });
       } else if (window.startPhaserArena) {
         window.isTrainingMode = isTraining;
@@ -360,6 +376,9 @@ function initStageSelection() {
     pill.addEventListener('click', () => {
       window.selectedStage = (window.selectedStage === 'sky_temple') ? 'japanese_temple' : 'sky_temple';
       updateStagePillUI();
+      if (window.isLanMatch && window.lanManager) {
+        window.lanManager.send('STAGE_SELECT', { stage: window.selectedStage });
+      }
       if (window.soundFX) window.soundFX.playSelect();
     });
   }
@@ -396,15 +415,25 @@ function initCharacterSelection() {
   document.querySelectorAll('.roster-card').forEach(card => {
     if (card.classList.contains('locked')) return;
 
-    // Left click: Select Player 1 (or toggle if Shift held)
+    // Left click: Select character
     card.addEventListener('click', (e) => {
       const charId = card.dataset.char;
       if (!charId || !MK1_ROSTER[charId]) return;
 
-      if (e.shiftKey || e.altKey) {
-        setFighterSelection('2', charId);
-      } else {
+      if (window.isTrainingModeSelected) {
+        // Training Mode: Only select Player 1! Opponent is always Dummy.
         setFighterSelection('1', charId);
+      } else if (window.isLanMatch && window.lanManager) {
+        // LAN Mode: Host selects P1, Client selects P2
+        const myPlayer = (window.lanManager.role === 'HOST') ? '1' : '2';
+        setFighterSelection(myPlayer, charId);
+        window.lanManager.send('CHAR_SELECT', { player: Number(myPlayer), charId });
+      } else {
+        if (e.shiftKey || e.altKey) {
+          setFighterSelection('2', charId);
+        } else {
+          setFighterSelection('1', charId);
+        }
       }
       if (window.soundFX) window.soundFX.playSelect();
     });
@@ -742,9 +771,21 @@ function switchGrimoireCharacter(charId) {
 
 function openCharacterSelect(mode = 'VERSUS') {
   window.isTrainingModeSelected = (mode === 'TRAINING');
+  window.isLanMatch = (mode === 'LAN');
+  const fightBtn = document.getElementById('btnLaunchFight');
   const fightBtnText = document.querySelector('#btnLaunchFight .mk1-fight-btn-text');
+  
   if (fightBtnText) {
-    fightBtnText.textContent = (mode === 'TRAINING') ? 'ENTER DOJO' : 'FIGHT';
+    if (mode === 'TRAINING') {
+      fightBtnText.textContent = 'ENTER DOJO';
+    } else if (mode === 'LAN') {
+      const isHost = (window.lanManager && window.lanManager.role === 'HOST');
+      fightBtnText.textContent = isHost ? 'START LAN KOMBAT' : 'WAITING FOR HOST...';
+      if (fightBtn) fightBtn.style.opacity = isHost ? '1' : '0.5';
+    } else {
+      fightBtnText.textContent = 'FIGHT';
+      if (fightBtn) fightBtn.style.opacity = '1';
+    }
   }
 
   if (window.isTrainingModeSelected) {

@@ -1,0 +1,381 @@
+/* ==========================================================================
+   LAN MULTIPLAYER STYLESHEET
+   Clean Minimalist Glassmorphism • Local Area Network Matchmaking
+   ========================================================================== */
+
+#modal-lan .modal-card {
+  max-width: 620px;
+  width: 92vw;
+  background: rgba(14, 18, 28, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.85), 0 0 30px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header & Tabs */
+.lan-header-tabs {
+  display: flex;
+  background: rgba(8, 12, 20, 0.8);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0 16px;
+  gap: 8px;
+}
+
+.lan-tab-btn {
+  flex: 1;
+  padding: 12px 16px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-transform: uppercase;
+}
+
+.lan-tab-btn:hover {
+  color: #f1f5f9;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.lan-tab-btn.active {
+  color: #f59e0b;
+  border-bottom-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.08);
+}
+
+/* Tab Panels */
+.lan-panel {
+  display: none;
+  padding: 22px;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.lan-panel.active {
+  display: flex;
+}
+
+/* Host View: IP Box */
+.lan-ip-card {
+  display: flex;
+  flex-direction: column;
+  background: rgba(20, 26, 40, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 6px;
+  padding: 14px 18px;
+  gap: 8px;
+}
+
+.lan-ip-label {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #94a3b8;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.lan-ip-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.lan-ip-display {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #38bdf8;
+  letter-spacing: 0.05em;
+  flex: 1;
+}
+
+.lan-copy-btn {
+  padding: 6px 14px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #ffffff;
+  background: rgba(56, 189, 248, 0.25);
+  border: 1px solid rgba(56, 189, 248, 0.6);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.lan-copy-btn:hover {
+  background: rgba(56, 189, 248, 0.45);
+  border-color: #38bdf8;
+}
+
+/* Host Peer Status Box */
+.lan-peer-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background: rgba(12, 16, 26, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  gap: 14px;
+}
+
+.lan-peer-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.lan-pulse-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #f59e0b;
+  box-shadow: 0 0 10px #f59e0b;
+  animation: pulseBeacon 1.4s infinite ease-in-out;
+}
+
+.lan-pulse-dot.connected {
+  background: #10b981;
+  box-shadow: 0 0 10px #10b981;
+  animation: none;
+}
+
+@keyframes pulseBeacon {
+  0%, 100% {
+    transform: scale(0.9);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.25);
+    opacity: 1;
+  }
+}
+
+.lan-peer-text {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.lan-ping-pill {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 12px;
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.5);
+  color: #6ee7b7;
+}
+
+/* Join View: Discovered Rooms */
+.lan-discovered-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.lan-section-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.lan-rooms-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 140px;
+  overflow-y: auto;
+}
+
+.lan-room-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: rgba(20, 26, 40, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  transition: all 0.18s ease;
+}
+
+.lan-room-card:hover {
+  background: rgba(30, 40, 60, 0.85);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.lan-room-name {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.lan-room-ip {
+  font-size: 0.76rem;
+  color: #94a3b8;
+}
+
+.lan-room-join-btn {
+  padding: 5px 12px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #0b0f19;
+  background: #f59e0b;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.lan-room-join-btn:hover {
+  background: #fbbf24;
+  transform: translateY(-1px);
+}
+
+.lan-no-rooms {
+  padding: 14px;
+  text-align: center;
+  font-size: 0.82rem;
+  color: #64748b;
+  background: rgba(15, 20, 30, 0.4);
+  border-radius: 4px;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+/* Manual Direct Connect Box */
+.lan-direct-connect {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.lan-input-ip {
+  flex: 1;
+  padding: 10px 14px;
+  background: rgba(10, 14, 22, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  color: #f1f5f9;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.18s ease;
+}
+
+.lan-input-ip:focus {
+  border-color: #f59e0b;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.3);
+}
+
+.lan-btn-connect {
+  padding: 10px 20px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #0b0f19;
+  background: #f59e0b;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.lan-btn-connect:hover {
+  background: #fbbf24;
+  transform: translateY(-1px);
+}
+
+/* Primary Action CTA Button */
+.lan-action-cta {
+  width: 100%;
+  padding: 12px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #ffffff;
+  background: linear-gradient(135deg, rgba(217, 119, 6, 0.9) 0%, rgba(180, 83, 9, 0.95) 100%);
+  border: 1px solid rgba(254, 240, 138, 0.7);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.lan-action-cta:hover:not(:disabled) {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  border-color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+}
+
+.lan-action-cta:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(30, 36, 50, 0.6);
+}
+
+/* Notification & Status message */
+.lan-status-banner {
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  display: none;
+}
+
+.lan-status-banner.info {
+  display: block;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  color: #bae6fd;
+}
+
+.lan-status-banner.success {
+  display: block;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #a7f3d0;
+}
+
+.lan-status-banner.error {
+  display: block;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #fecaca;
+}
