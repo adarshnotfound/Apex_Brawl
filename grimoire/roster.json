@@ -28,5 +28,25 @@
     "portrait": "assets/characters/ChunLi/portrait.png",
     "themeColor": "#0284c7",
     "icon": "⚡"
+  },
+  {
+    "id": "mewtwo",
+    "name": "Mewtwo",
+    "title": "Genetic Apex & Psychic Overlord",
+    "archetype": "Zoner / Telekinetic Striker",
+    "file": "grimoire/mewtwo.json",
+    "portrait": "assets/characters/Mewtwo/portrait.png",
+    "themeColor": "#9333ea",
+    "icon": "👁️"
+  },
+  {
+    "id": "steve",
+    "name": "Steve",
+    "title": "The Master Crafter & Sandbox Champion",
+    "archetype": "Brawler / Trap Specialist",
+    "file": "grimoire/steve.json",
+    "portrait": "assets/characters/Steve/portrait.png",
+    "themeColor": "#0d9488",
+    "icon": "⛏️"
   }
 ]

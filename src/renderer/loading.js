@@ -52,6 +52,38 @@
         'Use Kikoken (R / U) to contest zoning and force opponents into jump-in mistakes.',
         'Spinning Bird Kick (8C) provides outstanding anti-air coverage against aerial rushdowns.'
       ]
+    },
+    mewtwo: {
+      id: 'mewtwo',
+      name: 'MEWTWO',
+      subtitle: 'Genetic Apex & Psychic Overlord',
+      archetype: 'Zoner • Telekinetic Striker',
+      portrait: '../../assets/characters/Mewtwo/portrait.png',
+      themeColor: '#9333ea',
+      accentColor: '#c084fc',
+      glowColor: 'rgba(147, 51, 234, 0.6)',
+      quote: '"The circumstances of one\'s birth are irrelevant. It is what you do with life that determines who you are."',
+      tips: [
+        'Mewtwo\'s Shadow Ball (R / U) crosses the screen at tremendous speed to dictate neutral space.',
+        'Psychic Crush (5B) creates an energy field around foes to shatter defensive blocks.',
+        'Teleport Strike (5C) warps through attacks and wallbounces opponents into aerial follow-ups.'
+      ]
+    },
+    steve: {
+      id: 'steve',
+      name: 'STEVE',
+      subtitle: 'Master Crafter & Sandbox Champion',
+      archetype: 'Brawler • Trap Specialist',
+      portrait: '../../assets/characters/Steve/portrait.png',
+      themeColor: '#0d9488',
+      accentColor: '#2dd4bf',
+      glowColor: 'rgba(13, 148, 136, 0.6)',
+      quote: '"Eat, mine, craft, survive."',
+      tips: [
+        'Steve\'s TNT Toss (R / U) lobs explosive charges that explode on contact with massive impact.',
+        'Diamond Sword Slash (5B) has exceptional horizontal priority to swat away incoming rushdowns.',
+        'Pickaxe Ground Smash (5C) causes an intense ground bounce, leaving opponents vulnerable.'
+      ]
     }
   };
 

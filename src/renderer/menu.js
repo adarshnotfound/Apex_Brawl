@@ -334,6 +334,36 @@ function updatePlayerCardUI(player, charId) {
         ? `Move: <span class="command-key">WASD</span> | Jump: <span class="command-key">SPACE</span><br>Attacks: <span class="command-key">F</span> (5A) <span class="command-key">G</span> (5B) <span class="command-key">H</span> (5C)<br>Special: <span class="command-key">R</span> (Kikoken) | Super: <span class="command-key">S+H / Y</span> | Dash: <span class="command-key">Q</span>`
         : `Move: <span class="command-key">ARROWS ↑ ← ↓ →</span><br>Attacks: <span class="command-key">J / NUM1</span> (5A) <span class="command-key">K / NUM2</span> (5B) <span class="command-key">L / NUM3</span> (5C)<br>Special: <span class="command-key">U / NUM4</span> (Kikoken) | Super: <span class="command-key">↓+L / I</span> | Dash: <span class="command-key">O</span>`;
     }
+  } else if (charId === 'mewtwo') {
+    card.style.background = 'rgba(147, 51, 234, 0.15)';
+    card.style.borderColor = '#9333ea';
+    if (portrait) portrait.src = '../../assets/characters/Mewtwo/portrait.png';
+    if (portrait) portrait.style.borderColor = '#9333ea';
+    if (title) title.textContent = 'MEWTWO';
+    if (archetype) {
+      archetype.textContent = 'Genetic Apex • Psychic Overlord (Zoner / Striker)';
+      archetype.style.color = '#c084fc';
+    }
+    if (keys) {
+      keys.innerHTML = player === '1'
+        ? `Move: <span class="command-key">WASD</span> | Jump: <span class="command-key">SPACE</span><br>Attacks: <span class="command-key">F</span> (5A) <span class="command-key">G</span> (5B) <span class="command-key">H</span> (5C)<br>Special: <span class="command-key">R</span> (Shadow Ball) | Super: <span class="command-key">S+H / Y</span> | Dash: <span class="command-key">Q</span>`
+        : `Move: <span class="command-key">ARROWS ↑ ← ↓ →</span><br>Attacks: <span class="command-key">J / NUM1</span> (5A) <span class="command-key">K / NUM2</span> (5B) <span class="command-key">L / NUM3</span> (5C)<br>Special: <span class="command-key">U / NUM4</span> (Shadow Ball) | Super: <span class="command-key">↓+L / I</span> | Dash: <span class="command-key">O</span>`;
+    }
+  } else if (charId === 'steve') {
+    card.style.background = 'rgba(13, 148, 136, 0.15)';
+    card.style.borderColor = '#0d9488';
+    if (portrait) portrait.src = '../../assets/characters/Steve/portrait.png';
+    if (portrait) portrait.style.borderColor = '#0d9488';
+    if (title) title.textContent = 'STEVE';
+    if (archetype) {
+      archetype.textContent = 'Master Crafter • Sandbox Champion (Brawler / Trap)';
+      archetype.style.color = '#2dd4bf';
+    }
+    if (keys) {
+      keys.innerHTML = player === '1'
+        ? `Move: <span class="command-key">WASD</span> | Jump: <span class="command-key">SPACE</span><br>Attacks: <span class="command-key">F</span> (5A) <span class="command-key">G</span> (5B) <span class="command-key">H</span> (5C)<br>Special: <span class="command-key">R</span> (TNT Toss) | Super: <span class="command-key">S+H / Y</span> | Dash: <span class="command-key">Q</span>`
+        : `Move: <span class="command-key">ARROWS ↑ ← ↓ →</span><br>Attacks: <span class="command-key">J / NUM1</span> (5A) <span class="command-key">K / NUM2</span> (5B) <span class="command-key">L / NUM3</span> (5C)<br>Special: <span class="command-key">U / NUM4</span> (TNT Toss) | Super: <span class="command-key">↓+L / I</span> | Dash: <span class="command-key">O</span>`;
+    }
   } else {
     card.style.background = 'rgba(6, 182, 212, 0.15)';
     card.style.borderColor = '#06b6d4';
@@ -454,6 +484,84 @@ function switchGrimoireCharacter(charId) {
         <td>9f</td><td>12f</td><td>22f</td>
         <td><span style="color: #f87171;">-5f</span></td>
         <td>250 HP (Super)</td>
+      </tr>
+    `;
+  } else if (charId === 'mewtwo') {
+    if (title) title.textContent = '👁️ MEWTWO (ZONER / TELEKINETIC OVERLORD)';
+    tbody.innerHTML = `
+      <tr>
+        <td><strong>Psychic Palm (5A)</strong></td>
+        <td><span class="command-key">F / J</span></td>
+        <td>5f</td><td>3f</td><td>7f</td>
+        <td><span style="color: #4ade80;">+3f</span></td>
+        <td>45 HP</td>
+      </tr>
+      <tr>
+        <td><strong>Psychic Crush (5B)</strong></td>
+        <td><span class="command-key">G / K</span></td>
+        <td>7f</td><td>5f</td><td>11f</td>
+        <td><span style="color: #4ade80;">+1f</span></td>
+        <td>85 HP</td>
+      </tr>
+      <tr>
+        <td><strong>Teleport Strike (5C Heavy)</strong></td>
+        <td><span class="command-key">H / L</span></td>
+        <td>9f</td><td>6f</td><td>14f</td>
+        <td><span style="color: #fde047;">-1f</span></td>
+        <td>125 HP (Wallbounce)</td>
+      </tr>
+      <tr>
+        <td><strong>Shadow Ball (Special Projectile)</strong></td>
+        <td><span class="command-key">R / U</span></td>
+        <td>10f</td><td>8f</td><td>18f</td>
+        <td><span style="color: #f87171;">-2f</span></td>
+        <td>155 HP (Dark Plasma)</td>
+      </tr>
+      <tr>
+        <td><strong>Psystrike (Super Art Finisher)</strong></td>
+        <td><span class="command-key">S+H / Y / ↓+L / I</span></td>
+        <td>9f</td><td>12f</td><td>22f</td>
+        <td><span style="color: #f87171;">-5f</span></td>
+        <td>260 HP (Super Explosion)</td>
+      </tr>
+    `;
+  } else if (charId === 'steve') {
+    if (title) title.textContent = '⛏️ STEVE (BRAWLER / TRAP SPECIALIST)';
+    tbody.innerHTML = `
+      <tr>
+        <td><strong>Blocky Punch (5A)</strong></td>
+        <td><span class="command-key">F / J</span></td>
+        <td>5f</td><td>3f</td><td>7f</td>
+        <td><span style="color: #4ade80;">+3f</span></td>
+        <td>42 HP</td>
+      </tr>
+      <tr>
+        <td><strong>Diamond Sword Slash (5B)</strong></td>
+        <td><span class="command-key">G / K</span></td>
+        <td>7f</td><td>5f</td><td>11f</td>
+        <td><span style="color: #4ade80;">+1f</span></td>
+        <td>84 HP</td>
+      </tr>
+      <tr>
+        <td><strong>Pickaxe Ground Smash (5C Heavy)</strong></td>
+        <td><span class="command-key">H / L</span></td>
+        <td>10f</td><td>6f</td><td>15f</td>
+        <td><span style="color: #fde047;">-2f</span></td>
+        <td>128 HP (Ground Bounce)</td>
+      </tr>
+      <tr>
+        <td><strong>TNT Toss (Special Projectile)</strong></td>
+        <td><span class="command-key">R / U</span></td>
+        <td>10f</td><td>8f</td><td>18f</td>
+        <td><span style="color: #f87171;">-2f</span></td>
+        <td>150 HP (Live Explosive)</td>
+      </tr>
+      <tr>
+        <td><strong>Megaton Detonation (Super Art Finisher)</strong></td>
+        <td><span class="command-key">S+H / Y / ↓+L / I</span></td>
+        <td>9f</td><td>12f</td><td>22f</td>
+        <td><span style="color: #f87171;">-5f</span></td>
+        <td>255 HP (Voxel Cataclysm)</td>
       </tr>
     `;
   } else {

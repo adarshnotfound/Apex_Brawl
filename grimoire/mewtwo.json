@@ -1,0 +1,115 @@
+{
+  "characterId": "mewtwo",
+  "name": "Mewtwo",
+  "title": "Genetic Apex & Psychic Overlord",
+  "archetype": "Zoner / Telekinetic Striker",
+  "lore": "Created by genetic engineering from the DNA of the mythical Pokémon Mew. Mewtwo commands unmatched telekinetic force, materializing destructive Shadow Balls, bending space-time to teleport at will, and detonating psychic shockwaves.",
+  "stats": {
+    "maxHealth": 940,
+    "walkSpeed": 250,
+    "dashSpeed": 500,
+    "jumpVelocity": -750,
+    "gravity": 1150
+  },
+  "moves": [
+    {
+      "id": "basic_strike",
+      "name": "Psychic Palm (5A)",
+      "type": "normal",
+      "inputSequence": ["F"],
+      "startupFrames": 5,
+      "activeFrames": 3,
+      "recoveryFrames": 7,
+      "blockAdvantage": 3,
+      "hitAdvantage": 7,
+      "damage": 45,
+      "hitbox": { "offsetX": 65, "offsetY": -25, "width": 60, "height": 35, "knockbackX": 180, "knockbackY": 0 },
+      "description": "Snappy telekinetic palm strike with fast recovery. Ideal combo starter and poke."
+    },
+    {
+      "id": "psychic_crush",
+      "name": "Psychic Crush (5B)",
+      "type": "normal",
+      "inputSequence": ["G"],
+      "startupFrames": 7,
+      "activeFrames": 5,
+      "recoveryFrames": 11,
+      "blockAdvantage": 1,
+      "hitAdvantage": 6,
+      "damage": 85,
+      "hitbox": { "offsetX": 85, "offsetY": -30, "width": 85, "height": 45, "knockbackX": 240, "knockbackY": -30 },
+      "description": "Erects a telekinetic compression force field around the opponent, crushing defenses."
+    },
+    {
+      "id": "teleport_strike",
+      "name": "Teleport Strike (5C)",
+      "type": "command_normal",
+      "inputSequence": ["H"],
+      "startupFrames": 9,
+      "activeFrames": 6,
+      "recoveryFrames": 14,
+      "blockAdvantage": -1,
+      "hitAdvantage": 9,
+      "damage": 125,
+      "hitbox": { "offsetX": 95, "offsetY": -30, "width": 95, "height": 55, "knockbackX": 360, "knockbackY": -120 },
+      "description": "Bends space-time to vanish and slash forward with an energized psychic crest that wallbounces."
+    },
+    {
+      "id": "air_psychic_jab",
+      "name": "Air Psychic Jab (8A)",
+      "type": "normal",
+      "inputSequence": ["JUMP", "F"],
+      "startupFrames": 4,
+      "activeFrames": 4,
+      "recoveryFrames": 7,
+      "blockAdvantage": 4,
+      "hitAdvantage": 8,
+      "damage": 50,
+      "hitbox": { "offsetX": 60, "offsetY": 10, "width": 60, "height": 30, "knockbackX": 85, "knockbackY": 40 },
+      "description": "Mid-air telekinetic strike to intercept jumping opponents."
+    },
+    {
+      "id": "air_cleave",
+      "name": "Air Teleport Cleave (8C)",
+      "type": "normal",
+      "inputSequence": ["JUMP", "H"],
+      "startupFrames": 8,
+      "activeFrames": 5,
+      "recoveryFrames": 13,
+      "blockAdvantage": 1,
+      "hitAdvantage": 10,
+      "damage": 110,
+      "hitbox": { "offsetX": 80, "offsetY": 20, "width": 85, "height": 50, "knockbackX": 250, "knockbackY": 130 },
+      "description": "Airborne downward psychic axe cleave driving opponents hard into the dirt."
+    },
+    {
+      "id": "shadow_ball",
+      "name": "Shadow Ball (Special Projectile)",
+      "type": "special",
+      "inputSequence": ["R"],
+      "startupFrames": 10,
+      "activeFrames": 8,
+      "recoveryFrames": 18,
+      "blockAdvantage": -2,
+      "hitAdvantage": 12,
+      "damage": 155,
+      "hitbox": { "offsetX": 120, "offsetY": -15, "width": 110, "height": 60, "knockbackX": 470, "knockbackY": -270 },
+      "description": "Charges shadowy dark matter between palms and unleashes a homing high-velocity projectile."
+    },
+    {
+      "id": "psystrike",
+      "name": "Psystrike (Super Art Finisher)",
+      "type": "super",
+      "inputSequence": ["S", "H", "or", "Y"],
+      "startupFrames": 9,
+      "activeFrames": 12,
+      "recoveryFrames": 22,
+      "blockAdvantage": -5,
+      "hitAdvantage": 18,
+      "damage": 260,
+      "hitbox": { "offsetX": 120, "offsetY": -35, "width": 140, "height": 90, "knockbackX": 700, "knockbackY": -530 },
+      "description": "Mewtwo's signature legendary psychic super art. Materializes waves of mental shockwaves erupting into an immense explosion."
+    }
+  ]
+}
+
