@@ -17,6 +17,7 @@ class FighterEntity {
     this.attackTimer = null;
     this.kikokenFired = false;
     this.isCrouching = false;
+    this.activeHoyokuVFX = null;
 
     this.hp = charId === 'strange' ? 960 : (charId === 'chunli' ? 950 : 920);
     this.maxHp = this.hp;
@@ -134,6 +135,10 @@ class FighterEntity {
         this.attackTimer.remove();
         this.attackTimer = null;
       }
+      if (this.activeHoyokuVFX && this.activeHoyokuVFX.active) {
+        this.activeHoyokuVFX.destroy();
+        this.activeHoyokuVFX = null;
+      }
       if (this.charId === 'chunli') {
         this.sprite.setDisplayOrigin(128, 128);
         this.sprite.body.setSize(100, 230);
@@ -247,6 +252,10 @@ class FighterEntity {
       this.attackTimer.remove();
       this.attackTimer = null;
     }
+    if (this.activeHoyokuVFX && this.activeHoyokuVFX.active) {
+      this.activeHoyokuVFX.destroy();
+      this.activeHoyokuVFX = null;
+    }
 
     this.sprite.setPosition(x, y);
     this.sprite.setVelocity(0, 0);
@@ -347,6 +356,10 @@ class FighterEntity {
     if (this.attackTimer) {
       this.attackTimer.remove();
       this.attackTimer = null;
+    }
+    if (this.activeHoyokuVFX && this.activeHoyokuVFX.active) {
+      this.activeHoyokuVFX.destroy();
+      this.activeHoyokuVFX = null;
     }
 
     // Spawn floating damage text (adjusted for character scale)
@@ -1079,14 +1092,14 @@ class ArenaScene extends Phaser.Scene {
     this.physics.world.setBounds(0, 0, 1920, 575);
     this.cameras.main.setBounds(0, 0, 1920, 720);
 
-    // 2. Build Multi-Layer Japanese Temple Arena (Parallax, Braziers, Lanterns, Sakura, Mist)
-    this.buildJapaneseEnvironment();
-
-    // 3. Register Animations (Fighters + Environmental Props)
+    // 2. Register Animations (Fighters + Environmental Props)
     this.registerEnvironmentAnimations();
     this.registerHarpyAnimations();
     this.registerStrangeAnimations();
     this.registerChunLiAnimations();
+
+    // 3. Build Multi-Layer Japanese Temple Arena (Parallax, Braziers, Lanterns, Sakura, Mist)
+    this.buildJapaneseEnvironment();
 
     // 3.5. Projectiles Group (no gravity so projectiles fly straight horizontally)
     this.projectiles = this.physics.add.group({ allowGravity: false });
@@ -1395,6 +1408,7 @@ class ArenaScene extends Phaser.Scene {
 
     const proj = this.physics.add.sprite(spawnX, spawnY, 'strange_sheet_power');
     this.projectiles.add(proj);
+    proj.setDepth(20);
 
     proj.setScale(0.55);
     proj.body.allowGravity = false;
@@ -1434,6 +1448,7 @@ class ArenaScene extends Phaser.Scene {
 
     const proj = this.physics.add.sprite(spawnX, spawnY, 'chunli_sheet_projectile');
     this.projectiles.add(proj);
+    proj.setDepth(20);
 
     proj.setScale(0.65);
     proj.body.allowGravity = false;
@@ -1467,6 +1482,7 @@ class ArenaScene extends Phaser.Scene {
 
   spawnKikokenImpact(x, y) {
     const impact = this.add.sprite(x, y, 'chunli_sheet_impact');
+    impact.setDepth(25);
     impact.setScale(0.75);
     impact.play('chunli_anim_impact');
     impact.on('animationcomplete', () => impact.destroy());
@@ -1481,6 +1497,7 @@ class ArenaScene extends Phaser.Scene {
     const vfxY = caster.sprite.y - 10;
 
     const vfx = this.add.sprite(vfxX, vfxY, 'chunli_sheet_vfx_lightning');
+    vfx.setDepth(25);
     vfx.setScale(0.75);
     vfx.setFlipX(!facingRight);
     vfx.play('chunli_anim_vfx_lightning');
@@ -1496,6 +1513,7 @@ class ArenaScene extends Phaser.Scene {
     const vfxY = caster.sprite.y - 12;
 
     const vfx = this.add.sprite(vfxX, vfxY, 'chunli_sheet_vfx_spinning_bird');
+    vfx.setDepth(25);
     vfx.setScale(0.78);
     vfx.setFlipX(!facingRight);
     vfx.play('chunli_anim_vfx_spinning_bird');
@@ -1505,17 +1523,82 @@ class ArenaScene extends Phaser.Scene {
 
   spawnHoyokuSenVFX(caster) {
     if (!caster || !caster.sprite) return;
-    const facingDir = caster.getFacingDir ? caster.getFacingDir() : 1;
-    const facingRight = facingDir === 1;
-    const vfxX = caster.sprite.x + (facingRight ? 65 : -65);
-    const vfxY = caster.sprite.y - 25;
 
-    const vfx = this.add.sprite(vfxX, vfxY, 'chunli_sheet_vfx_hoyoku');
+    if (caster.activeHoyokuVFX && caster.activeHoyokuVFX.active) {
+      caster.activeHoyokuVFX.destroy();
+    }
+
+    const getVFXTransform = () => {
+      const facingDir = caster.getFacingDir ? caster.getFacingDir() : 1;
+      const facingRight = facingDir === 1;
+      return {
+        x: caster.sprite.x + (facingRight ? 65 : -65),
+        y: caster.sprite.y - 25,
+        flipX: !facingRight
+      };
+    };
+
+    const initial = getVFXTransform();
+    const vfx = this.add.sprite(initial.x, initial.y, 'chunli_sheet_vfx_hoyoku');
+    vfx.setDepth(25);
     vfx.setScale(0.80);
-    vfx.setFlipX(!facingRight);
+    vfx.setFlipX(initial.flipX);
     vfx.play('chunli_anim_vfx_hoyoku');
-    vfx.on('animationcomplete', () => { if (vfx.active) vfx.destroy(); });
-    this.time.delayedCall(2500, () => { if (vfx && vfx.active) vfx.destroy(); });
+    caster.activeHoyokuVFX = vfx;
+
+    const onUpdate = () => {
+      if (!vfx || !vfx.active) {
+        this.events.off('update', onUpdate);
+        if (caster.activeHoyokuVFX === vfx) caster.activeHoyokuVFX = null;
+        return;
+      }
+
+      // Check if caster is still valid and actively in Hoyoku-sen animation cycle
+      const isStillInAnimCycle = (
+        caster &&
+        caster.sprite &&
+        caster.sprite.active &&
+        caster.hp > 0 &&
+        !caster.isKnockedBack &&
+        caster.isAttacking &&
+        caster.currentAction === 'HOYOKU-SEN (SUPER)' &&
+        caster.sprite.anims &&
+        caster.sprite.anims.currentAnim &&
+        caster.sprite.anims.currentAnim.key === 'chunli_anim_super'
+      );
+
+      if (!isStillInAnimCycle) {
+        this.events.off('update', onUpdate);
+        if (caster.activeHoyokuVFX === vfx) caster.activeHoyokuVFX = null;
+        if (vfx.active) vfx.destroy();
+        return;
+      }
+
+      // Follow Chun-Li while she is in the animation cycle
+      const pos = getVFXTransform();
+      vfx.x = pos.x;
+      vfx.y = pos.y;
+      vfx.setFlipX(pos.flipX);
+    };
+
+    this.events.on('update', onUpdate);
+
+    vfx.on('animationcomplete', () => {
+      this.events.off('update', onUpdate);
+      if (caster.activeHoyokuVFX === vfx) caster.activeHoyokuVFX = null;
+      if (vfx.active) vfx.destroy();
+    });
+
+    vfx.on('destroy', () => {
+      this.events.off('update', onUpdate);
+      if (caster.activeHoyokuVFX === vfx) caster.activeHoyokuVFX = null;
+    });
+
+    this.time.delayedCall(2500, () => {
+      this.events.off('update', onUpdate);
+      if (caster.activeHoyokuVFX === vfx) caster.activeHoyokuVFX = null;
+      if (vfx && vfx.active) vfx.destroy();
+    });
   }
 
   handleProjectileHit(proj, target) {
@@ -1758,7 +1841,7 @@ class ArenaScene extends Phaser.Scene {
       color: color,
       stroke: '#000000',
       strokeThickness: 4
-    }).setOrigin(0.5);
+    }).setOrigin(0.5).setDepth(30);
 
     this.tweens.add({
       targets: text,
