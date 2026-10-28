@@ -7,7 +7,9 @@
     "file": "grimoire/harpy.json",
     "portrait": "assets/characters/harpy/portrait.png",
     "themeColor": "#06b6d4",
-    "icon": "🦅"
+    "icon": "\ud83e\udd85",
+    "avatar": "assets/characters/harpy/select_avatar.png",
+    "actionRender": "assets/characters/harpy/action_render.png"
   },
   {
     "id": "strange",
@@ -17,7 +19,9 @@
     "file": "grimoire/doctor_strange.json",
     "portrait": "assets/characters/Dr Strange/portrait.png",
     "themeColor": "#f59e0b",
-    "icon": "🔮"
+    "icon": "\ud83d\udd2e",
+    "avatar": "assets/characters/Dr Strange/select_avatar.png",
+    "actionRender": "assets/characters/Dr Strange/action_render.png"
   },
   {
     "id": "chunli",
@@ -27,7 +31,9 @@
     "file": "grimoire/chunli.json",
     "portrait": "assets/characters/ChunLi/portrait.png",
     "themeColor": "#0284c7",
-    "icon": "⚡"
+    "icon": "\u26a1",
+    "avatar": "assets/characters/ChunLi/select_avatar.png",
+    "actionRender": "assets/characters/ChunLi/action_render.png"
   },
   {
     "id": "mewtwo",
@@ -37,7 +43,9 @@
     "file": "grimoire/mewtwo.json",
     "portrait": "assets/characters/Mewtwo/portrait.png",
     "themeColor": "#9333ea",
-    "icon": "👁️"
+    "icon": "\ud83d\udc41\ufe0f",
+    "avatar": "assets/characters/Mewtwo/select_avatar.png",
+    "actionRender": "assets/characters/Mewtwo/action_render.png"
   },
   {
     "id": "steve",
@@ -47,6 +55,8 @@
     "file": "grimoire/steve.json",
     "portrait": "assets/characters/Steve/portrait.png",
     "themeColor": "#0d9488",
-    "icon": "⛏️"
+    "icon": "\u26cf\ufe0f",
+    "avatar": "assets/characters/Steve/select_avatar.png",
+    "actionRender": "assets/characters/Steve/action_render.png"
   }
 ]
