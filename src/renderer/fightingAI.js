@@ -382,3 +382,4 @@ class FightingAI {
 
 // Global Singleton instance for client & arena consumption
 window.fightingAI = new FightingAI();
+

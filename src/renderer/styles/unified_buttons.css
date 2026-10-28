@@ -1,0 +1,405 @@
+/* ==============================================================================
+   Apex Brawl: Unified Mystic Kombat Button Design System
+   Matches signature Main Menu aesthetic across all game components & modals:
+   - Angular chamfered sci-fi / fighting polygon silhouettes
+   - Dark translucent glass background with blur
+   - Dynamic light shimmer sweep on hover
+   - Luminous gold & crimson ember glow with inner highlights
+   ============================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Universal Base Styling for All Interactive Game Buttons
+   -------------------------------------------------------------------------- */
+.menu-item,
+.fight-cta-btn,
+.mk1-fight-btn,
+.mk1-stage-toggle-btn,
+.mk1-circle-btn,
+.lan-tab-btn,
+.lan-copy-btn,
+.lan-action-cta,
+.lan-room-join-btn,
+.lan-btn-join-room,
+.lan-btn-connect,
+.arcade-diff-btn,
+.training-btn,
+.training-tab-btn,
+.seg-btn,
+.pos-btn,
+.grimoire-tab-btn,
+.close-btn,
+.training-close-btn,
+.icon-btn,
+.dojo-char-pill {
+  position: relative;
+  overflow: hidden;
+  font-family: var(--font-heading, 'Cinzel', 'Oswald', 'Rajdhani', sans-serif);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 700;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --------------------------------------------------------------------------
+   2. Dynamic Light Shimmer Sweep Animation (Signature Menu Effect)
+   -------------------------------------------------------------------------- */
+.menu-item::before,
+.fight-cta-btn::before,
+.mk1-fight-btn::before,
+.mk1-stage-toggle-btn::before,
+.lan-tab-btn::before,
+.lan-copy-btn::before,
+.lan-action-cta::before,
+.lan-room-join-btn::before,
+.lan-btn-join-room::before,
+.lan-btn-connect::before,
+.arcade-diff-btn::before,
+.training-btn::before,
+.training-tab-btn::before,
+.seg-btn::before,
+.pos-btn::before,
+.grimoire-tab-btn::before,
+.icon-btn::before,
+.dojo-char-pill::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -140%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.22) 50%,
+    transparent 100%
+  );
+  transform: skewX(-25deg);
+  transition: left 0.55s ease;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.menu-item:hover::before,
+.fight-cta-btn:hover::before,
+.mk1-fight-btn:hover::before,
+.mk1-stage-toggle-btn:hover::before,
+.lan-tab-btn:hover::before,
+.lan-tab-btn.active::before,
+.lan-copy-btn:hover::before,
+.lan-action-cta:hover:not(:disabled)::before,
+.lan-room-join-btn:hover::before,
+.lan-btn-join-room:hover::before,
+.lan-btn-connect:hover::before,
+.arcade-diff-btn:hover::before,
+.arcade-diff-btn.active::before,
+.training-btn:hover::before,
+.training-tab-btn:hover::before,
+.training-tab-btn.active::before,
+.seg-btn:hover::before,
+.seg-btn.active::before,
+.pos-btn:hover::before,
+.grimoire-tab-btn:hover::before,
+.grimoire-tab-btn.active::before,
+.icon-btn:hover::before,
+.dojo-char-pill:hover::before {
+  left: 140%;
+}
+
+/* --------------------------------------------------------------------------
+   3. Primary Battle & Fight CTA Buttons (Enter Kombats, Starts, Launches)
+   -------------------------------------------------------------------------- */
+.fight-cta-btn,
+.mk1-fight-btn,
+.lan-action-cta,
+#btnStartArcadeLadder,
+#btnLaunchTraining {
+  padding: 1.1rem 2.4rem;
+  background: linear-gradient(90deg, rgba(220, 38, 38, 0.88) 0%, rgba(234, 88, 12, 0.95) 50%, rgba(180, 83, 9, 0.9) 100%) !important;
+  border: 1px solid rgba(254, 240, 138, 0.75) !important;
+  border-radius: 0 !important;
+  clip-path: polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%);
+  color: #ffffff !important;
+  font-family: var(--font-heading, 'Cinzel', serif) !important;
+  font-size: 1.35rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.22em !important;
+  text-transform: uppercase !important;
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.7),
+    0 0 25px rgba(234, 88, 12, 0.5),
+    inset 0 0 15px rgba(254, 240, 138, 0.25) !important;
+  text-shadow: 0 0 10px rgba(254, 240, 138, 0.85), 0 2px 4px rgba(0, 0, 0, 0.9) !important;
+}
+
+.fight-cta-btn:hover,
+.mk1-fight-btn:hover,
+.lan-action-cta:hover:not(:disabled),
+#btnStartArcadeLadder:hover,
+#btnLaunchTraining:hover {
+  background: linear-gradient(90deg, #ef4444 0%, #f97316 50%, #d97706 100%) !important;
+  border-color: #ffffff !important;
+  transform: translateY(-2px) scale(1.03) !important;
+  box-shadow:
+    0 6px 30px rgba(0, 0, 0, 0.85),
+    0 0 40px rgba(245, 158, 11, 0.85),
+    inset 0 0 20px rgba(254, 240, 138, 0.45) !important;
+  color: #ffffff !important;
+}
+
+/* --------------------------------------------------------------------------
+   4. Floating Character Select Controls (Arena Selector, VS CPU, Difficulty)
+   -------------------------------------------------------------------------- */
+.mk1-stage-toggle-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  background: rgba(14, 11, 22, 0.55) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(245, 158, 11, 0.4) !important;
+  border-radius: 0 !important;
+  clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%) !important;
+  padding: 8px 18px !important;
+  color: #f3f4f6 !important;
+  font-family: var(--font-heading, 'Cinzel', serif) !important;
+  font-size: 0.82rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.1em !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4) !important;
+}
+
+.mk1-stage-toggle-btn:hover {
+  background: linear-gradient(90deg, rgba(245, 158, 11, 0.35) 0%, rgba(220, 38, 38, 0.25) 50%, rgba(245, 158, 11, 0.15) 100%) !important;
+  border-color: #f59e0b !important;
+  color: #ffffff !important;
+  transform: translateY(-2px) scale(1.02) !important;
+  box-shadow:
+    0 0 20px rgba(245, 158, 11, 0.6),
+    inset 0 0 12px rgba(254, 240, 138, 0.25) !important;
+  text-shadow: 0 0 8px rgba(254, 240, 138, 0.9) !important;
+}
+
+/* --------------------------------------------------------------------------
+   5. Modal & Panel Tabs (LAN, Training, Grimoire, Arcade)
+   -------------------------------------------------------------------------- */
+.lan-tab-btn,
+.training-tab-btn,
+.grimoire-tab-btn,
+.arcade-diff-btn {
+  background: rgba(14, 11, 22, 0.45) !important;
+  backdrop-filter: blur(6px) !important;
+  border: 1px solid rgba(245, 158, 11, 0.3) !important;
+  border-radius: 0 !important;
+  clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%) !important;
+  color: #94a3b8 !important;
+  font-family: var(--font-heading, 'Cinzel', serif) !important;
+  font-size: 0.85rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.1em !important;
+  padding: 10px 18px !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3) !important;
+}
+
+.lan-tab-btn:hover,
+.training-tab-btn:hover,
+.grimoire-tab-btn:hover,
+.arcade-diff-btn:hover {
+  background: linear-gradient(90deg, rgba(245, 158, 11, 0.25) 0%, rgba(220, 38, 38, 0.15) 100%) !important;
+  border-color: rgba(245, 158, 11, 0.6) !important;
+  color: #ffffff !important;
+  transform: translateY(-1px) !important;
+}
+
+.lan-tab-btn.active,
+.training-tab-btn.active,
+.grimoire-tab-btn.active,
+.arcade-diff-btn.active {
+  background: linear-gradient(90deg, rgba(245, 158, 11, 0.38) 0%, rgba(220, 38, 38, 0.26) 50%, rgba(245, 158, 11, 0.15) 100%) !important;
+  border-color: #f59e0b !important;
+  color: #ffffff !important;
+  transform: translateY(-2px) scale(1.02) !important;
+  box-shadow:
+    0 0 22px rgba(245, 158, 11, 0.55),
+    inset 0 0 14px rgba(254, 240, 138, 0.3) !important;
+  text-shadow: 0 0 8px rgba(254, 240, 138, 0.95) !important;
+}
+
+/* --------------------------------------------------------------------------
+   6. Medium Action Buttons (LAN Copy, Join Room, Connect, Training Quick Actions)
+   -------------------------------------------------------------------------- */
+.lan-copy-btn,
+.lan-btn-connect,
+.lan-btn-join-room,
+.lan-room-join-btn,
+.training-btn,
+.pos-btn {
+  background: rgba(14, 11, 22, 0.55) !important;
+  backdrop-filter: blur(6px) !important;
+  border: 1px solid rgba(245, 158, 11, 0.4) !important;
+  border-radius: 0 !important;
+  clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%) !important;
+  color: #f3f4f6 !important;
+  font-family: var(--font-heading, 'Cinzel', serif) !important;
+  font-size: 0.8rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  padding: 8px 16px !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35) !important;
+}
+
+.lan-copy-btn:hover,
+.lan-btn-connect:hover,
+.lan-btn-join-room:hover,
+.lan-room-join-btn:hover,
+.training-btn:hover,
+.pos-btn:hover {
+  background: linear-gradient(90deg, rgba(245, 158, 11, 0.35) 0%, rgba(220, 38, 38, 0.22) 100%) !important;
+  border-color: #f59e0b !important;
+  color: #ffffff !important;
+  transform: translateY(-2px) !important;
+  box-shadow:
+    0 0 18px rgba(245, 158, 11, 0.6),
+    inset 0 0 10px rgba(254, 240, 138, 0.25) !important;
+  text-shadow: 0 0 8px rgba(254, 240, 138, 0.9) !important;
+}
+
+/* Specific Training Quick Action Variations */
+.training-btn.btn-settings {
+  border-color: rgba(245, 158, 11, 0.6) !important;
+  color: #fef08a !important;
+}
+
+.training-btn.btn-reset {
+  border-color: rgba(56, 189, 248, 0.6) !important;
+  color: #bae6fd !important;
+}
+
+.training-btn.btn-reset:hover {
+  background: linear-gradient(90deg, rgba(2, 132, 199, 0.4) 0%, rgba(56, 189, 248, 0.25) 100%) !important;
+  border-color: #38bdf8 !important;
+  box-shadow: 0 0 18px rgba(56, 189, 248, 0.6) !important;
+}
+
+.training-btn.btn-hitbox {
+  border-color: rgba(52, 211, 153, 0.6) !important;
+  color: #a7f3d0 !important;
+}
+
+.training-btn.btn-hitbox:hover {
+  background: linear-gradient(90deg, rgba(16, 185, 129, 0.4) 0%, rgba(52, 211, 153, 0.25) 100%) !important;
+  border-color: #34d399 !important;
+  box-shadow: 0 0 18px rgba(52, 211, 153, 0.6) !important;
+}
+
+/* --------------------------------------------------------------------------
+   7. Segmented Control Pills (Training Options: Stand/Guard/Attack/CPU)
+   -------------------------------------------------------------------------- */
+.segmented-control {
+  background: rgba(10, 8, 16, 0.75) !important;
+  border: 1px solid rgba(245, 158, 11, 0.25) !important;
+  border-radius: 0 !important;
+  clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%) !important;
+  padding: 3px !important;
+  display: flex !important;
+  gap: 4px !important;
+}
+
+.seg-btn {
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  border-radius: 0 !important;
+  clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%) !important;
+  color: #94a3b8 !important;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  padding: 6px 10px !important;
+}
+
+.seg-btn:hover {
+  background: rgba(245, 158, 11, 0.15) !important;
+  color: #f3f4f6 !important;
+}
+
+.seg-btn.active {
+  background: linear-gradient(90deg, rgba(245, 158, 11, 0.4) 0%, rgba(220, 38, 38, 0.25) 100%) !important;
+  border-color: #f59e0b !important;
+  color: #ffffff !important;
+  box-shadow:
+    0 0 14px rgba(245, 158, 11, 0.55),
+    inset 0 0 8px rgba(254, 240, 138, 0.3) !important;
+  text-shadow: 0 0 6px rgba(254, 240, 138, 0.9) !important;
+}
+
+/* --------------------------------------------------------------------------
+   8. Close & Return Buttons (Facet Chamfered Octagonal Design)
+   -------------------------------------------------------------------------- */
+.close-btn,
+.training-close-btn,
+.mk1-circle-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  background: rgba(14, 11, 22, 0.65) !important;
+  backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(245, 158, 11, 0.35) !important;
+  border-radius: 0 !important;
+  clip-path: polygon(
+    6px 0, calc(100% - 6px) 0,
+    100% 6px, 100% calc(100% - 6px),
+    calc(100% - 6px) 100%, 6px 100%,
+    0 calc(100% - 6px), 0 6px
+  ) !important;
+  color: #cbd5e1 !important;
+  font-size: 1.1rem !important;
+  line-height: 1 !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5) !important;
+}
+
+.close-btn:hover,
+.training-close-btn:hover,
+.mk1-circle-btn:hover {
+  background: rgba(220, 38, 38, 0.75) !important;
+  border-color: #ef4444 !important;
+  color: #ffffff !important;
+  transform: scale(1.1) !important;
+  box-shadow:
+    0 0 18px rgba(239, 68, 68, 0.75),
+    inset 0 0 10px rgba(254, 202, 202, 0.4) !important;
+  text-shadow: 0 0 8px rgba(254, 202, 202, 0.9) !important;
+}
+
+/* --------------------------------------------------------------------------
+   9. Top Utility Icon Buttons (Audio, Fullscreen, Drone)
+   -------------------------------------------------------------------------- */
+.icon-btn {
+  background: rgba(14, 11, 20, 0.7) !important;
+  backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(245, 158, 11, 0.4) !important;
+  border-radius: 0 !important;
+  clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%) !important;
+  color: #fef08a !important;
+  padding: 0.5rem 1.1rem !important;
+  font-family: var(--font-heading, 'Cinzel', serif) !important;
+  font-size: 0.82rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.12em !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5) !important;
+}
+
+.icon-btn:hover {
+  background: linear-gradient(90deg, rgba(245, 158, 11, 0.35) 0%, rgba(220, 38, 38, 0.22) 100%) !important;
+  border-color: #f59e0b !important;
+  color: #ffffff !important;
+  box-shadow:
+    0 0 20px rgba(245, 158, 11, 0.6),
+    inset 0 0 12px rgba(254, 240, 138, 0.3) !important;
+  transform: translateY(-2px) !important;
+}
