@@ -509,3 +509,305 @@
   border: 1px solid rgba(239, 68, 68, 0.4);
   color: #fecaca;
 }
+
+
+/* ==========================================================================
+   ARCADE (VS AI) MODAL STYLESHEET
+   Ultra-Clean Glassmorphism • Transparent Frosted Acrylic UI
+   ========================================================================== */
+
+/* 1. Modal Overlay: Fully Transparent Backdrop so Game Arena & Embers show through */
+#modal-arcade.modal-overlay {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* 2. Glassmorphic Modal Card */
+#modal-arcade .modal-card,
+.arcade-glass-card {
+  max-width: 500px !important;
+  width: 92vw !important;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.02) 100%
+  ), rgba(10, 14, 26, 0.32) !important;
+  backdrop-filter: blur(28px) saturate(190%) brightness(1.06) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(190%) brightness(1.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.45) !important;
+  border-left: 1px solid rgba(255, 255, 255, 0.28) !important;
+  border-radius: 20px !important;
+  clip-path: none !important;
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.55),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.32),
+    0 0 35px rgba(245, 158, 11, 0.12) !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* 3. Header Bar */
+.arcade-header-bar {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 14px 20px !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+.arcade-title {
+  font-family: var(--font-heading, 'Cinzel', 'Oswald', sans-serif);
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--gold-light, #fbbf24);
+  text-shadow: 0 0 12px rgba(245, 158, 11, 0.5);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.arcade-close-btn {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  border-radius: 50% !important;
+  clip-path: none !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: rgba(255, 255, 255, 0.7) !important;
+  font-size: 1.15rem !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  line-height: 1 !important;
+  transition: all 0.22s ease !important;
+}
+
+.arcade-close-btn:hover {
+  background: rgba(239, 68, 68, 0.28) !important;
+  border-color: rgba(239, 68, 68, 0.7) !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.5) !important;
+  transform: rotate(90deg) scale(1.05) !important;
+}
+
+/* 4. Panel Body */
+.arcade-panel {
+  padding: 20px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+  animation: arcadePanelFade 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+@keyframes arcadePanelFade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.arcade-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.arcade-section-title {
+  font-family: var(--font-heading, 'Cinzel', 'Oswald', sans-serif);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+}
+
+/* 5. CPU Difficulty Grid & Glass Buttons */
+.arcade-diff-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.arcade-diff-btn {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 5px !important;
+  padding: 10px 4px !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 10px !important;
+  clip-path: none !important;
+  color: rgba(255, 255, 255, 0.65) !important;
+  font-family: var(--font-heading, 'Cinzel', 'Oswald', sans-serif) !important;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.06em !important;
+  cursor: pointer !important;
+  transition: all 0.22s ease !important;
+}
+
+.arcade-diff-btn:hover {
+  background: rgba(255, 255, 255, 0.09) !important;
+  color: #ffffff !important;
+  transform: translateY(-1px) !important;
+}
+
+.arcade-diff-btn.active[data-diff="EASY"] {
+  background: rgba(16, 185, 129, 0.25) !important;
+  border: 1px solid #10b981 !important;
+  color: #6ee7b7 !important;
+  box-shadow: 0 0 14px rgba(16, 185, 129, 0.4) !important;
+}
+
+.arcade-diff-btn.active[data-diff="MEDIUM"] {
+  background: rgba(245, 158, 11, 0.28) !important;
+  border: 1px solid #f59e0b !important;
+  color: #fbbf24 !important;
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.4) !important;
+}
+
+.arcade-diff-btn.active[data-diff="HARD"] {
+  background: rgba(239, 68, 68, 0.25) !important;
+  border: 1px solid #ef4444 !important;
+  color: #fca5a5 !important;
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.4) !important;
+}
+
+.arcade-diff-btn.active[data-diff="INSANE"] {
+  background: rgba(168, 85, 247, 0.25) !important;
+  border: 1px solid #a855f7 !important;
+  color: #d8b4fe !important;
+  box-shadow: 0 0 14px rgba(168, 85, 247, 0.4) !important;
+}
+
+/* 6. Tower Ladder Stage Cards */
+.arcade-ladder-card {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 14px !important;
+  padding: 8px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 4px 16px rgba(0, 0, 0, 0.2) !important;
+}
+
+.arcade-ladder-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 9px 12px !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border-radius: 8px !important;
+  transition: all 0.18s ease;
+}
+
+.arcade-ladder-row:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+.arcade-ladder-row.apex {
+  background: rgba(245, 158, 11, 0.12) !important;
+  border: 1px solid rgba(245, 158, 11, 0.45) !important;
+  box-shadow: inset 0 0 12px rgba(245, 158, 11, 0.1) !important;
+}
+
+.arcade-floor-badge {
+  font-family: var(--font-heading, 'Cinzel', 'Oswald', sans-serif);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.arcade-floor-badge.apex {
+  background: rgba(245, 158, 11, 0.25);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  font-weight: 800;
+}
+
+.arcade-fighter-name {
+  font-family: var(--font-heading, 'Cinzel', 'Oswald', sans-serif);
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.06em;
+}
+
+.arcade-fighter-name.apex {
+  color: #fbbf24;
+  text-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+  font-weight: 800;
+}
+
+.arcade-stage-tag {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.45);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.arcade-stage-tag.apex {
+  color: #f59e0b;
+  font-weight: 700;
+}
+
+/* 7. Action CTA Button */
+.arcade-action-cta {
+  width: 100% !important;
+  padding: 14px !important;
+  font-family: var(--font-heading, 'Cinzel', 'Oswald', sans-serif) !important;
+  font-size: 0.95rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  color: #ffffff !important;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.85) 0%, rgba(217, 119, 6, 0.95) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.35) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.6) !important;
+  border-radius: 12px !important;
+  clip-path: none !important;
+  cursor: pointer !important;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  box-shadow:
+    0 6px 20px rgba(245, 158, 11, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
+}
+
+.arcade-action-cta:hover {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%) !important;
+  border-color: #ffffff !important;
+  transform: translateY(-2px) !important;
+  box-shadow:
+    0 8px 25px rgba(245, 158, 11, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+}

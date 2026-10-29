@@ -187,8 +187,7 @@
    5. Modal & Panel Tabs (LAN, Training, Grimoire, Arcade)
    -------------------------------------------------------------------------- */
 .training-tab-btn,
-.grimoire-tab-btn,
-.arcade-diff-btn {
+.grimoire-tab-btn {
   background: rgba(14, 11, 22, 0.45) !important;
   backdrop-filter: blur(6px) !important;
   border: 1px solid rgba(245, 158, 11, 0.3) !important;
@@ -204,8 +203,7 @@
 }
 
 .training-tab-btn:hover,
-.grimoire-tab-btn:hover,
-.arcade-diff-btn:hover {
+.grimoire-tab-btn:hover {
   background: linear-gradient(90deg, rgba(245, 158, 11, 0.25) 0%, rgba(220, 38, 38, 0.15) 100%) !important;
   border-color: rgba(245, 158, 11, 0.6) !important;
   color: #ffffff !important;
@@ -213,8 +211,7 @@
 }
 
 .training-tab-btn.active,
-.grimoire-tab-btn.active,
-.arcade-diff-btn.active {
+.grimoire-tab-btn.active {
   background: linear-gradient(90deg, rgba(245, 158, 11, 0.38) 0%, rgba(220, 38, 38, 0.26) 50%, rgba(245, 158, 11, 0.15) 100%) !important;
   border-color: #f59e0b !important;
   color: #ffffff !important;
@@ -405,7 +402,6 @@
 }
 
 .modal-card,
-#modal-arcade .modal-card,
 #modal-grimoire .modal-card,
 #modal-controls .modal-card,
 .training-dialog {

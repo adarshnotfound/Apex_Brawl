@@ -846,11 +846,13 @@ function openModal(id) {
   const target = document.getElementById(id);
   if (target) {
     target.classList.add('open');
+    document.getElementById('menuWrapper')?.classList.add('menu-hidden');
   }
 }
 
 function closeAllModals() {
   document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+  document.getElementById('menuWrapper')?.classList.remove('menu-hidden');
 }
 
 function toggleFullscreen() {
@@ -1278,10 +1280,10 @@ function initArcadeAndAIControls() {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.arcade-diff-btn').forEach(b => {
         b.classList.remove('active');
-        b.style.background = 'rgba(255,255,255,0.05)';
+        b.style.background = '';
       });
       btn.classList.add('active');
-      btn.style.background = 'rgba(245, 158, 11, 0.25)';
+      btn.style.background = '';
       window.cpuDifficulty = btn.dataset.diff || 'MEDIUM';
       if (window.soundFX) window.soundFX.playSelect();
     });

@@ -368,58 +368,60 @@
 
   <!-- 2. Arcade Modal -->
   <div class="modal-overlay" id="modal-arcade">
-    <div class="modal-card" style="max-width: 580px;">
-      <div class="modal-header">
-        <div class="modal-title">🤖 ARCADE TOWER (VS CPU)</div>
-        <button class="close-btn" aria-label="Close">&times;</button>
-      </div>
-      <p style="color: var(--text-muted); line-height: 1.5; font-size: 0.95rem; margin-bottom: 1.2rem;">
-        Ascend the ancient Mystic Tower defeating elemental adversaries in sequence, culminating in a showdown against Harpy the Sky Terror!
-      </p>
-
-      <!-- AI Difficulty Selection -->
-      <div style="margin-bottom: 1.4rem;">
-        <div style="font-family: var(--font-heading); font-size: 0.85rem; color: #fbbf24; letter-spacing: 0.08em; margin-bottom: 0.5rem;">
-          SELECT CPU DIFFICULTY
+    <div class="modal-card arcade-glass-card">
+      <div class="arcade-header-bar">
+        <div class="arcade-title">
+          <span>🤖</span> ARCADE TOWER
         </div>
-        <div class="arcade-diff-selector" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-          <button class="arcade-diff-btn" data-diff="EASY" style="flex: 1; padding: 0.5rem; border: 1px solid #10b981; background: rgba(16, 185, 129, 0.1); color: #6ee7b7; font-family: var(--font-heading); font-size: 0.9rem; font-weight: bold; border-radius: 4px; cursor: pointer;">
-            🟢 NOVICE
-          </button>
-          <button class="arcade-diff-btn active" data-diff="MEDIUM" style="flex: 1; padding: 0.5rem; border: 1px solid #f59e0b; background: rgba(245, 158, 11, 0.25); color: #fbbf24; font-family: var(--font-heading); font-size: 0.9rem; font-weight: bold; border-radius: 4px; cursor: pointer;">
-            🟡 WARRIOR
-          </button>
-          <button class="arcade-diff-btn" data-diff="HARD" style="flex: 1; padding: 0.5rem; border: 1px solid #ef4444; background: rgba(239, 68, 68, 0.1); color: #fca5a5; font-family: var(--font-heading); font-size: 0.9rem; font-weight: bold; border-radius: 4px; cursor: pointer;">
-            🔴 MASTER
-          </button>
-          <button class="arcade-diff-btn" data-diff="INSANE" style="flex: 1; padding: 0.5rem; border: 1px solid #a855f7; background: rgba(168, 85, 247, 0.1); color: #d8b4fe; font-family: var(--font-heading); font-size: 0.9rem; font-weight: bold; border-radius: 4px; cursor: pointer;">
-            🟣 GRANDMASTER
-          </button>
-        </div>
+        <button class="close-btn arcade-close-btn" aria-label="Close" title="Close Arcade Tower">&times;</button>
       </div>
 
-      <!-- Tower Ladder Preview -->
-      <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.5rem;">
-        <div style="font-family: var(--font-heading); font-size: 0.85rem; color: #94a3b8; letter-spacing: 0.08em;">
-          TOWER LADDER STAGES
+      <div class="arcade-panel">
+        <!-- AI Difficulty Selection -->
+        <div class="arcade-section">
+          <div class="arcade-section-title">CPU DIFFICULTY</div>
+          <div class="arcade-diff-grid">
+            <button class="arcade-diff-btn" data-diff="EASY">
+              <span>🟢</span> NOVICE
+            </button>
+            <button class="arcade-diff-btn active" data-diff="MEDIUM">
+              <span>🟡</span> WARRIOR
+            </button>
+            <button class="arcade-diff-btn" data-diff="HARD">
+              <span>🔴</span> MASTER
+            </button>
+            <button class="arcade-diff-btn" data-diff="INSANE">
+              <span>🟣</span> GRANDMASTER
+            </button>
+          </div>
         </div>
-        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.8rem; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 4px;">
-          <span style="color: #e2e8f0; font-family: var(--font-heading); font-size: 0.95rem;">FLOOR 1: 🔮 DR. STRANGE</span>
-          <span style="font-size: 0.75rem; color: #94a3b8;">Celestial Abyss • Zoner</span>
-        </div>
-        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.8rem; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 4px;">
-          <span style="color: #e2e8f0; font-family: var(--font-heading); font-size: 0.95rem;">FLOOR 2: ⚡ CHUN-LI</span>
-          <span style="font-size: 0.75rem; color: #94a3b8;">Moonlit Shrine • Rushdown</span>
-        </div>
-        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.8rem; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 4px;">
-          <span style="color: #fbbf24; font-family: var(--font-heading); font-size: 0.95rem; font-weight: bold;">TOWER APEX: 🦅 HARPY THE SKY TERROR</span>
-          <span style="font-size: 0.75rem; color: #f59e0b; font-weight: bold;">FINAL BOSS</span>
-        </div>
-      </div>
 
-      <button class="fight-cta-btn" id="btnStartArcadeLadder" style="width: 100%;">
-        ⚔️ ENTER ARCADE TOWER
-      </button>
+        <!-- Tower Ladder Stages Preview -->
+        <div class="arcade-section">
+          <div class="arcade-section-title">TOWER LADDER</div>
+          <div class="arcade-ladder-card">
+            <div class="arcade-ladder-row">
+              <span class="arcade-floor-badge">STAGE 1</span>
+              <span class="arcade-fighter-name">🔮 DR. STRANGE</span>
+              <span class="arcade-stage-tag">FLOOR 1</span>
+            </div>
+            <div class="arcade-ladder-row">
+              <span class="arcade-floor-badge">STAGE 2</span>
+              <span class="arcade-fighter-name">⚡ CHUN-LI</span>
+              <span class="arcade-stage-tag">FLOOR 2</span>
+            </div>
+            <div class="arcade-ladder-row apex">
+              <span class="arcade-floor-badge apex">APEX</span>
+              <span class="arcade-fighter-name apex">🦅 HARPY</span>
+              <span class="arcade-stage-tag apex">FINAL BOSS</span>
+            </div>
+          </div>
+        </div>
+
+        <button class="arcade-action-cta" id="btnStartArcadeLadder">
+          <span>⚔️</span> ENTER ARCADE TOWER
+        </button>
+      </div>
     </div>
   </div>
 
