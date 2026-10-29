@@ -4,13 +4,14 @@
 // =========================================================
 
 (function () {
-  const FIGHTER_REGISTRY = {
+    const FIGHTER_REGISTRY = {
     harpy: {
       id: 'harpy',
       name: 'HARPY',
       subtitle: 'The Sky Terror',
       archetype: 'Rushdown • Aerial Striker',
-      portrait: '../../assets/characters/harpy/portrait.png',
+      portrait: 'assets/characters/harpy/portrait.png',
+      actionRender: 'assets/characters/harpy/action_render.png',
       themeColor: '#06b6d4',
       accentColor: '#67e8f9',
       glowColor: 'rgba(6, 182, 212, 0.6)',
@@ -26,7 +27,8 @@
       name: 'DR. STRANGE',
       subtitle: 'Master of the Mystic Arts',
       archetype: 'Zoner • Spellcaster Supreme',
-      portrait: '../../assets/characters/Dr Strange/portrait.png',
+      portrait: 'assets/characters/Dr Strange/portrait.png',
+      actionRender: 'assets/characters/Dr Strange/action_render.png',
       themeColor: '#f59e0b',
       accentColor: '#fde047',
       glowColor: 'rgba(245, 158, 11, 0.6)',
@@ -42,7 +44,8 @@
       name: 'CHUN-LI',
       subtitle: 'Strongest Woman in the World',
       archetype: 'Rushdown • Lightning Strikes',
-      portrait: '../../assets/characters/ChunLi/portrait.png',
+      portrait: 'assets/characters/ChunLi/portrait.png',
+      actionRender: 'assets/characters/ChunLi/action_render.png',
       themeColor: '#0284c7',
       accentColor: '#38bdf8',
       glowColor: 'rgba(2, 132, 199, 0.6)',
@@ -58,7 +61,8 @@
       name: 'MEWTWO',
       subtitle: 'Genetic Apex & Psychic Overlord',
       archetype: 'Zoner • Telekinetic Striker',
-      portrait: '../../assets/characters/Mewtwo/portrait.png',
+      portrait: 'assets/characters/Mewtwo/portrait.png',
+      actionRender: 'assets/characters/Mewtwo/action_render.png',
       themeColor: '#9333ea',
       accentColor: '#c084fc',
       glowColor: 'rgba(147, 51, 234, 0.6)',
@@ -69,20 +73,21 @@
         'Teleport Strike (5C) warps through attacks and wallbounces opponents into aerial follow-ups.'
       ]
     },
-    dummy: {
-      id: 'dummy',
-      name: 'TRAINING DUMMY',
-      subtitle: 'Combat Automaton',
-      archetype: 'Practice Target • Punching Dummy',
-      portrait: '../../assets/characters/dummy/portrait.png',
-      themeColor: '#64748b',
-      accentColor: '#94a3b8',
-      glowColor: 'rgba(148, 163, 184, 0.6)',
-      quote: '"Combat telemetry active. Ready for combo diagnostics."',
+    zoro: {
+      id: 'zoro',
+      name: 'RORONOA ZORO',
+      subtitle: 'King of Hell • Three-Sword Master',
+      archetype: 'Mid-Range Slash • Burst Striker',
+      portrait: 'assets/characters/zoro/portrait.png',
+      actionRender: 'assets/characters/zoro/action_render.png',
+      themeColor: '#10b981',
+      accentColor: '#34d399',
+      glowColor: 'rgba(16, 185, 129, 0.6)',
+      quote: '"When I decided to follow my dream, I had already discarded my life."',
       tips: [
-        'Use Training Mode to test combo routes, frame advantage, and damage scaling.',
-        'Toggle hitboxes with [H] to see active strike boxes (Red) and hurtboxes (Green).',
-        'Press [Tab] or click [TRAINING (TAB)] to customize dummy action and guard states.'
+        'Zoro\'s Oni Giri (5B) cuts across neutral space with massive frame advantage on hit.',
+        'Normal slash chains cancel naturally into Flying Dragon Blaze (5C) for heavy wall carries.',
+        'Zoro\'s parry counter frames can shut down aggressive rushdowns when timed precisely.'
       ]
     },
     steve: {
@@ -90,7 +95,8 @@
       name: 'STEVE',
       subtitle: 'Master Crafter & Sandbox Champion',
       archetype: 'Brawler • Trap Specialist',
-      portrait: '../../assets/characters/Steve/portrait.png',
+      portrait: 'assets/characters/Steve/portrait.png',
+      actionRender: 'assets/characters/Steve/action_render.png',
       themeColor: '#0d9488',
       accentColor: '#2dd4bf',
       glowColor: 'rgba(13, 148, 136, 0.6)',
@@ -99,6 +105,23 @@
         'Steve\'s TNT Toss (R / U) lobs explosive charges that explode on contact with massive impact.',
         'Diamond Sword Slash (5B) has exceptional horizontal priority to swat away incoming rushdowns.',
         'Pickaxe Ground Smash (5C) causes an intense ground bounce, leaving opponents vulnerable.'
+      ]
+    },
+    dummy: {
+      id: 'dummy',
+      name: 'TRAINING DUMMY',
+      subtitle: 'Combat Automaton',
+      archetype: 'Practice Target • Punching Dummy',
+      portrait: 'assets/characters/dummy/portrait.png',
+      actionRender: 'assets/characters/dummy/action_render.png',
+      themeColor: '#64748b',
+      accentColor: '#94a3b8',
+      glowColor: 'rgba(148, 163, 184, 0.6)',
+      quote: '"Combat telemetry active. Ready for combo diagnostics."',
+      tips: [
+        'Use Training Mode to test combo routes, frame advantage, and damage scaling.',
+        'Toggle hitboxes with [H] to see active strike boxes (Red) and hurtboxes.',
+        'Press [Tab] or click [TRAINING (TAB)] to customize dummy action and guard states.'
       ]
     }
   };
@@ -183,19 +206,29 @@
       window.soundFX.playStartBoom();
     }
 
-    // 2. Populate Header
+    // 2. Dynamic Stage Background Layer
+    const stageBg = document.getElementById('vs-stage-bg');
+    if (stageBg) {
+      const bgPath = selectedStage === 'sky_temple'
+        ? 'assets/backgrounds/sky_temple/modern_scene_composite.png'
+        : 'assets/backgrounds/japanese_temple/aaa_japanese_temple_arena_1080p.png';
+      stageBg.style.backgroundImage = `url('${bgPath}')`;
+    }
+
+    // 3. Populate Header
     const stageElem = document.getElementById('vs-stage-name');
     const matchElem = document.getElementById('vs-match-type');
     if (stageElem) stageElem.textContent = stageName;
     if (matchElem) matchElem.innerHTML = `<span class="vs-match-badge">⚔️ 1v1 DUEL</span> ${matchType}`;
 
-    // 3. Populate Player 1 Card
+    // 4. Populate Player 1 Dynamic Action Render & Info
     const p1Card = document.getElementById('vs-card-p1');
+    const p1Action = document.getElementById('vs-p1-action');
     const p1Portrait = document.getElementById('vs-p1-portrait');
     const p1Name = document.getElementById('vs-p1-name');
     const p1Title = document.getElementById('vs-p1-title');
     const p1Quote = document.getElementById('vs-p1-quote');
-    const p1Frame = document.getElementById('vs-p1-frame');
+    const p1Glow = document.getElementById('vs-p1-glow');
 
     if (p1Card) {
       p1Card.style.setProperty('--fighter-theme-color', p1Data.themeColor);
@@ -203,30 +236,34 @@
       p1Card.style.setProperty('--fighter-glow-color', p1Data.glowColor);
       p1Card.style.setProperty('--p1-color', p1Data.themeColor);
     }
+    if (p1Action) {
+      p1Action.src = p1Data.actionRender || p1Data.portrait;
+      p1Action.alt = p1Data.name;
+    }
     if (p1Portrait) {
       p1Portrait.src = p1Data.portrait;
       p1Portrait.alt = p1Data.name;
     }
-    if (p1Frame) {
-      p1Frame.style.boxShadow = `0 0 30px ${p1Data.glowColor}`;
-      p1Frame.style.border = `2px solid ${p1Data.accentColor}`;
+    if (p1Glow) {
+      p1Glow.style.background = `radial-gradient(circle at center, ${p1Data.glowColor} 0%, transparent 70%)`;
     }
     if (p1Name) p1Name.textContent = p1Data.name;
     if (p1Title) p1Title.textContent = p1Data.subtitle;
     if (p1Quote) p1Quote.textContent = p1Data.quote;
 
-    // 4. Populate Player 2 Card
+    // 5. Populate Player 2 Dynamic Action Render & Info
     const p2Card = document.getElementById('vs-card-p2');
+    const p2Action = document.getElementById('vs-p2-action');
     const p2Portrait = document.getElementById('vs-p2-portrait');
     const p2Name = document.getElementById('vs-p2-name');
     const p2Title = document.getElementById('vs-p2-title');
     const p2Quote = document.getElementById('vs-p2-quote');
-    const p2Frame = document.getElementById('vs-p2-frame');
+    const p2Glow = document.getElementById('vs-p2-glow');
     const p2Badge = document.getElementById('vs-p2-badge');
 
     const isMirror = p1Id === p2Id;
     if (p2Badge) {
-      p2Badge.innerHTML = isMirror ? '<span>👤 DEFENDER (MIRROR)</span>' : '<span>👤 DEFENDER (2P)</span>';
+      p2Badge.innerHTML = isMirror ? '<span>👤 DEFENDER (MIRROR)</span>' : (isCpu ? '<span>🤖 CPU DEFENDER</span>' : '<span>👤 DEFENDER (2P)</span>');
     }
 
     if (p2Card) {
@@ -235,14 +272,20 @@
       p2Card.style.setProperty('--fighter-glow-color', isMirror ? 'rgba(196, 181, 253, 0.6)' : p2Data.glowColor);
       p2Card.style.setProperty('--p2-color', isMirror ? '#c4b5fd' : p2Data.themeColor);
     }
+    if (p2Action) {
+      p2Action.src = p2Data.actionRender || p2Data.portrait;
+      p2Action.alt = p2Data.name;
+      p2Action.style.filter = isMirror
+        ? 'drop-shadow(0 0 25px rgba(168, 85, 247, 0.8)) hue-rotate(240deg) brightness(1.2)'
+        : '';
+    }
     if (p2Portrait) {
       p2Portrait.src = p2Data.portrait;
       p2Portrait.alt = p2Data.name;
       p2Portrait.style.filter = isMirror ? 'hue-rotate(240deg) brightness(1.15)' : 'none';
     }
-    if (p2Frame) {
-      p2Frame.style.boxShadow = `0 0 30px ${isMirror ? 'rgba(196, 181, 253, 0.6)' : p2Data.glowColor}`;
-      p2Frame.style.border = `2px solid ${isMirror ? '#e9d5ff' : p2Data.accentColor}`;
+    if (p2Glow) {
+      p2Glow.style.background = `radial-gradient(circle at center, ${isMirror ? 'rgba(196, 181, 253, 0.6)' : p2Data.glowColor} 0%, transparent 70%)`;
     }
     if (p2Name) p2Name.textContent = isMirror ? `${p2Data.name} (SHADOW)` : p2Data.name;
     if (p2Title) p2Title.textContent = p2Data.subtitle;

@@ -590,14 +590,14 @@ function switchGrimoireCharacter(charId) {
         <td><strong>Eldritch Strike (5A)</strong></td>
         <td><span class="command-key">F / J</span></td>
         <td>6f</td><td>3f</td><td>7f</td>
-        <td><span style="color: #4ade80;">+2f</span></td>
+        <td><span style="color: #38bdf8;">+2f</span></td>
         <td>45 HP</td>
       </tr>
       <tr>
         <td><strong>Astral Punch (5B)</strong></td>
         <td><span class="command-key">G / K</span></td>
         <td>8f</td><td>4f</td><td>11f</td>
-        <td><span style="color: #4ade80;">+1f</span></td>
+        <td><span style="color: #38bdf8;">+1f</span></td>
         <td>80 HP</td>
       </tr>
       <tr>
@@ -629,14 +629,14 @@ function switchGrimoireCharacter(charId) {
         <td><strong>Basic Strike (5A)</strong></td>
         <td><span class="command-key">F / J</span></td>
         <td>5f</td><td>3f</td><td>7f</td>
-        <td><span style="color: #4ade80;">+3f</span></td>
+        <td><span style="color: #38bdf8;">+3f</span></td>
         <td>42 HP</td>
       </tr>
       <tr>
         <td><strong>Hyakuretsukyaku (5B / 6B Lightning Legs)</strong></td>
         <td><span class="command-key">G / K</span></td>
         <td>7f</td><td>5f</td><td>11f</td>
-        <td><span style="color: #4ade80;">+1f</span></td>
+        <td><span style="color: #38bdf8;">+1f</span></td>
         <td>85 HP</td>
       </tr>
       <tr>
@@ -669,14 +669,14 @@ function switchGrimoireCharacter(charId) {
         <td><strong>Psychic Palm (5A)</strong></td>
         <td><span class="command-key">F / J</span></td>
         <td>5f</td><td>3f</td><td>7f</td>
-        <td><span style="color: #4ade80;">+3f</span></td>
+        <td><span style="color: #38bdf8;">+3f</span></td>
         <td>45 HP</td>
       </tr>
       <tr>
         <td><strong>Psychic Crush (5B)</strong></td>
         <td><span class="command-key">G / K</span></td>
         <td>7f</td><td>5f</td><td>11f</td>
-        <td><span style="color: #4ade80;">+1f</span></td>
+        <td><span style="color: #38bdf8;">+1f</span></td>
         <td>85 HP</td>
       </tr>
       <tr>
@@ -708,14 +708,14 @@ function switchGrimoireCharacter(charId) {
         <td><strong>Blocky Punch (5A)</strong></td>
         <td><span class="command-key">F / J</span></td>
         <td>5f</td><td>3f</td><td>7f</td>
-        <td><span style="color: #4ade80;">+3f</span></td>
+        <td><span style="color: #38bdf8;">+3f</span></td>
         <td>42 HP</td>
       </tr>
       <tr>
         <td><strong>Diamond Sword Slash (5B)</strong></td>
         <td><span class="command-key">G / K</span></td>
         <td>7f</td><td>5f</td><td>11f</td>
-        <td><span style="color: #4ade80;">+1f</span></td>
+        <td><span style="color: #38bdf8;">+1f</span></td>
         <td>84 HP</td>
       </tr>
       <tr>
@@ -747,7 +747,7 @@ function switchGrimoireCharacter(charId) {
         <td><strong>Talon Jab (5A)</strong></td>
         <td><span class="command-key">F / J</span></td>
         <td>5f</td><td>3f</td><td>8f</td>
-        <td><span style="color: #4ade80;">+3f</span></td>
+        <td><span style="color: #38bdf8;">+3f</span></td>
         <td>40 HP</td>
       </tr>
       <tr>
@@ -851,8 +851,16 @@ function openModal(id) {
 }
 
 function closeAllModals() {
+  const pauseModal = document.getElementById('modal-pause');
+  const pauseModalOpen = pauseModal && pauseModal.classList.contains('open');
+  if (pauseModalOpen && window.activeArenaScene && window.activeArenaScene.isPaused) {
+    window.activeArenaScene.resumeMatch();
+  }
   document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
-  document.getElementById('menuWrapper')?.classList.remove('menu-hidden');
+  const isArenaActive = document.getElementById('phaser-container')?.style.display !== 'none';
+  if (!isArenaActive) {
+    document.getElementById('menuWrapper')?.classList.remove('menu-hidden');
+  }
 }
 
 function toggleFullscreen() {

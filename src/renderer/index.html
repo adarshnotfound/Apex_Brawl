@@ -62,10 +62,11 @@
   <!-- Screen Flash Burst (on loading 100% / battle launch) -->
   <div id="screen-flash-burst"></div>
 
-  <!-- High-Octane VS Matchup & Loading Screen -->
+  <!-- High-Octane VS Matchup & Dynamic Action Loading Screen -->
   <div id="vs-loading-screen" role="dialog" aria-label="Battle Loading Screen">
-    <!-- Atmospheric Background Layers -->
-    <div class="vs-bg-layer"></div>
+    <!-- Atmospheric Stage & Energy Layers -->
+    <div class="vs-bg-layer" id="vs-stage-bg"></div>
+    <div class="vs-ambient-vignette"></div>
     <div class="vs-grid-overlay"></div>
     <div class="vs-divider-slash"></div>
 
@@ -79,43 +80,46 @@
       </div>
     </header>
 
-    <!-- Center Clash: Player 1 VS Player 2 -->
-    <div class="vs-clash-arena">
-      <!-- Player 1 Card -->
-      <div class="vs-fighter-card p1" id="vs-card-p1">
-        <div class="vs-portrait-frame" id="vs-p1-frame">
-          <img class="vs-portrait-img" id="vs-p1-portrait" src="../../assets/characters/harpy/portrait.png"
-            alt="Player 1">
+    <!-- Dynamic Action Battle Confrontation -->
+    <div class="vs-action-confrontation" id="vs-dynamic-clash">
+      <!-- Player 1 (Left Action Warrior) -->
+      <div class="vs-fighter-column p1" id="vs-card-p1">
+        <div class="vs-action-silhouette-wrap p1">
+          <div class="vs-action-ambient-glow" id="vs-p1-glow"></div>
+          <img class="vs-action-render p1" id="vs-p1-action" src="assets/characters/harpy/action_render.png" alt="Player 1">
+          <div class="vs-action-floor-shadow"></div>
         </div>
-        <div class="vs-fighter-info">
-          <div class="vs-player-badge">
+        <div class="vs-fighter-plaque p1">
+          <div class="vs-player-badge" id="vs-p1-badge">
             <span>👑 CHALLENGER (1P)</span>
           </div>
-          <h2 class="vs-fighter-name" id="vs-p1-name">HARPY</h2>
+          <h1 class="vs-fighter-name" id="vs-p1-name">HARPY</h1>
           <div class="vs-fighter-title" id="vs-p1-title">The Sky Terror • Aerial Striker</div>
           <div class="vs-fighter-quote" id="vs-p1-quote">"The skies belong to the apex predator!"</div>
         </div>
       </div>
 
-      <!-- Center VS Emblem -->
+      <!-- Center VS Clash Crest -->
       <div class="vs-center-emblem">
         <div class="vs-mandala-ring"></div>
         <div class="vs-mandala-ring inner"></div>
+        <div class="vs-clash-sparks"></div>
         <div class="vs-symbol">VS</div>
         <div class="vs-subtext">CLASH OF APEX</div>
       </div>
 
-      <!-- Player 2 Card -->
-      <div class="vs-fighter-card p2" id="vs-card-p2">
-        <div class="vs-portrait-frame" id="vs-p2-frame">
-          <img class="vs-portrait-img" id="vs-p2-portrait" src="../../assets/characters/Dr Strange/portrait.png"
-            alt="Player 2">
+      <!-- Player 2 (Right Action Warrior) -->
+      <div class="vs-fighter-column p2" id="vs-card-p2">
+        <div class="vs-action-silhouette-wrap p2">
+          <div class="vs-action-ambient-glow" id="vs-p2-glow"></div>
+          <img class="vs-action-render p2" id="vs-p2-action" src="assets/characters/Dr Strange/action_render.png" alt="Player 2">
+          <div class="vs-action-floor-shadow"></div>
         </div>
-        <div class="vs-fighter-info">
+        <div class="vs-fighter-plaque p2">
           <div class="vs-player-badge" id="vs-p2-badge">
             <span>👤 DEFENDER (2P)</span>
           </div>
-          <h2 class="vs-fighter-name" id="vs-p2-name">DR. STRANGE</h2>
+          <h1 class="vs-fighter-name" id="vs-p2-name">DR. STRANGE</h1>
           <div class="vs-fighter-title" id="vs-p2-title">Master of the Mystic Arts</div>
           <div class="vs-fighter-quote" id="vs-p2-quote">"Dormammu, I have come to bargain."</div>
         </div>
@@ -222,6 +226,41 @@
   </div>
 
   <!-- ================= MODALS ================= -->
+
+  <!-- 7. In-Game Pause (ESC) Modal -->
+  <div class="modal-overlay" id="modal-pause">
+    <div class="modal-card pause-glass-card">
+      <div class="pause-header">
+        <div class="pause-title">
+          <span>⏸️</span> KOMBAT PAUSED
+        </div>
+      </div>
+      <div class="pause-menu-list">
+        <button class="menu-item pause-menu-item" id="btnResumeMatch">
+          <span class="menu-label-group">
+            <span class="menu-icon">▶️</span>
+            <span>RESUME KOMBAT</span>
+          </span>
+          <span class="menu-indicator">▶</span>
+        </button>
+        <button class="menu-item pause-menu-item" id="btnRestartMatch">
+          <span class="menu-label-group">
+            <span class="menu-icon">🔄</span>
+            <span>RESTART MATCH</span>
+          </span>
+          <span class="menu-indicator">▶</span>
+        </button>
+        <button class="menu-item pause-menu-item exit-item" id="btnExitToMenu">
+          <span class="menu-label-group">
+            <span class="menu-icon">🚪</span>
+            <span>EXIT TO MAIN MENU</span>
+          </span>
+          <span class="menu-indicator">▶</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
 
   <!-- 1. Mortal Kombat 1 Style Character Selection Menu (Full Screen Vista) -->
   <div class="modal-overlay mk1-select-overlay" id="modal-battle-prompt">
@@ -382,7 +421,7 @@
           <div class="arcade-section-title">CPU DIFFICULTY</div>
           <div class="arcade-diff-grid">
             <button class="arcade-diff-btn" data-diff="EASY">
-              <span>🟢</span> NOVICE
+              <span>⚔️</span> NOVICE
             </button>
             <button class="arcade-diff-btn active" data-diff="MEDIUM">
               <span>🟡</span> WARRIOR
@@ -476,7 +515,7 @@
             <td>5f</td>
             <td>3f</td>
             <td>8f</td>
-            <td><span style="color: #4ade80;">+3f</span></td>
+            <td><span style="color: #38bdf8;">+3f</span></td>
             <td>40 HP</td>
           </tr>
           <tr>

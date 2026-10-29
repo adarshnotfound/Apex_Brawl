@@ -3147,77 +3147,25 @@ class ArenaScene extends Phaser.Scene {
     this.isPaused = true;
     this.physics.world.pause();
 
-    // Semi-transparent frosted dark glass overlay
-    this.pauseOverlay = this.add.rectangle(640, 360, 1280, 720, 0x050408, 0.48).setScrollFactor(0).setDepth(300);
-
-    // Centered glass card panel matching main menu translucent design
-    this.pauseCard = this.add.rectangle(640, 360, 480, 330, 0x0e0b16, 0.52).setScrollFactor(0).setDepth(301);
-    this.pauseCard.setStrokeStyle(1.5, 0xf59e0b, 0.85);
-
-    this.pauseTitle = this.add.text(640, 235, '⏸️ KOMBAT PAUSED', {
-      fontFamily: 'Bebas Neue, Cinzel, Rajdhani, sans-serif',
-      fontSize: '36px',
-      color: '#fef08a',
-      stroke: '#000000',
-      strokeThickness: 4
-    }).setOrigin(0.5).setScrollFactor(0).setDepth(302);
-
-    this.pauseObjects = [this.pauseOverlay, this.pauseCard, this.pauseTitle];
-
-    const createPauseBtn = (y, text, icon, onClick, isDanger = false) => {
-      const btnBg = this.add.rectangle(640, y, 380, 44, isDanger ? 0x220f14 : 0x140f1f, 0.6)
-        .setScrollFactor(0)
-        .setDepth(302)
-        .setInteractive({ useHandCursor: true });
-      btnBg.setStrokeStyle(1.2, isDanger ? 0xef4444 : 0xf59e0b, 0.7);
-
-      const btnText = this.add.text(640, y, `${icon} ${text}`, {
-        fontFamily: 'Cinzel, Oswald, Rajdhani, sans-serif',
-        fontSize: '15px',
-        fontStyle: 'bold',
-        letterSpacing: 2,
-        color: isDanger ? '#fca5a5' : '#fef3c7'
-      }).setOrigin(0.5).setScrollFactor(0).setDepth(303);
-
-      btnBg.on('pointerover', () => {
-        btnBg.setFillStyle(isDanger ? 0xdc2626 : 0xd97706, 0.85);
-        btnBg.setStrokeStyle(1.5, 0xffffff, 1);
-        btnText.setColor('#ffffff');
-      });
-      btnBg.on('pointerout', () => {
-        btnBg.setFillStyle(isDanger ? 0x220f14 : 0x140f1f, 0.6);
-        btnBg.setStrokeStyle(1.2, isDanger ? 0xef4444 : 0xf59e0b, 0.7);
-        btnText.setColor(isDanger ? '#fca5a5' : '#fef3c7');
-      });
-      btnBg.on('pointerdown', onClick);
-
-      this.pauseObjects.push(btnBg, btnText);
-    };
-
-    // 1. RESUME KOMBAT
-    createPauseBtn(295, 'RESUME KOMBAT', '▶️', () => this.resumeMatch());
-
-    // 2. RESTART MATCH
-    createPauseBtn(355, 'RESTART MATCH', '🔄', () => {
-      this.clearPauseUI();
-      this.restartMatch();
-    });
-
-    // 3. EXIT TO MAIN MENU
-    createPauseBtn(415, 'EXIT TO MAIN MENU', '🚪', () => {
-      this.clearPauseUI();
-      if (window.exitArenaToMenu) window.exitArenaToMenu();
-      else window.location.reload();
-    }, true);
+    const pauseModal = document.getElementById('modal-pause');
+    if (pauseModal) {
+      pauseModal.classList.add('open');
+    }
+    if (window.soundFX) window.soundFX.playSelect();
   }
 
   resumeMatch() {
     this.clearPauseUI();
     this.physics.world.resume();
     this.isPaused = false;
+    if (window.soundFX) window.soundFX.playSelect();
   }
 
   clearPauseUI() {
+    const pauseModal = document.getElementById('modal-pause');
+    if (pauseModal) {
+      pauseModal.classList.remove('open');
+    }
     if (this.pauseObjects) {
       this.pauseObjects.forEach(obj => {
         if (obj && obj.destroy) obj.destroy();
@@ -4782,6 +4730,8 @@ window.exitArenaToMenu = function () {
     trainingModal.classList.remove('open');
     trainingModal.style.display = 'none';
   }
+  const pauseModal = document.getElementById('modal-pause');
+  if (pauseModal) pauseModal.classList.remove('open');
   if (menuWrapper) menuWrapper.style.display = 'flex';
 };
 
@@ -4792,3 +4742,43 @@ window.restartMatch = function () {
     window.startPhaserArena();
   }
 };
+
+// --------------------------------------------------------------------------
+// In-Game ESC Pause Menu Listeners
+// --------------------------------------------------------------------------
+(function setupPauseModalListeners() {
+  const attach = () => {
+    const btnResume = document.getElementById('btnResumeMatch');
+    const btnRestart = document.getElementById('btnRestartMatch');
+    const btnExit = document.getElementById('btnExitToMenu');
+
+    if (btnResume) {
+      btnResume.onclick = () => {
+        if (window.activeArenaScene) window.activeArenaScene.resumeMatch();
+      };
+    }
+    if (btnRestart) {
+      btnRestart.onclick = () => {
+        if (window.activeArenaScene) {
+          window.activeArenaScene.clearPauseUI();
+          window.activeArenaScene.restartMatch();
+        } else if (window.restartMatch) {
+          window.restartMatch();
+        }
+      };
+    }
+    if (btnExit) {
+      btnExit.onclick = () => {
+        if (window.activeArenaScene) window.activeArenaScene.clearPauseUI();
+        if (window.exitArenaToMenu) window.exitArenaToMenu();
+        else window.location.reload();
+      };
+    }
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', attach);
+  } else {
+    attach();
+  }
+})();
