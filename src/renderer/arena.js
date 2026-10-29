@@ -31,6 +31,10 @@ class FighterEntity {
     this.hp = charId === 'strange' ? 960 : (charId === 'chunli' ? 950 : (charId === 'mewtwo' ? 940 : (charId === 'steve' ? 980 : 920)));
     this.maxHp = this.hp;
 
+    // 3-Section Ki Meter: 100 Ki per section, 300 Ki total (starts at 100 Ki / 1 section)
+    this.ki = 100;
+    this.maxKi = 300;
+
     // Movement speeds & Jump velocity (balanced fighting game frame data)
     this.walkSpeed = charId === 'strange' ? 215 : (charId === 'chunli' ? 260 : (charId === 'mewtwo' ? 250 : (charId === 'steve' ? 240 : 260)));
     this.dashSpeed = charId === 'strange' ? 460 : (charId === 'chunli' ? 495 : (charId === 'mewtwo' ? 500 : (charId === 'steve' ? 470 : 490)));
@@ -475,8 +479,33 @@ class FighterEntity {
     }
   }
 
-  reset(x, y) {
+  addKi(amount) {
+    this.ki = Math.min(this.maxKi, Math.max(0, this.ki + amount));
+  }
+
+  hasKi(amount) {
+    return this.ki >= amount;
+  }
+
+  useKi(amount) {
+    if (this.ki >= amount) {
+      this.ki -= amount;
+      return true;
+    }
+    return false;
+  }
+
+  getKiSections() {
+    return Math.floor(this.ki / 100);
+  }
+
+  reset(x, y, resetKi = false) {
     this.hp = this.maxHp;
+    if (resetKi) {
+      this.ki = 100;
+    } else {
+      this.ki = Math.max(100, Math.min(this.maxKi, this.ki));
+    }
     this.isAttacking = false;
     this.isKnockedBack = false;
     this.isInAir = false;
@@ -730,6 +759,13 @@ class FighterEntity {
 
     // Apply Damage
     this.hp = Math.max(0, this.hp - attackData.damage);
+
+    // Ki Energy generation: attacker gains Ki upon successfully landing attack, defender builds 10 Ki
+    if (attacker && attacker.addKi) {
+      const kiAward = attackData.isSpecial ? 25 : (attackData.damage >= 70 ? 35 : 25);
+      attacker.addKi(kiAward);
+    }
+    this.addKi(10);
 
     // Immediately cancel attacking and crouching state so player is never locked out
     this.isAttacking = false;
@@ -1097,13 +1133,21 @@ class FighterEntity {
             isSpecial: false
           }, 500);
         } else {
+          // Ground Psychic Crush: Heavy damage-dealing special move costs 2 sections (200 Ki)
+          if (!this.hasKi(200)) {
+            if (this.scene && this.scene.showKiDeniedAlert) {
+              this.scene.showKiDeniedAlert(this, 2);
+            }
+            return;
+          }
+          this.useKi(200);
           this.triggerAttack('PSYCHIC CRUSH (5B)', 'mewtwo_anim_atk_5b', {
             damage: 95,
             rangeX: 800,
             rangeY: 160,
             knockbackX: 250,
             knockbackY: -80,
-            isSpecial: false
+            isSpecial: true
           }, 1000);
           this.hasDealtDamage = true; // Damage applied on ground slam impact in spawnPsychicCrushVFX
           if (this.scene && this.scene.spawnPsychicCrushVFX) {
@@ -1163,7 +1207,171 @@ class FighterEntity {
       return;
     }
 
+    // Super Move -> Costs all 3 sections of Ki meter (300 Ki / MAX)!
+    if (input.superJustDown) {
+      if (!this.hasKi(300)) {
+        if (this.scene && this.scene.showKiDeniedAlert) {
+          this.scene.showKiDeniedAlert(this, 3);
+        }
+        return;
+      }
+      this.useKi(300);
+      if (this.charId === 'strange') {
+        this.triggerAttack('MIRROR DIMENSION SHATTER (SUPER)', 'strange_anim_super', {
+          damage: 245,
+          rangeX: 300,
+          rangeY: 190,
+          knockbackX: 700,
+          knockbackY: -550,
+          isSpecial: true
+        });
+      } else if (this.charId === 'chunli') {
+        this.triggerAttack('HOYOKU-SEN (SUPER)', 'chunli_anim_super', {
+          damage: 250,
+          rangeX: 300,
+          rangeY: 190,
+          knockbackX: 680,
+          knockbackY: -540,
+          isSpecial: true
+        }, 2200);
+        if (this.scene && this.scene.spawnHoyokuSenVFX) {
+          this.scene.spawnHoyokuSenVFX(this);
+        }
+      } else if (this.charId === 'mewtwo') {
+        this.triggerAttack('PSYSTRIKE (SUPER)', 'mewtwo_anim_super', {
+          damage: 260,
+          rangeX: 320,
+          rangeY: 200,
+          knockbackX: 720,
+          knockbackY: -560,
+          isSpecial: true
+        }, 2200);
+        this.hasDealtDamage = true; // Damage applies only when the Psystrike energy ball explodes upon the opponent!
+        if (this.scene && this.scene.spawnPsystrikeVFX) {
+          this.scene.spawnPsystrikeVFX(this);
+        }
+      } else if (this.charId === 'steve') {
+        this.triggerAttack('MEGATON DETONATION (SUPER)', 'steve_anim_super', {
+          damage: 260,
+          rangeX: 800,
+          rangeY: 600,
+          knockbackX: 720,
+          knockbackY: -560,
+          isSpecial: true
+        }, 750);
+        this.hasDealtDamage = true; // Damage applied when TNT auto-spawns on opponent and explodes to pieces!
+        if (this.scene && this.scene.spawnMegatonSuperVFX) {
+          this.scene.spawnMegatonSuperVFX(this);
+        }
+      } else {
+        this.triggerAttack('FEATHER STORM (SUPER)', 'harpy_anim_super', {
+          damage: 240,
+          rangeX: 290,
+          rangeY: 180,
+          knockbackX: 680,
+          knockbackY: -540,
+          isSpecial: true
+        });
+      }
+      return;
+    }
+
+    // Special Attack -> Costs 1 section of Ki meter (100 Ki)
+    if (input.specialJustDown) {
+      if (!this.hasKi(100)) {
+        if (this.scene && this.scene.showKiDeniedAlert) {
+          this.scene.showKiDeniedAlert(this, 1);
+        }
+        return;
+      }
+      this.useKi(100);
+      if (this.charId === 'strange') {
+        if (input.up) {
+          this.triggerAttack('SHIELD OF SERAPHIM (AA)', 'strange_anim_sp_projectile', {
+            damage: 165,
+            rangeX: 220,
+            rangeY: 170,
+            knockbackX: 320,
+            knockbackY: -540,
+            isSpecial: true
+          });
+        } else {
+          this.triggerAttack('CRIMSON BANDS (PROJECTILE)', 'strange_anim_sp_projectile', {
+            damage: 155,
+            rangeX: 140,
+            rangeY: 100,
+            knockbackX: 480,
+            knockbackY: -340,
+            isSpecial: true
+          });
+          // Summon real traveling mystic projectile!
+          if (this.scene && this.scene.spawnMysticProjectile) {
+            this.scene.spawnMysticProjectile(this);
+          }
+        }
+      } else if (this.charId === 'chunli') {
+        this.triggerAttack('KIKOKEN (PROJECTILE)', 'chunli_anim_sp_kikoken', {
+          damage: 150,
+          rangeX: 140,
+          rangeY: 100,
+          knockbackX: 500,
+          knockbackY: -350,
+          isSpecial: true
+        }, 1200);
+      } else if (this.charId === 'mewtwo') {
+        this.triggerAttack('SHADOW BALL (PROJECTILE)', 'mewtwo_anim_sp_shadow_ball', {
+          damage: 155,
+          rangeX: 140,
+          rangeY: 100,
+          knockbackX: 520,
+          knockbackY: -360,
+          isSpecial: true
+        }, 1100);
+        if (this.scene && this.scene.spawnShadowBallChargeVFX) {
+          this.scene.spawnShadowBallChargeVFX(this);
+        }
+      } else if (this.charId === 'steve') {
+        this.triggerAttack('TNT TOSS (PROJECTILE)', 'steve_anim_sp_tnt', {
+          damage: 150,
+          rangeX: 140,
+          rangeY: 100,
+          knockbackX: 540,
+          knockbackY: -380,
+          isSpecial: true
+        }, 1000);
+      } else {
+        if (input.up) {
+          this.triggerAttack('SKY DRAGON DP (262C)', 'harpy_anim_sp_262c', {
+            damage: 160,
+            rangeX: 230,
+            rangeY: 160,
+            knockbackX: 580,
+            knockbackY: -500,
+            isSpecial: true
+          });
+        } else {
+          this.triggerAttack('TEMPEST CYCLONE (235B)', 'harpy_anim_sp_235b', {
+            damage: 150,
+            rangeX: 220,
+            rangeY: 140,
+            knockbackX: 550,
+            knockbackY: -460,
+            isSpecial: true
+          });
+        }
+      }
+      return;
+    }
+
+    // Heavy Damage-Dealing Special Moves -> Costs 2 sections of Ki meter (200 Ki)
     if (input.heavyJustDown) {
+      if (!this.hasKi(200)) {
+        if (this.scene && this.scene.showKiDeniedAlert) {
+          this.scene.showKiDeniedAlert(this, 2);
+        }
+        return;
+      }
+      this.useKi(200);
       if (this.charId === 'strange') {
         if (this.isInAir) {
           this.triggerAttack('VAPORS OF VALTORR (8C)', 'strange_anim_atk_8c', {
@@ -1273,148 +1481,6 @@ class FighterEntity {
             isSpecial: true
           });
         }
-      }
-      return;
-    }
-
-    // Special Attack
-    if (input.specialJustDown) {
-      if (this.charId === 'strange') {
-        if (input.up) {
-          this.triggerAttack('SHIELD OF SERAPHIM (AA)', 'strange_anim_sp_projectile', {
-            damage: 165,
-            rangeX: 220,
-            rangeY: 170,
-            knockbackX: 320,
-            knockbackY: -540,
-            isSpecial: true
-          });
-        } else {
-          this.triggerAttack('CRIMSON BANDS (PROJECTILE)', 'strange_anim_sp_projectile', {
-            damage: 155,
-            rangeX: 140,
-            rangeY: 100,
-            knockbackX: 480,
-            knockbackY: -340,
-            isSpecial: true
-          });
-          // Summon real traveling mystic projectile!
-          if (this.scene && this.scene.spawnMysticProjectile) {
-            this.scene.spawnMysticProjectile(this);
-          }
-        }
-      } else if (this.charId === 'chunli') {
-        this.triggerAttack('KIKOKEN (PROJECTILE)', 'chunli_anim_sp_kikoken', {
-          damage: 150,
-          rangeX: 140,
-          rangeY: 100,
-          knockbackX: 500,
-          knockbackY: -350,
-          isSpecial: true
-        }, 1200);
-      } else if (this.charId === 'mewtwo') {
-        this.triggerAttack('SHADOW BALL (PROJECTILE)', 'mewtwo_anim_sp_shadow_ball', {
-          damage: 155,
-          rangeX: 140,
-          rangeY: 100,
-          knockbackX: 520,
-          knockbackY: -360,
-          isSpecial: true
-        }, 1100);
-        if (this.scene && this.scene.spawnShadowBallChargeVFX) {
-          this.scene.spawnShadowBallChargeVFX(this);
-        }
-      } else if (this.charId === 'steve') {
-        this.triggerAttack('TNT TOSS (PROJECTILE)', 'steve_anim_sp_tnt', {
-          damage: 150,
-          rangeX: 140,
-          rangeY: 100,
-          knockbackX: 540,
-          knockbackY: -380,
-          isSpecial: true
-        }, 1000);
-      } else {
-        if (input.up) {
-          this.triggerAttack('SKY DRAGON DP (262C)', 'harpy_anim_sp_262c', {
-            damage: 160,
-            rangeX: 230,
-            rangeY: 160,
-            knockbackX: 580,
-            knockbackY: -500,
-            isSpecial: true
-          });
-        } else {
-          this.triggerAttack('TEMPEST CYCLONE (235B)', 'harpy_anim_sp_235b', {
-            damage: 150,
-            rangeX: 220,
-            rangeY: 140,
-            knockbackX: 550,
-            knockbackY: -460,
-            isSpecial: true
-          });
-        }
-      }
-      return;
-    }
-
-    // Super Move -> Massive Knockback!
-    if (input.superJustDown) {
-      if (this.charId === 'strange') {
-        this.triggerAttack('MIRROR DIMENSION SHATTER (SUPER)', 'strange_anim_super', {
-          damage: 245,
-          rangeX: 300,
-          rangeY: 190,
-          knockbackX: 700,
-          knockbackY: -550,
-          isSpecial: true
-        });
-      } else if (this.charId === 'chunli') {
-        this.triggerAttack('HOYOKU-SEN (SUPER)', 'chunli_anim_super', {
-          damage: 250,
-          rangeX: 300,
-          rangeY: 190,
-          knockbackX: 680,
-          knockbackY: -540,
-          isSpecial: true
-        }, 2200);
-        if (this.scene && this.scene.spawnHoyokuSenVFX) {
-          this.scene.spawnHoyokuSenVFX(this);
-        }
-      } else if (this.charId === 'mewtwo') {
-        this.triggerAttack('PSYSTRIKE (SUPER)', 'mewtwo_anim_super', {
-          damage: 260,
-          rangeX: 320,
-          rangeY: 200,
-          knockbackX: 720,
-          knockbackY: -560,
-          isSpecial: true
-        }, 2200);
-        this.hasDealtDamage = true; // Damage applies only when the Psystrike energy ball explodes upon the opponent!
-        if (this.scene && this.scene.spawnPsystrikeVFX) {
-          this.scene.spawnPsystrikeVFX(this);
-        }
-      } else if (this.charId === 'steve') {
-        this.triggerAttack('MEGATON DETONATION (SUPER)', 'steve_anim_super', {
-          damage: 260,
-          rangeX: 800,
-          rangeY: 600,
-          knockbackX: 720,
-          knockbackY: -560,
-          isSpecial: true
-        }, 750);
-        this.hasDealtDamage = true; // Damage applied when TNT auto-spawns on opponent and explodes to pieces!
-        if (this.scene && this.scene.spawnMegatonSuperVFX) {
-          this.scene.spawnMegatonSuperVFX(this);
-        }
-      } else {
-        this.triggerAttack('FEATHER STORM (SUPER)', 'harpy_anim_super', {
-          damage: 240,
-          rangeX: 290,
-          rangeY: 180,
-          knockbackX: 680,
-          knockbackY: -540,
-          isSpecial: true
-        });
       }
       return;
     }
@@ -3455,6 +3521,37 @@ class ArenaScene extends Phaser.Scene {
       fontStyle: 'bold'
     }).setScrollFactor(0).setDepth(100);
 
+    // --- PLAYER 1 KI METER (3 Distinct Sections, 100 Ki each, y = 104) ---
+    this.p1KiText = this.add.text(125, 104, 'KI', {
+      fontFamily: 'Bebas Neue, Rajdhani, sans-serif',
+      fontSize: '15px',
+      color: '#38bdf8'
+    }).setOrigin(1, 0.5).setScrollFactor(0).setDepth(100);
+
+    // Slot 1 (0..100 Ki)
+    this.p1KiBg1 = this.add.rectangle(137, 104, 106, 11, 0x18181b, 0.9).setOrigin(0, 0.5).setStrokeStyle(1, 0x3f3f46).setScrollFactor(0).setDepth(100);
+    this.p1KiFill1 = this.add.rectangle(138, 104, 0, 9, 0x06b6d4).setOrigin(0, 0.5).setScrollFactor(0).setDepth(101);
+
+    // Slot 2 (100..200 Ki)
+    this.p1KiBg2 = this.add.rectangle(247, 104, 106, 11, 0x18181b, 0.9).setOrigin(0, 0.5).setStrokeStyle(1, 0x3f3f46).setScrollFactor(0).setDepth(100);
+    this.p1KiFill2 = this.add.rectangle(248, 104, 0, 9, 0xf59e0b).setOrigin(0, 0.5).setScrollFactor(0).setDepth(101);
+
+    // Slot 3 (200..300 Ki)
+    this.p1KiBg3 = this.add.rectangle(357, 104, 106, 11, 0x18181b, 0.9).setOrigin(0, 0.5).setStrokeStyle(1, 0x3f3f46).setScrollFactor(0).setDepth(100);
+    this.p1KiFill3 = this.add.rectangle(358, 104, 0, 9, 0xd946ef).setOrigin(0, 0.5).setScrollFactor(0).setDepth(101);
+
+    // Slot badges / numerals
+    this.add.text(190, 104, 'I', { fontFamily: 'Rajdhani', fontSize: '9px', color: '#71717a' }).setOrigin(0.5).setScrollFactor(0).setDepth(102);
+    this.add.text(300, 104, 'II', { fontFamily: 'Rajdhani', fontSize: '9px', color: '#71717a' }).setOrigin(0.5).setScrollFactor(0).setDepth(102);
+    this.add.text(410, 104, 'III', { fontFamily: 'Rajdhani', fontSize: '9px', color: '#71717a' }).setOrigin(0.5).setScrollFactor(0).setDepth(102);
+
+    this.p1KiStockText = this.add.text(468, 104, '1 / 3', {
+      fontFamily: 'Rajdhani, sans-serif',
+      fontSize: '11px',
+      color: '#e4e4e7',
+      fontStyle: 'bold'
+    }).setOrigin(0, 0.5).setScrollFactor(0).setDepth(100);
+
     // --- PLAYER 2 HUD (Right) ---
     const p2Color = p2Id === 'strange' ? 0xf59e0b : (p2Id === 'chunli' ? 0x0284c7 : (p2Id === 'mewtwo' ? 0x9333ea : (p2Id === 'steve' ? 0x0d9488 : 0x06b6d4)));
     const p2Hex = p2Id === 'strange' ? '#f59e0b' : (p2Id === 'chunli' ? '#38bdf8' : (p2Id === 'mewtwo' ? '#c084fc' : (p2Id === 'steve' ? '#2dd4bf' : '#06b6d4')));
@@ -3489,6 +3586,37 @@ class ArenaScene extends Phaser.Scene {
       color: p2Hex,
       fontStyle: 'bold'
     }).setOrigin(1, 0).setScrollFactor(0).setDepth(100);
+
+    // --- PLAYER 2 KI METER (3 Distinct Sections, 100 Ki each, y = 104) ---
+    this.p2KiText = this.add.text(1155, 104, 'KI', {
+      fontFamily: 'Bebas Neue, Rajdhani, sans-serif',
+      fontSize: '15px',
+      color: '#38bdf8'
+    }).setOrigin(0, 0.5).setScrollFactor(0).setDepth(100);
+
+    // Slot 1 (0..100 Ki, rightmost)
+    this.p2KiBg1 = this.add.rectangle(1143, 104, 106, 11, 0x18181b, 0.9).setOrigin(1, 0.5).setStrokeStyle(1, 0x3f3f46).setScrollFactor(0).setDepth(100);
+    this.p2KiFill1 = this.add.rectangle(1142, 104, 0, 9, 0x06b6d4).setOrigin(1, 0.5).setScrollFactor(0).setDepth(101);
+
+    // Slot 2 (100..200 Ki)
+    this.p2KiBg2 = this.add.rectangle(1033, 104, 106, 11, 0x18181b, 0.9).setOrigin(1, 0.5).setStrokeStyle(1, 0x3f3f46).setScrollFactor(0).setDepth(100);
+    this.p2KiFill2 = this.add.rectangle(1032, 104, 0, 9, 0xf59e0b).setOrigin(1, 0.5).setScrollFactor(0).setDepth(101);
+
+    // Slot 3 (200..300 Ki, innermost)
+    this.p2KiBg3 = this.add.rectangle(923, 104, 106, 11, 0x18181b, 0.9).setOrigin(1, 0.5).setStrokeStyle(1, 0x3f3f46).setScrollFactor(0).setDepth(100);
+    this.p2KiFill3 = this.add.rectangle(922, 104, 0, 9, 0xd946ef).setOrigin(1, 0.5).setScrollFactor(0).setDepth(101);
+
+    // Slot badges / numerals
+    this.add.text(1090, 104, 'I', { fontFamily: 'Rajdhani', fontSize: '9px', color: '#71717a' }).setOrigin(0.5).setScrollFactor(0).setDepth(102);
+    this.add.text(980, 104, 'II', { fontFamily: 'Rajdhani', fontSize: '9px', color: '#71717a' }).setOrigin(0.5).setScrollFactor(0).setDepth(102);
+    this.add.text(870, 104, 'III', { fontFamily: 'Rajdhani', fontSize: '9px', color: '#71717a' }).setOrigin(0.5).setScrollFactor(0).setDepth(102);
+
+    this.p2KiStockText = this.add.text(812, 104, '1 / 3', {
+      fontFamily: 'Rajdhani, sans-serif',
+      fontSize: '11px',
+      color: '#e4e4e7',
+      fontStyle: 'bold'
+    }).setOrigin(1, 0.5).setScrollFactor(0).setDepth(100);
 
     // --- Stage Title ---
     this.add.text(640, 14, 'GEKKA NO REIBYŌ // MOONLIT SHRINE COURTYARD', {
@@ -3553,14 +3681,14 @@ class ArenaScene extends Phaser.Scene {
     const guideBox = this.add.rectangle(640, 674, 1180, 50, 0x09090b, 0.88).setScrollFactor(0).setDepth(100);
     guideBox.setStrokeStyle(1.5, 0xf59e0b, 0.8);
 
-    this.add.text(640, 663, 'P1 [WASD/SPACE]: Move/Jump | [F] 5A Light | [G] 5B Med | [H] 5C Heavy | [R] Special | [S+H / Y] Super | [Q] Dash', {
+    this.add.text(640, 663, 'P1 [WASD/SPACE]: Move/Jump | [F] Light (+Ki) | [G] Med (+Ki) | [H] Heavy Sp. (2 Ki) | [R] Special (1 Ki) | [S+H / Y] Super (3 Ki)', {
       fontFamily: 'Rajdhani, sans-serif',
       fontSize: '13px',
       color: '#a5f3fc',
       fontStyle: 'bold'
     }).setOrigin(0.5).setScrollFactor(0).setDepth(101);
 
-    this.add.text(640, 686, 'P2 [ARROWS]: Move/Jump | [J/NUM1] Light | [K/NUM2] Med | [L/NUM3] Heavy | [U/NUM4] Special | [↓+L / I] Super | [O] Dash', {
+    this.add.text(640, 686, 'P2 [ARROWS]: Move/Jump | [J/NUM1] Light (+Ki) | [K/NUM2] Med (+Ki) | [L/NUM3] Heavy Sp. (2 Ki) | [U/NUM4] Special (1 Ki) | [↓+L / I] Super (3 Ki)', {
       fontFamily: 'Rajdhani, sans-serif',
       fontSize: '13px',
       color: '#fef08a',
@@ -3675,6 +3803,103 @@ class ArenaScene extends Phaser.Scene {
       this.p2Pip1.setFillStyle(this.p2RoundWins >= 1 ? 0xef4444 : 0x18181b);
       this.p2Pip2.setFillStyle(this.p2RoundWins >= 2 ? 0xef4444 : 0x18181b);
     }
+
+    // --- Update Ki Meter Sections & Stocks ---
+    if (this.p1KiFill1 && this.p1KiFill2 && this.p1KiFill3 && this.fighterP1) {
+      const p1Ki = this.fighterP1.ki;
+      const s1 = Math.min(100, Math.max(0, p1Ki));
+      const s2 = Math.min(100, Math.max(0, p1Ki - 100));
+      const s3 = Math.min(100, Math.max(0, p1Ki - 200));
+
+      this.p1KiFill1.width = (s1 / 100) * 104;
+      this.p1KiFill2.width = (s2 / 100) * 104;
+      this.p1KiFill3.width = (s3 / 100) * 104;
+
+      if (this.p1KiBg1) this.p1KiBg1.setStrokeStyle(1, s1 >= 100 ? 0x38bdf8 : 0x3f3f46);
+      if (this.p1KiBg2) this.p1KiBg2.setStrokeStyle(1, s2 >= 100 ? 0xfbbf24 : 0x3f3f46);
+      if (this.p1KiBg3) this.p1KiBg3.setStrokeStyle(1, s3 >= 100 ? 0xf43f5e : 0x3f3f46);
+
+      const p1Sections = Math.floor(p1Ki / 100);
+      if (this.p1KiStockText) {
+        if (p1Ki >= 300) {
+          this.p1KiStockText.setText('MAX (3/3)');
+          this.p1KiStockText.setColor('#f43f5e');
+        } else {
+          this.p1KiStockText.setText(`${p1Sections} / 3`);
+          this.p1KiStockText.setColor('#e4e4e7');
+        }
+      }
+    }
+
+    if (this.p2KiFill1 && this.p2KiFill2 && this.p2KiFill3 && this.fighterP2) {
+      const p2Ki = this.fighterP2.ki;
+      const s1 = Math.min(100, Math.max(0, p2Ki));
+      const s2 = Math.min(100, Math.max(0, p2Ki - 100));
+      const s3 = Math.min(100, Math.max(0, p2Ki - 200));
+
+      this.p2KiFill1.width = (s1 / 100) * 104;
+      this.p2KiFill2.width = (s2 / 100) * 104;
+      this.p2KiFill3.width = (s3 / 100) * 104;
+
+      if (this.p2KiBg1) this.p2KiBg1.setStrokeStyle(1, s1 >= 100 ? 0x38bdf8 : 0x3f3f46);
+      if (this.p2KiBg2) this.p2KiBg2.setStrokeStyle(1, s2 >= 100 ? 0xfbbf24 : 0x3f3f46);
+      if (this.p2KiBg3) this.p2KiBg3.setStrokeStyle(1, s3 >= 100 ? 0xf43f5e : 0x3f3f46);
+
+      const p2Sections = Math.floor(p2Ki / 100);
+      if (this.p2KiStockText) {
+        if (p2Ki >= 300) {
+          this.p2KiStockText.setText('MAX (3/3)');
+          this.p2KiStockText.setColor('#f43f5e');
+        } else {
+          this.p2KiStockText.setText(`${p2Sections} / 3`);
+          this.p2KiStockText.setColor('#e4e4e7');
+        }
+      }
+    }
+  }
+
+  showKiDeniedAlert(fighter, sectionsNeeded) {
+    if (!fighter || !fighter.sprite) return;
+    const isP1 = fighter.playerNum === 1;
+    const textX = fighter.sprite.x;
+    const textY = fighter.sprite.y - 120;
+
+    const costLabel = sectionsNeeded === 1 ? '1 KI BAR' : (sectionsNeeded === 2 ? '2 KI BARS' : '3 KI BARS (MAX)');
+    const alertText = this.add.text(textX, textY, `NEED ${costLabel}!`, {
+      fontFamily: 'Bebas Neue, Rajdhani, sans-serif',
+      fontSize: '24px',
+      color: '#ef4444',
+      stroke: '#000000',
+      strokeThickness: 4
+    }).setOrigin(0.5).setDepth(200);
+
+    this.tweens.add({
+      targets: alertText,
+      y: textY - 50,
+      alpha: 0,
+      duration: 750,
+      ease: 'Power1',
+      onComplete: () => alertText.destroy()
+    });
+
+    // Flash the player's Ki bar borders red
+    const bgs = isP1 ? [this.p1KiBg1, this.p1KiBg2, this.p1KiBg3] : [this.p2KiBg1, this.p2KiBg2, this.p2KiBg3];
+    bgs.forEach(bg => {
+      if (bg) {
+        bg.setStrokeStyle(2, 0xef4444);
+        this.time.delayedCall(280, () => {
+          if (bg && bg.active) bg.setStrokeStyle(1, 0x3f3f46);
+        });
+      }
+    });
+
+    if (window.soundFX) {
+      if (window.soundFX.playDenied) {
+        window.soundFX.playDenied();
+      } else if (window.soundFX.playSelect) {
+        window.soundFX.playSelect();
+      }
+    }
   }
 
   startRound(roundNumber) {
@@ -3684,9 +3909,9 @@ class ArenaScene extends Phaser.Scene {
     this.timerRemainingMs = this.roundDurationSec * 1000;
     this.clearBanners();
 
-    // Reset fighters to initial fighting marks in 1920-wide arena
-    this.fighterP1.reset(550, 460);
-    this.fighterP2.reset(1370, 460);
+    // Reset fighters to initial fighting marks in 1920-wide arena (reset Ki on Round 1)
+    this.fighterP1.reset(550, 460, roundNumber === 1);
+    this.fighterP2.reset(1370, 460, roundNumber === 1);
 
     // Update Round Badge Title
     const isFinalRound = (this.p1RoundWins === 1 && this.p2RoundWins === 1);
@@ -4030,6 +4255,11 @@ class ArenaScene extends Phaser.Scene {
         this.endRound('TIMEOUT');
         return;
       }
+
+      // Passive Ki Energy charge over time (~6 Ki / second)
+      const kiGain = (delta / 1000) * 6;
+      if (this.fighterP1) this.fighterP1.addKi(kiGain);
+      if (this.fighterP2) this.fighterP2.addKi(kiGain);
     }
 
     // --- PLAYER 1 INPUT (WASD / Space / F / G / H / R / Y / Q / T) ---
@@ -4048,7 +4278,7 @@ class ArenaScene extends Phaser.Scene {
       isHoldingForward: this.fighterP1.getFacingDir() === 1 ? p1Right : p1Left,
       lightJustDown: Phaser.Input.Keyboard.JustDown(this.p1Keys.f),
       mediumJustDown: Phaser.Input.Keyboard.JustDown(this.p1Keys.g),
-      heavyJustDown: Phaser.Input.Keyboard.JustDown(this.p1Keys.h),
+      heavyJustDown: !p1Down && Phaser.Input.Keyboard.JustDown(this.p1Keys.h),
       specialJustDown: Phaser.Input.Keyboard.JustDown(this.p1Keys.r),
       superJustDown: (p1Down && Phaser.Input.Keyboard.JustDown(this.p1Keys.h)) || Phaser.Input.Keyboard.JustDown(this.p1Keys.y),
       dashJustDown: Phaser.Input.Keyboard.JustDown(this.p1Keys.q),
@@ -4071,7 +4301,7 @@ class ArenaScene extends Phaser.Scene {
       isHoldingForward: this.fighterP2.getFacingDir() === 1 ? p2Right : p2Left,
       lightJustDown: Phaser.Input.Keyboard.JustDown(this.p2Keys.j) || Phaser.Input.Keyboard.JustDown(this.p2Keys.num1) || (this.p2Keys.one && Phaser.Input.Keyboard.JustDown(this.p2Keys.one)),
       mediumJustDown: Phaser.Input.Keyboard.JustDown(this.p2Keys.k) || Phaser.Input.Keyboard.JustDown(this.p2Keys.num2) || (this.p2Keys.two && Phaser.Input.Keyboard.JustDown(this.p2Keys.two)),
-      heavyJustDown: Phaser.Input.Keyboard.JustDown(this.p2Keys.l) || Phaser.Input.Keyboard.JustDown(this.p2Keys.num3) || (this.p2Keys.three && Phaser.Input.Keyboard.JustDown(this.p2Keys.three)),
+      heavyJustDown: !p2Down && (Phaser.Input.Keyboard.JustDown(this.p2Keys.l) || Phaser.Input.Keyboard.JustDown(this.p2Keys.num3) || (this.p2Keys.three && Phaser.Input.Keyboard.JustDown(this.p2Keys.three))),
       specialJustDown: Phaser.Input.Keyboard.JustDown(this.p2Keys.u) || Phaser.Input.Keyboard.JustDown(this.p2Keys.num4) || (this.p2Keys.four && Phaser.Input.Keyboard.JustDown(this.p2Keys.four)),
       superJustDown: (p2Down && (Phaser.Input.Keyboard.JustDown(this.p2Keys.l) || Phaser.Input.Keyboard.JustDown(this.p2Keys.num3) || (this.p2Keys.three && Phaser.Input.Keyboard.JustDown(this.p2Keys.three)))) || Phaser.Input.Keyboard.JustDown(this.p2Keys.i) || Phaser.Input.Keyboard.JustDown(this.p2Keys.num5) || (this.p2Keys.five && Phaser.Input.Keyboard.JustDown(this.p2Keys.five)),
       dashJustDown: Phaser.Input.Keyboard.JustDown(this.p2Keys.o) || Phaser.Input.Keyboard.JustDown(this.p2Keys.num0) || (this.p2Keys.zero && Phaser.Input.Keyboard.JustDown(this.p2Keys.zero)),
