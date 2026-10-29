@@ -174,6 +174,24 @@ class SoundFX {
     osc.stop(t + 0.05);
   }
 
+  // Short electronic buzz / denial tone when an action lacks Ki meter
+  playDenied() {
+    this.init();
+    if (this.isMuted) return;
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(160, t);
+    osc.frequency.linearRampToValueAtTime(75, t + 0.14);
+    gain.gain.setValueAtTime(0.22, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.14);
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+    osc.start(t);
+    osc.stop(t + 0.14);
+  }
+
   // Ambient Dark Martial Drone (Temple of Kombat)
   toggleAmbientDrone() {
     this.init();
