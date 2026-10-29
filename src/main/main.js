@@ -1,8 +1,11 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const lanServer = require('./lanServer');
+const MobileControllerServer = require('./mobileServer');
 
 let mainWindow;
+let mobileServer = null;
+let isQuitting = false;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -30,11 +33,22 @@ function createWindow() {
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
+    // Start Mobile Controller Server
+    try {
+      mobileServer = new MobileControllerServer(mainWindow, 3000);
+      mobileServer.start();
+    } catch (err) {
+      console.error('[Mobile Server Start Error]', err);
+    }
   });
 
   mainWindow.on('closed', () => {
     lanServer.stopHost();
     lanServer.stopDiscovery();
+    if (mobileServer) {
+      mobileServer.stop();
+      mobileServer = null;
+    }
     mainWindow = null;
   });
 }
@@ -43,27 +57,44 @@ app.whenReady().then(() => {
   createWindow();
 
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
+    if (!isQuitting && BrowserWindow.getAllWindows().length === 0) {
       createWindow();
     }
   });
 });
 
 app.on('window-all-closed', () => {
-  lanServer.stopHost();
-  lanServer.stopDiscovery();
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
+  isQuitting = true;
+  try {
+    lanServer.stopHost();
+    lanServer.stopDiscovery();
+    if (mobileServer) {
+      mobileServer.stop();
+      mobileServer = null;
+    }
+  } catch (e) {}
+  app.exit(0);
 });
 
 // -----------------------------------------------------------------------------
 // IPC Communication Handlers
 // -----------------------------------------------------------------------------
 ipcMain.on('game:quit', () => {
-  lanServer.stopHost();
-  lanServer.stopDiscovery();
-  app.quit();
+  isQuitting = true;
+  try {
+    lanServer.stopHost();
+    lanServer.stopDiscovery();
+    if (mobileServer) {
+      mobileServer.stop();
+      mobileServer = null;
+    }
+  } catch (err) {
+    console.error('[LAN/Mobile Stop Error]', err);
+  }
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.destroy();
+  }
+  app.exit(0);
 });
 
 ipcMain.handle('game:toggle-fullscreen', () => {
@@ -105,4 +136,12 @@ ipcMain.handle('lan:start-discovery', async () => {
 ipcMain.handle('lan:stop-discovery', async () => {
   lanServer.stopDiscovery();
   return { success: true };
+});
+
+// --- Mobile Controller IPC Endpoints ---
+ipcMain.handle('mobile:get-info', async () => {
+  if (mobileServer) {
+    return await mobileServer.getInfoWithQR();
+  }
+  return null;
 });

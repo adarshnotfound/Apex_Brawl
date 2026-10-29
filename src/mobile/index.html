@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Apex Brawl: Mobile Gamepad</title>
+  <style>
+    :root {
+      --primary: #06b6d4;
+      --primary-glow: rgba(6, 182, 212, 0.45);
+      --bg: #07060a;
+      --card-bg: rgba(18, 14, 26, 0.85);
+      --border: rgba(255, 255, 255, 0.12);
+      --ult: #ef4444;
+      --ult-glow: rgba(239, 68, 68, 0.6);
+      --gold: #f59e0b;
+    }
+
+    body.player-2 {
+      --primary: #ef4444;
+      --primary-glow: rgba(239, 68, 68, 0.5);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      touch-action: none;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    /* Background Ambient Grid */
+    .bg-grid {
+      position: absolute;
+      inset: 0;
+      background: 
+        radial-gradient(circle at 20% 30%, var(--primary-glow) 0%, transparent 60%),
+        radial-gradient(circle at 80% 70%, rgba(245, 158, 11, 0.15) 0%, transparent 50%),
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+      transition: background 0.4s ease;
+    }
+
+    /* Main Container */
+    .gamepad-container {
+      position: relative;
+      z-index: 10;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: env(safe-area-inset-top, 10px) env(safe-area-inset-right, 16px) env(safe-area-inset-bottom, 10px) env(safe-area-inset-left, 16px);
+    }
+
+    /* Header Bar */
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 48px;
+      padding: 0 10px;
+    }
+
+    .brand-title {
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .brand-title span.accent {
+      color: var(--primary);
+      text-shadow: 0 0 10px var(--primary);
+    }
+
+    .top-center {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .slot-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 14px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--primary);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      color: var(--primary);
+      box-shadow: 0 0 12px var(--primary-glow);
+      cursor: pointer;
+    }
+
+    .slot-badge .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+    }
+
+    .ping-badge {
+      font-size: 11px;
+      color: #94a3b8;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .top-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border);
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+    }
+
+    .top-btn.esc-btn {
+      border-color: var(--gold);
+      color: var(--gold);
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.25);
+      font-weight: 900;
+    }
+
+    .top-btn.enter-btn {
+      border-color: #10b981;
+      color: #10b981;
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.25);
+      font-weight: 900;
+    }
+
+    .top-btn.enter-btn.active, .top-btn.enter-btn:active {
+      background: #10b981 !important;
+      color: #000 !important;
+      box-shadow: 0 0 20px #10b981 !important;
+      transform: scale(0.94);
+    }
+
+    .top-btn.esc-btn.active, .top-btn.esc-btn:active {
+      background: var(--gold) !important;
+      color: #000 !important;
+      box-shadow: 0 0 20px var(--gold) !important;
+      transform: scale(0.94);
+    }
+
+    .top-btn:active {
+      transform: scale(0.94);
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Controls Surface (Left D-Pad / Right Combat Cluster) */
+    .controls-surface {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 8px;
+    }
+
+    /* ==========================================================================
+       LEFT SIDE: CROSS D-PAD
+       ========================================================================== */
+    .dpad-container {
+      width: 220px;
+      height: 220px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .dpad-cross {
+      position: relative;
+      width: 200px;
+      height: 200px;
+    }
+
+    .dpad-btn {
+      position: absolute;
+      background: rgba(22, 17, 30, 0.95);
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6), inset 0 0 10px rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      color: #cbd5e1;
+      transition: background 0.1s, transform 0.1s, border-color 0.1s, box-shadow 0.1s;
+    }
+
+    .dpad-btn.active, .dpad-btn:active {
+      background: var(--primary) !important;
+      color: #000 !important;
+      border-color: #fff !important;
+      box-shadow: 0 0 20px var(--primary) !important;
+      transform: scale(0.95);
+    }
+
+    .dpad-up {
+      top: 0;
+      left: 66px;
+      width: 68px;
+      height: 68px;
+      border-radius: 16px 16px 4px 4px;
+    }
+
+    .dpad-down {
+      bottom: 0;
+      left: 66px;
+      width: 68px;
+      height: 68px;
+      border-radius: 4px 4px 16px 16px;
+    }
+
+    .dpad-left {
+      top: 66px;
+      left: 0;
+      width: 68px;
+      height: 68px;
+      border-radius: 16px 4px 4px 16px;
+    }
+
+    .dpad-right {
+      top: 66px;
+      right: 0;
+      width: 68px;
+      height: 68px;
+      border-radius: 4px 16px 16px 4px;
+    }
+
+    .dpad-center {
+      position: absolute;
+      top: 66px;
+      left: 66px;
+      width: 68px;
+      height: 68px;
+      background: #110e1a;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .dpad-center-core {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid var(--primary);
+    }
+
+    /* ==========================================================================
+       RIGHT SIDE: ARCADE ACTION BUTTONS
+       ========================================================================== */
+    .actions-container {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 16px;
+    }
+
+    /* Auxiliary utility buttons (Dash, Taunt) */
+    .aux-cluster {
+      display: flex;
+      gap: 14px;
+      margin-right: 20px;
+    }
+
+    .btn-aux {
+      height: 44px;
+      padding: 0 16px;
+      border-radius: 22px;
+      background: rgba(22, 17, 30, 0.9);
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      color: #94a3b8;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    }
+
+    .btn-aux.dash-btn {
+      border-color: #10b981;
+      color: #10b981;
+    }
+
+    .btn-aux.dash-btn.active, .btn-aux.dash-btn:active {
+      background: #10b981;
+      color: #000;
+      box-shadow: 0 0 18px #10b981;
+      transform: scale(0.95);
+    }
+
+    .btn-aux.taunt-btn.active, .btn-aux.taunt-btn:active {
+      background: #f59e0b;
+      color: #000;
+      transform: scale(0.95);
+    }
+
+    /* 4-Button Arcade Combat Diamond */
+    .combat-diamond {
+      position: relative;
+      width: 260px;
+      height: 180px;
+    }
+
+    .action-btn {
+      position: absolute;
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: rgba(22, 17, 30, 0.96);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.7), inset 0 0 12px rgba(255, 255, 255, 0.08);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 900;
+      transition: transform 0.08s, box-shadow 0.08s, background 0.08s;
+    }
+
+    .action-btn .btn-label {
+      font-size: 13px;
+      letter-spacing: 1px;
+    }
+
+    .action-btn .btn-sub {
+      font-size: 9px;
+      opacity: 0.6;
+      letter-spacing: 0.5px;
+    }
+
+    /* Light Attack: Left of diamond */
+    .btn-light {
+      bottom: 24px;
+      left: 0;
+      border-color: #38bdf8;
+      color: #38bdf8;
+    }
+    .btn-light.active, .btn-light:active {
+      background: #38bdf8 !important;
+      color: #000 !important;
+      box-shadow: 0 0 25px #38bdf8 !important;
+      transform: scale(0.92);
+    }
+
+    /* Heavy Attack: Top of diamond */
+    .btn-heavy {
+      top: 0;
+      left: 74px;
+      border-color: #f59e0b;
+      color: #f59e0b;
+    }
+    .btn-heavy.active, .btn-heavy:active {
+      background: #f59e0b !important;
+      color: #000 !important;
+      box-shadow: 0 0 25px #f59e0b !important;
+      transform: scale(0.92);
+    }
+
+    /* Special: Bottom of diamond */
+    .btn-special {
+      bottom: 0;
+      left: 92px;
+      border-color: #a855f7;
+      color: #a855f7;
+    }
+    .btn-special.active, .btn-special:active {
+      background: #a855f7 !important;
+      color: #000 !important;
+      box-shadow: 0 0 25px #a855f7 !important;
+      transform: scale(0.92);
+    }
+
+    /* Ultimate Attack: Right of diamond (Super Flaming) */
+    .btn-ult {
+      top: 14px;
+      right: 10px;
+      width: 78px;
+      height: 78px;
+      border-color: var(--ult);
+      color: var(--ult);
+      box-shadow: 0 0 20px var(--ult-glow);
+      animation: pulseSuper 2s infinite ease-in-out;
+    }
+
+    .btn-ult.active, .btn-ult:active {
+      background: var(--ult) !important;
+      color: #fff !important;
+      box-shadow: 0 0 35px var(--ult) !important;
+      transform: scale(0.92);
+    }
+
+    @keyframes pulseSuper {
+      0%, 100% { box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
+      50% { box-shadow: 0 0 30px rgba(239, 68, 68, 0.8), inset 0 0 15px rgba(239, 68, 68, 0.3); }
+    }
+
+    /* Portrait Rotation Overlay */
+    .rotate-hint {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: #07060a;
+      z-index: 1000;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      text-align: center;
+      padding: 30px;
+    }
+
+    .rotate-hint .rotate-icon {
+      font-size: 50px;
+      animation: rotatePhone 2s infinite ease-in-out;
+    }
+
+    @keyframes rotatePhone {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(90deg); }
+    }
+
+    .rotate-hint h2 {
+      font-size: 20px;
+      color: var(--gold);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .rotate-hint p {
+      font-size: 14px;
+      color: #94a3b8;
+      max-width: 280px;
+      line-height: 1.5;
+    }
+
+    @media (orientation: portrait) {
+      .rotate-hint { display: flex; }
+    }
+
+    /* Disconnected Toast */
+    .toast-overlay {
+      position: fixed;
+      top: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(239, 68, 68, 0.95);
+      color: #fff;
+      padding: 8px 18px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      display: none;
+      z-index: 500;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+
+  <!-- Portrait Orientation Prompt -->
+  <div class="rotate-hint">
+    <div class="rotate-icon">📱</div>
+    <h2>Rotate Phone</h2>
+    <p>Turn your phone to <b>Landscape mode</b> for the full arcade fighting gamepad experience.</p>
+  </div>
+
+  <!-- Disconnected Banner -->
+  <div class="toast-overlay" id="disconnectToast">⚠️ RECONNECTING TO GAME...</div>
+
+  <div class="gamepad-container">
+    <!-- Top Header Navigation -->
+    <header class="top-bar">
+      <div class="brand-title">
+        <span>⚔️</span>
+        <span>APEX <span class="accent">BRAWL</span></span>
+      </div>
+
+      <div class="top-center">
+        <div class="slot-badge" id="btnSwitchSlot" title="Tap to switch Player 1 / Player 2">
+          <span class="dot" id="connDot"></span>
+          <span id="slotText">PLAYER 1</span>
+        </div>
+        <div class="ping-badge" id="pingText">⚡ 2ms</div>
+      </div>
+
+      <div class="top-actions">
+        <button class="top-btn esc-btn" data-key="esc">⏸️ ESC</button>
+        <button class="top-btn enter-btn" data-key="enter">↵ ENTER</button>
+        <button class="top-btn" id="btnFullscreen">⛶</button>
+      </div>
+    </header>
+
+    <!-- Main Gamepad Controls -->
+    <main class="controls-surface">
+      <!-- LEFT: Cross Directional Pad -->
+      <div class="dpad-container" id="dpadWrapper">
+        <div class="dpad-cross">
+          <div class="dpad-btn dpad-up" data-key="up">▲</div>
+          <div class="dpad-btn dpad-left" data-key="left">◀</div>
+          <div class="dpad-center"><div class="dpad-center-core"></div></div>
+          <div class="dpad-btn dpad-right" data-key="right">▶</div>
+          <div class="dpad-btn dpad-down" data-key="down">▼</div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Combat Action Buttons -->
+      <div class="actions-container">
+        <!-- Aux row: Dash & Taunt -->
+        <div class="aux-cluster">
+          <div class="btn-aux dash-btn" data-key="q">💨 DASH</div>
+          <div class="btn-aux taunt-btn" data-key="t">🔥 TAUNT</div>
+        </div>
+
+        <!-- 4-Button Combat Diamond -->
+        <div class="combat-diamond">
+          <div class="action-btn btn-light" data-key="j">
+            <span class="btn-label">LIGHT</span>
+            <span class="btn-sub">STRIKE</span>
+          </div>
+
+          <div class="action-btn btn-heavy" data-key="k">
+            <span class="btn-label">HEAVY</span>
+            <span class="btn-sub">SMASH</span>
+          </div>
+
+          <div class="action-btn btn-special" data-key="l">
+            <span class="btn-label">SPECIAL</span>
+            <span class="btn-sub">SKILL</span>
+          </div>
+
+          <div class="action-btn btn-ult" data-key="u">
+            <span class="btn-label">ULTIMATE</span>
+            <span class="btn-sub">SUPER</span>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // --------------------------------------------------------------------------
+    // 1. Audio Haptics & Screen WakeLock
+    // --------------------------------------------------------------------------
+    let wakeLock = null;
+    async function requestWakeLock() {
+      try {
+        if ('wakeLock' in navigator) {
+          wakeLock = await navigator.wakeLock.request('screen');
+        }
+      } catch (err) {}
+    }
+    requestWakeLock();
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') requestWakeLock();
+    });
+
+    function vibrateTouch() {
+      if (navigator.vibrate) {
+        navigator.vibrate(18);
+      }
+    }
+
+    // --------------------------------------------------------------------------
+    // 2. Fullscreen Toggle
+    // --------------------------------------------------------------------------
+    const btnFullscreen = document.getElementById('btnFullscreen');
+    if (btnFullscreen) {
+      btnFullscreen.addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(()=>{});
+        } else {
+          document.exitFullscreen().catch(()=>{});
+        }
+      });
+    }
+
+    // --------------------------------------------------------------------------
+    // 3. WebSocket Connection & Real-Time Sync
+    // --------------------------------------------------------------------------
+    let ws = null;
+    let currentPlayer = 1;
+    let pingInterval = null;
+    const slotText = document.getElementById('slotText');
+    const pingText = document.getElementById('pingText');
+    const connDot = document.getElementById('connDot');
+    const toast = document.getElementById('disconnectToast');
+
+    function connectWebSocket() {
+      const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const urlParams = new URLSearchParams(window.location.search);
+      const requestedP = urlParams.get('p') || urlParams.get('player') || '';
+      const wsUrl = `${proto}//${location.host}?p=${requestedP}`;
+
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        toast.style.display = 'none';
+        connDot.style.background = '#10b981';
+        connDot.style.boxShadow = '0 0 10px #10b981';
+        startPing();
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === 'assigned') {
+            setPlayerSlot(data.player);
+          } else if (data.type === 'pong') {
+            const rtt = Math.max(1, Date.now() - data.clientTime);
+            pingText.textContent = `⚡ ${rtt}ms`;
+          }
+        } catch (e) {}
+      };
+
+      ws.onclose = () => {
+        toast.style.display = 'block';
+        connDot.style.background = '#ef4444';
+        connDot.style.boxShadow = '0 0 10px #ef4444';
+        clearInterval(pingInterval);
+        setTimeout(connectWebSocket, 2000);
+      };
+
+      ws.onerror = () => {
+        ws.close();
+      };
+    }
+
+    function setPlayerSlot(slot) {
+      currentPlayer = slot;
+      slotText.textContent = `PLAYER ${slot}`;
+      if (slot === 2) {
+        document.body.classList.add('player-2');
+      } else {
+        document.body.classList.remove('player-2');
+      }
+    }
+
+    function startPing() {
+      clearInterval(pingInterval);
+      pingInterval = setInterval(() => {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: 'ping', time: Date.now() }));
+        }
+      }, 2000);
+    }
+
+    // Switch slot button
+    document.getElementById('btnSwitchSlot').addEventListener('click', () => {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'switch_player' }));
+        vibrateTouch();
+      }
+    });
+
+    // --------------------------------------------------------------------------
+    // 4. Ultra-Fast Multi-Touch Button Handling
+    // --------------------------------------------------------------------------
+    const activeTouches = new Map(); // touchId -> key
+
+    function sendKey(key, isDown) {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          type: 'input',
+          player: currentPlayer,
+          key: key,
+          isDown: isDown
+        }));
+      }
+      if (isDown) vibrateTouch();
+    }
+
+    const keyElements = document.querySelectorAll('[data-key]');
+
+    keyElements.forEach(el => {
+      const key = el.dataset.key;
+
+      // Pointer event support (covers iOS & Android unified pointers)
+      el.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        el.classList.add('active');
+        activeTouches.set(e.pointerId, { key, el });
+        sendKey(key, true);
+        try { el.setPointerCapture(e.pointerId); } catch(err) {}
+      });
+
+      el.addEventListener('pointerup', (e) => {
+        e.preventDefault();
+        el.classList.remove('active');
+        activeTouches.delete(e.pointerId);
+        sendKey(key, false);
+      });
+
+      el.addEventListener('pointercancel', (e) => {
+        e.preventDefault();
+        el.classList.remove('active');
+        activeTouches.delete(e.pointerId);
+        sendKey(key, false);
+      });
+    });
+
+    // Handle global touch releases in case finger slides off screen
+    window.addEventListener('pointerup', (e) => {
+      if (activeTouches.has(e.pointerId)) {
+        const { key, el } = activeTouches.get(e.pointerId);
+        el.classList.remove('active');
+        activeTouches.delete(e.pointerId);
+        sendKey(key, false);
+      }
+    });
+
+    connectWebSocket();
+  </script>
+</body>
+</html>
+

@@ -15,5 +15,15 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onHostDiscovered: (callback) => {
     ipcRenderer.removeAllListeners('lan:host-discovered');
     ipcRenderer.on('lan:host-discovered', (event, hostInfo) => callback(hostInfo));
+  },
+
+  // Mobile Controller APIs
+  getMobileServerInfo: () => ipcRenderer.invoke('mobile:get-info'),
+  onMobileStatus: (callback) => {
+    ipcRenderer.removeAllListeners('mobile:status');
+    ipcRenderer.on('mobile:status', (event, status) => callback(status));
+  },
+  onMobileInput: (callback) => {
+    ipcRenderer.on('mobile:input', (event, input) => callback(input));
   }
 });

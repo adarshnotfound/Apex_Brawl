@@ -94,7 +94,7 @@ let activeIndex = 0;
 let menuItems = [];
 
 function initMenuNavigation() {
-  menuItems = Array.from(document.querySelectorAll('.menu-item'));
+  menuItems = Array.from(document.querySelectorAll('.temple-menu .menu-item'));
   if (menuItems.length === 0) return;
 
   function setActive(index, playSound = true) {
@@ -119,7 +119,43 @@ function initMenuNavigation() {
 
   // Keyboard navigation
   window.addEventListener('keydown', (e) => {
-    // If arena or loading screen is active, ignore menu key events completely!
+    // 1. Universal ESC Key: toggles Arena pause during battle, or closes modals in menu
+    if (e.key === 'Escape' || e.code === 'Escape') {
+      const phaserContainer = document.getElementById('phaser-container');
+      const isArenaRunning = phaserContainer && phaserContainer.style.display !== 'none' && window.activeArenaScene;
+      if (isArenaRunning) {
+        e.preventDefault();
+        window.activeArenaScene.togglePauseMenu();
+        return;
+      }
+
+      const openModal = document.querySelector('.modal-overlay.open');
+      if (openModal) {
+        e.preventDefault();
+        closeAllModals();
+        return;
+      }
+    }
+
+    // 1b. If Pause Modal is open during battle, allow Keyboard Arrow / Enter navigation
+    const pauseModal = document.getElementById('modal-pause');
+    if (pauseModal && pauseModal.classList.contains('open') && window.activeArenaScene && window.activeArenaScene.isPaused) {
+      if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
+        window.activeArenaScene.navigatePauseMenu(-1);
+        e.preventDefault();
+        return;
+      } else if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
+        window.activeArenaScene.navigatePauseMenu(1);
+        e.preventDefault();
+        return;
+      } else if (e.key === 'Enter' || e.key === ' ') {
+        window.activeArenaScene.confirmPauseMenuItem();
+        e.preventDefault();
+        return;
+      }
+    }
+
+    // If arena or loading screen is active, ignore other menu key events completely!
     const phaserContainer = document.getElementById('phaser-container');
     if (phaserContainer && phaserContainer.style.display !== 'none') {
       return;
@@ -133,9 +169,6 @@ function initMenuNavigation() {
     // If a modal is open, don't navigate main menu
     const openModal = document.querySelector('.modal-overlay.open');
     if (openModal) {
-      if (e.key === 'Escape') {
-        closeAllModals();
-      }
       return;
     }
 
@@ -148,6 +181,10 @@ function initMenuNavigation() {
       setActive(next, true);
       e.preventDefault();
     } else if (e.key === 'Enter' || e.key === ' ') {
+      if (window.menuInputCooldown && Date.now() < window.menuInputCooldown) {
+        e.preventDefault();
+        return;
+      }
       executeMenuItem(menuItems[activeIndex]?.dataset.action);
       e.preventDefault();
     } else if (e.key === 'F11') {
@@ -159,6 +196,12 @@ function initMenuNavigation() {
   // Initial active item
   setActive(0, false);
 }
+
+window.resetMainMenuSelection = function () {
+  menuItems = Array.from(document.querySelectorAll('.temple-menu .menu-item'));
+  activeIndex = 0;
+  menuItems.forEach((item, i) => item.classList.toggle('active', i === 0));
+};
 
 function executeMenuItem(action) {
   if (window.soundFX) {
@@ -191,7 +234,7 @@ function executeMenuItem(action) {
       if (window.electronAPI && window.electronAPI.quit) {
         window.electronAPI.quit();
       } else {
-        alert('Closing application...');
+        window.close();
       }
       break;
     default:
@@ -884,6 +927,7 @@ function openModal(id) {
   closeAllModals();
   const target = document.getElementById(id);
   if (target) {
+    target.style.removeProperty('display');
     target.classList.add('open');
     document.getElementById('menuWrapper')?.classList.add('menu-hidden');
   }
@@ -895,10 +939,20 @@ function closeAllModals() {
   if (pauseModalOpen && window.activeArenaScene && window.activeArenaScene.isPaused) {
     window.activeArenaScene.resumeMatch();
   }
-  document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+  document.querySelectorAll('.modal-overlay').forEach(m => {
+    m.classList.remove('open');
+    m.style.removeProperty('display');
+  });
   const isArenaActive = document.getElementById('phaser-container')?.style.display !== 'none';
   if (!isArenaActive) {
-    document.getElementById('menuWrapper')?.classList.remove('menu-hidden');
+    const menuWrapper = document.getElementById('menuWrapper');
+    if (menuWrapper) {
+      menuWrapper.classList.remove('menu-hidden');
+      menuWrapper.style.removeProperty('display');
+      menuWrapper.style.removeProperty('visibility');
+      menuWrapper.style.removeProperty('opacity');
+      menuWrapper.style.removeProperty('pointer-events');
+    }
   }
 }
 
@@ -1350,3 +1404,146 @@ function initArcadeAndAIControls() {
     });
   }
 }
+
+// --------------------------------------------------------------------------
+// Mobile Controller Modal & Input Synchronization
+// --------------------------------------------------------------------------
+window.openMobileControllerModal = async function () {
+  openModal('modal-mobile-controller');
+  if (window.electronAPI && window.electronAPI.getMobileServerInfo) {
+    try {
+      const info = await window.electronAPI.getMobileServerInfo();
+      if (info) {
+        updateMobileModalUI(info);
+      }
+    } catch (e) {
+      console.warn('[Mobile Modal Error]', e);
+    }
+  }
+};
+
+function updateMobileModalUI(info) {
+  if (!info) return;
+  const p1Img = document.getElementById('qrImgP1');
+  const p2Img = document.getElementById('qrImgP2');
+  const p1Url = document.getElementById('p1UrlLink');
+  const p2Url = document.getElementById('p2UrlLink');
+  const p1Status = document.getElementById('p1DeviceStatus');
+  const p2Status = document.getElementById('p2DeviceStatus');
+
+  if (p1Img && info.p1QR) p1Img.src = info.p1QR;
+  if (p2Img && info.p2QR) p2Img.src = info.p2QR;
+  if (p1Url && info.p1Url) { p1Url.textContent = info.p1Url; p1Url.href = info.p1Url; }
+  if (p2Url && info.p2Url) { p2Url.textContent = info.p2Url; p2Url.href = info.p2Url; }
+
+  if (p1Status) {
+    if (info.p1Connected) {
+      p1Status.classList.add('connected');
+      p1Status.querySelector('.status-label').textContent = `Connected (${info.p1Device || 'Phone'})`;
+    } else {
+      p1Status.classList.remove('connected');
+      p1Status.querySelector('.status-label').textContent = 'Waiting for phone...';
+    }
+  }
+
+  if (p2Status) {
+    if (info.p2Connected) {
+      p2Status.classList.add('connected');
+      p2Status.querySelector('.status-label').textContent = `Connected (${info.p2Device || 'Phone'})`;
+    } else {
+      p2Status.classList.remove('connected');
+      p2Status.querySelector('.status-label').textContent = 'Waiting for phone...';
+    }
+  }
+}
+
+if (window.electronAPI && window.electronAPI.onMobileStatus) {
+  window.electronAPI.onMobileStatus((status) => {
+    updateMobileModalUI(status);
+  });
+}
+
+// Central Unified Mobile Input Dispatcher (Always Active)
+if (window.electronAPI && window.electronAPI.onMobileInput) {
+  window.electronAPI.onMobileInput((data) => {
+    if (!data) return;
+
+    // A. If an active Arena Scene exists AND phaser-container is visible:
+    const phaserContainer = document.getElementById('phaser-container');
+    const isArenaRunning = phaserContainer && phaserContainer.style.display !== 'none' && window.activeArenaScene;
+    if (isArenaRunning) {
+      window.activeArenaScene.handleMobileInput(data);
+      return;
+    }
+
+    // B. Otherwise, we are in Menus / Character Select:
+    if (!data.isDown) return;
+
+    // 1. If Mobile Controller modal is open, ESC or ENTER closes it
+    const mobileModal = document.getElementById('modal-mobile-controller');
+    if (mobileModal && mobileModal.classList.contains('open')) {
+      if (data.key === 'esc' || data.key === 'enter') {
+        closeAllModals();
+      }
+      return;
+    }
+
+    // 2. If Character Select is open, let phones navigate and launch
+    const overlay = document.getElementById('modal-battle-prompt');
+    if (overlay && overlay.classList.contains('open')) {
+      if (data.key === 'left') {
+        cycleFighter(String(data.player), -1);
+      } else if (data.key === 'right') {
+        cycleFighter(String(data.player), 1);
+      } else if (data.key === 'enter' || data.key === 'j' || data.key === 'k' || data.key === 'u') {
+        const fightBtn = document.getElementById('btnLaunchFight');
+        if (fightBtn) fightBtn.click();
+      } else if (data.key === 'esc') {
+        closeAllModals();
+      }
+      return;
+    }
+
+    // 3. If any other modal is open (Controls, Settings, Arcade, LAN, Grimoire), ESC or ENTER closes it
+    const anyModal = document.querySelector('.modal-overlay.open');
+    if (anyModal) {
+      if (data.key === 'esc' || data.key === 'enter') {
+        closeAllModals();
+      }
+      return;
+    }
+
+    // 4. Main Menu Navigation (Full control from mobile: D-Pad Up/Down + ENTER/J)
+    if (!menuItems || menuItems.length === 0) {
+      menuItems = Array.from(document.querySelectorAll('.temple-menu .menu-item'));
+    }
+    if (menuItems.length > 0) {
+      if (data.key === 'up') {
+        activeIndex = (activeIndex - 1 + menuItems.length) % menuItems.length;
+        menuItems.forEach((item, i) => item.classList.toggle('active', i === activeIndex));
+        if (window.soundFX) window.soundFX.playHover();
+      } else if (data.key === 'down') {
+        activeIndex = (activeIndex + 1) % menuItems.length;
+        menuItems.forEach((item, i) => item.classList.toggle('active', i === activeIndex));
+        if (window.soundFX) window.soundFX.playHover();
+      } else if (data.key === 'enter' || data.key === 'j') {
+        if (window.menuInputCooldown && Date.now() < window.menuInputCooldown) return;
+        executeMenuItem(menuItems[activeIndex]?.dataset.action);
+      } else if (data.key === 'esc') {
+        closeAllModals();
+      }
+    }
+  });
+}
+
+// Attach listeners for opening mobile controller modal
+document.addEventListener('DOMContentLoaded', () => {
+  const btnCharSelectMobile = document.getElementById('btnCharSelectMobileCtrl');
+  if (btnCharSelectMobile) {
+    btnCharSelectMobile.addEventListener('click', window.openMobileControllerModal);
+  }
+  const btnPauseMobile = document.getElementById('btnPauseMobileCtrl');
+  if (btnPauseMobile) {
+    btnPauseMobile.addEventListener('click', window.openMobileControllerModal);
+  }
+});

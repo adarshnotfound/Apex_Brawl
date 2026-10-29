@@ -37,26 +37,11 @@
     style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 50; background: #07060a; outline: none;">
   </div>
 
-  <!-- Arena Top Control & Return Bar -->
-  <div id="arenaControlBar"
-    style="display: none; position: fixed; top: 16px; right: 24px; z-index: 100; gap: 0.6rem; align-items: center;">
-    <button class="training-btn btn-settings" id="btnToggleTrainingMenu" onclick="window.activeArenaScene && window.activeArenaScene.toggleTrainingMenu()" style="display: none;">
-      ⚙ TRAINING (TAB)
-    </button>
-    <button class="training-btn btn-reset" id="btnResetTrainingPos" onclick="window.activeArenaScene && window.activeArenaScene.resetPositions('CENTER')" style="display: none;">
-      ↺ RESET (R)
-    </button>
-    <button class="training-btn btn-hitbox" id="btnToggleHitboxes" onclick="window.activeArenaScene && window.activeArenaScene.toggleHitboxes()" style="display: none;">
-      📦 HITBOXES (H)
-    </button>
-    <button class="icon-btn" onclick="window.restartMatch && window.restartMatch()"
-      style="background: rgba(180, 83, 9, 0.85); border-color: #f59e0b; color: #fff; cursor: pointer;">
-      🔄 RESTART
-    </button>
-    <button class="icon-btn" onclick="window.exitArenaToMenu()"
-      style="background: rgba(127, 29, 29, 0.85); border-color: #ef4444; color: #fff; cursor: pointer;">
-      🚪 EXIT (ESC)
-    </button>
+  <!-- Arena Top Control Bar (Clean combat: hidden during battle; accessible via ESC Pause Overlay) -->
+  <div id="arenaControlBar" style="display: none !important;">
+    <button class="training-btn btn-settings" id="btnToggleTrainingMenu" style="display: none;"></button>
+    <button class="training-btn btn-reset" id="btnResetTrainingPos" style="display: none;"></button>
+    <button class="training-btn btn-hitbox" id="btnToggleHitboxes" style="display: none;"></button>
   </div>
 
   <!-- Screen Flash Burst (on loading 100% / battle launch) -->
@@ -239,9 +224,9 @@
         <button class="menu-item pause-menu-item" id="btnResumeMatch">
           <span class="menu-label-group">
             <span class="menu-icon">▶️</span>
-            <span>RESUME KOMBAT</span>
+            <span>RESUME BATTLE</span>
           </span>
-          <span class="menu-indicator">▶</span>
+          <span class="menu-indicator">ESC</span>
         </button>
         <button class="menu-item pause-menu-item" id="btnRestartMatch">
           <span class="menu-label-group">
@@ -249,6 +234,35 @@
             <span>RESTART MATCH</span>
           </span>
           <span class="menu-indicator">▶</span>
+        </button>
+        <button class="menu-item pause-menu-item" id="btnPauseMobileCtrl">
+          <span class="menu-label-group">
+            <span class="menu-icon">📱</span>
+            <span>PHONE CONTROLLERS (QR)</span>
+          </span>
+          <span class="menu-indicator">▶</span>
+        </button>
+        <!-- Training Mode Controls (integrated into Pause Overlay) -->
+        <button class="menu-item pause-menu-item pause-training-only" id="btnPauseTrainingSettings" style="display: none;">
+          <span class="menu-label-group">
+            <span class="menu-icon">⚙️</span>
+            <span>TRAINING SETTINGS</span>
+          </span>
+          <span class="menu-indicator">TAB</span>
+        </button>
+        <button class="menu-item pause-menu-item pause-training-only" id="btnPauseResetPositions" style="display: none;">
+          <span class="menu-label-group">
+            <span class="menu-icon">↺</span>
+            <span>RESET POSITIONS</span>
+          </span>
+          <span class="menu-indicator">R</span>
+        </button>
+        <button class="menu-item pause-menu-item pause-training-only" id="btnPauseToggleHitboxes" style="display: none;">
+          <span class="menu-label-group">
+            <span class="menu-icon">📦</span>
+            <span>TOGGLE HITBOXES</span>
+          </span>
+          <span class="menu-indicator">H</span>
         </button>
         <button class="menu-item pause-menu-item exit-item" id="btnExitToMenu">
           <span class="menu-label-group">
@@ -278,7 +292,10 @@
           <img id="mk1-stage-thumb" src="assets/backgrounds/japanese_temple/japanese_temple_thumb.png" alt="Arena">
           <span id="mk1-stage-name">ARENA</span>
         </button>
-
+        <button class="mk1-stage-toggle-btn" id="btnCharSelectMobileCtrl" title="Use Phone as Controller">
+          <span style="font-size: 1.15rem; margin-right: 6px;">📱</span>
+          <span>PHONE CONTROLLERS</span>
+        </button>
       </div>
 
       <!-- Main Visual Stage: Fighters Confrontation -->
@@ -708,6 +725,61 @@
             Supports Xbox One/Series, DualShock 4/DualSense, and generic USB X-Input fightsticks via browser Gamepad
             API.
           </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. Mobile Gamepad QR Code & Connect Modal -->
+  <div class="modal-overlay" id="modal-mobile-controller">
+    <div class="modal-card mobile-qr-glass-card">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span>📱</span> WIRELESS MOBILE CONTROLLERS
+        </div>
+        <button class="close-btn" aria-label="Close">&times;</button>
+      </div>
+
+      <div class="mobile-modal-subtitle">
+        Scan the QR code with your phone camera to play wirelessly over local Wi-Fi. No app download needed!
+      </div>
+
+      <div class="mobile-qr-grid">
+        <!-- Player 1 QR Card -->
+        <div class="mobile-player-card p1-card">
+          <div class="card-badge p1-badge">PLAYER 1 (LEFT)</div>
+          <div class="qr-box">
+            <img id="qrImgP1" class="qr-image" src="" alt="Player 1 QR">
+            <div class="qr-glow p1-glow"></div>
+          </div>
+          <div class="device-status" id="p1DeviceStatus">
+            <span class="status-dot"></span>
+            <span class="status-label">Waiting for phone...</span>
+          </div>
+          <a class="manual-url" id="p1UrlLink" href="#" target="_blank">http://...:3000?p=1</a>
+        </div>
+
+        <!-- Player 2 QR Card -->
+        <div class="mobile-player-card p2-card">
+          <div class="card-badge p2-badge">PLAYER 2 (RIGHT)</div>
+          <div class="qr-box">
+            <img id="qrImgP2" class="qr-image" src="" alt="Player 2 QR">
+            <div class="qr-glow p2-glow"></div>
+          </div>
+          <div class="device-status" id="p2DeviceStatus">
+            <span class="status-dot"></span>
+            <span class="status-label">Waiting for phone...</span>
+          </div>
+          <a class="manual-url" id="p2UrlLink" href="#" target="_blank">http://...:3000?p=2</a>
+        </div>
+      </div>
+
+      <div class="mobile-modal-footer">
+        <div class="footer-tip">
+          <span>💡</span> Both your PC and Phones must be connected to the same Wi-Fi router or Mobile Hotspot.
+        </div>
+        <div class="footer-tip">
+          <span>⚡</span> Ultra-low latency WebSocket connection (&lt;5ms response time).
         </div>
       </div>
     </div>
