@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
+const lanServer = require('./lanServer');
 
 let mainWindow;
 
@@ -32,6 +33,8 @@ function createWindow() {
   });
 
   mainWindow.on('closed', () => {
+    lanServer.stopHost();
+    lanServer.stopDiscovery();
     mainWindow = null;
   });
 }
@@ -47,13 +50,19 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
+  lanServer.stopHost();
+  lanServer.stopDiscovery();
   if (process.platform !== 'darwin') {
     app.quit();
   }
 });
 
+// -----------------------------------------------------------------------------
 // IPC Communication Handlers
+// -----------------------------------------------------------------------------
 ipcMain.on('game:quit', () => {
+  lanServer.stopHost();
+  lanServer.stopDiscovery();
   app.quit();
 });
 
@@ -68,4 +77,32 @@ ipcMain.handle('game:toggle-fullscreen', () => {
 
 ipcMain.handle('game:is-fullscreen', () => {
   return mainWindow ? mainWindow.isFullScreen() : false;
+});
+
+// --- LAN Multiplayer IPC Endpoints ---
+ipcMain.handle('lan:get-local-ip', async () => {
+  return lanServer.getLocalIP();
+});
+
+ipcMain.handle('lan:start-host', async (event, port = 8765) => {
+  return await lanServer.startHost(port);
+});
+
+ipcMain.handle('lan:stop-host', async () => {
+  lanServer.stopHost();
+  return { success: true };
+});
+
+ipcMain.handle('lan:start-discovery', async () => {
+  lanServer.startDiscovery((hostInfo) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('lan:host-discovered', hostInfo);
+    }
+  });
+  return { success: true };
+});
+
+ipcMain.handle('lan:stop-discovery', async () => {
+  lanServer.stopDiscovery();
+  return { success: true };
 });

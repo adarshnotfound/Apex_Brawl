@@ -105,6 +105,29 @@ class SoundFX {
     osc2.stop(t + 0.45);
   }
 
+  // Metallic deflection ping for blocks / parries
+  playGuard() {
+    this.init();
+    if (this.isMuted) return;
+
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, t);
+    osc.frequency.exponentialRampToValueAtTime(1400, t + 0.08);
+
+    gain.gain.setValueAtTime(0.3, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+
+    osc.start(t);
+    osc.stop(t + 0.12);
+  }
+
   // Sub-bass rumble boom on game start / confirmation
   playStartBoom() {
     this.init();

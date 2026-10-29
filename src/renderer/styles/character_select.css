@@ -1,9 +1,9 @@
 /* ==========================================================================
-   AUTHENTIC AAA FIGHTING GAME CHARACTER SELECT (MK1 AESTHETIC)
-   Cleanliness • Cinematic Vista • Frosted Glassmorphism • Studio Renders
+   MINIMALIST MK1 CHARACTER SELECT
+   Clean Transparency • Small Compact Avatars • Aligned & Zero Text Clutter
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&display=swap');
 
 .mk1-select-overlay {
   position: fixed;
@@ -11,13 +11,12 @@
   width: 100vw;
   height: 100vh;
   z-index: 90;
-  background: #050608;
+  background: #040508;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   overflow: hidden;
   user-select: none;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .mk1-select-overlay.open {
@@ -27,16 +26,13 @@
 
 .mk1-select-container {
   position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  width: 100vw;
+  height: 100vh;
   overflow: hidden;
 }
 
 /* --------------------------------------------------------------------------
-   Panoramic Background Vista & Ambient Vignette (Natural Cinematic Lighting)
+   Panoramic Background Vista & Cinematic Ambient Vignette
    -------------------------------------------------------------------------- */
 .mk1-bg-layer {
   position: absolute;
@@ -46,60 +42,45 @@
   background-position: center bottom;
   background-repeat: no-repeat;
   z-index: 1;
-  filter: saturate(1.08) contrast(1.05);
-  transform: scale(1.02);
-  transition: transform 4s ease-out;
-}
-
-.mk1-select-overlay.open .mk1-bg-layer {
-  transform: scale(1);
+  filter: saturate(1.08) contrast(1.04);
 }
 
 .mk1-ambient-vignette {
   position: absolute;
   inset: 0;
   background: 
-    radial-gradient(ellipse at 50% 50%, rgba(5, 7, 12, 0) 40%, rgba(5, 7, 12, 0.55) 80%, rgba(3, 4, 8, 0.85) 100%),
-    linear-gradient(to top, rgba(4, 5, 8, 0.95) 0%, rgba(4, 5, 8, 0.4) 22%, transparent 45%);
+    radial-gradient(ellipse at 50% 50%, rgba(5, 7, 12, 0) 35%, rgba(5, 7, 12, 0.45) 75%, rgba(3, 4, 8, 0.8) 100%),
+    linear-gradient(to top, rgba(3, 4, 8, 0.85) 0%, rgba(3, 4, 8, 0.2) 20%, transparent 40%);
   z-index: 2;
   pointer-events: none;
 }
 
 /* --------------------------------------------------------------------------
-   Top Navigation Bar (Minimalist Frosted Glass)
+   Minimal Floating Top-Left Controls (No Top Bar)
    -------------------------------------------------------------------------- */
-.mk1-top-bar {
-  position: relative;
-  z-index: 10;
+.mk1-floating-top {
+  position: absolute;
+  top: 24px;
+  left: 28px;
+  z-index: 50;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 1rem 2.8rem;
-  background: rgba(8, 10, 16, 0.5);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  gap: 12px;
 }
 
-.mk1-top-left {
-  display: flex;
-  align-items: center;
-  gap: 1.4rem;
-}
-
-/* Minimalist Circular Back Button */
 .mk1-circle-btn {
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(20, 24, 34, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   color: #f1f5f9;
   cursor: pointer;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   transition: all 0.2s ease;
 }
 
@@ -107,139 +88,53 @@
   background: rgba(239, 68, 68, 0.85);
   border-color: #ef4444;
   color: #fff;
-  transform: scale(1.06);
-  box-shadow: 0 0 14px rgba(239, 68, 68, 0.4);
+  transform: scale(1.05);
 }
 
 .mk1-btn-icon {
-  font-size: 1rem;
+  font-size: 0.95rem;
   line-height: 1;
   font-weight: 700;
 }
 
-.mk1-mode-tag {
-  display: flex;
-  flex-direction: column;
-}
-
-.mk1-tag-title {
-  font-family: 'Oswald', sans-serif;
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #ffffff;
-  letter-spacing: 0.08em;
-  line-height: 1.1;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
-}
-
-.mk1-tag-sub {
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: #94a3b8;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-/* Minimalist Battle Arena Pill Switcher */
-.mk1-stage-pill {
+/* Minimalist Arena Toggle Icon */
+.mk1-stage-toggle-btn {
   display: flex;
   align-items: center;
-  gap: 0.85rem;
-  background: rgba(14, 18, 26, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 28px;
-  padding: 0.3rem 1.2rem 0.3rem 0.35rem;
-  cursor: pointer;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
-  transition: all 0.2s ease;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-}
-
-.mk1-stage-pill:hover {
-  border-color: rgba(255, 255, 255, 0.35);
-  background: rgba(20, 26, 38, 0.8);
-  transform: translateY(-1px);
-}
-
-.mk1-stage-thumb-wrap {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 1.5px solid rgba(255, 255, 255, 0.3);
-}
-
-.mk1-stage-thumb-wrap img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.mk1-stage-info {
-  display: flex;
-  flex-direction: column;
-  text-align: left;
-}
-
-.mk1-stage-label {
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: #f8fafc;
-  letter-spacing: 0.04em;
-}
-
-.mk1-stage-label span {
-  color: #fef08a;
-  font-weight: 700;
-}
-
-.mk1-stage-hint {
-  font-size: 0.65rem;
-  color: #94a3b8;
-  font-weight: 500;
-  letter-spacing: 0.03em;
-}
-
-.mk1-top-right {
-  display: flex;
-  align-items: center;
-}
-
-.mk1-p2-prompt {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  padding: 0.35rem 0.95rem;
+  gap: 8px;
+  background: rgba(20, 24, 34, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 20px;
+  padding: 3px 12px 3px 4px;
+  color: #e2e8f0;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: all 0.2s ease;
 }
 
-.p2-prompt-tag {
-  background: #3b82f6;
-  color: #fff;
-  font-size: 0.68rem;
-  font-weight: 800;
-  padding: 0.1rem 0.4rem;
-  border-radius: 4px;
-  letter-spacing: 0.05em;
+.mk1-stage-toggle-btn:hover {
+  background: rgba(30, 38, 54, 0.75);
+  border-color: rgba(255, 255, 255, 0.4);
 }
 
-.p2-prompt-text {
-  font-size: 0.74rem;
-  font-weight: 600;
-  color: #cbd5e1;
-  letter-spacing: 0.04em;
+.mk1-stage-toggle-btn img {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 /* --------------------------------------------------------------------------
    Fighters Confrontation Stage (Left P1 vs Right P2)
    -------------------------------------------------------------------------- */
 .mk1-fighters-stage {
-  position: relative;
+  position: absolute;
+  inset: 0;
   z-index: 5;
-  flex: 1;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
@@ -252,7 +147,7 @@
   display: flex;
   flex-direction: column;
   width: 38vw;
-  max-width: 520px;
+  max-width: 500px;
   height: 100%;
   justify-content: flex-end;
   pointer-events: none;
@@ -268,76 +163,43 @@
   text-align: right;
 }
 
-/* Clean Minimalist Fighter Header */
+/* Clean, Bold Fighter Name (Above the Bottom Tray) */
 .mk1-fighter-info {
-  margin-bottom: 2vh;
-  z-index: 6;
-  position: relative;
+  position: absolute;
+  bottom: 125px;
+  z-index: 10;
+  pointer-events: none;
 }
 
-.mk1-player-badge {
-  display: inline-block;
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  padding: 0.2rem 0.65rem;
-  border-radius: 4px;
-  margin-bottom: 0.45rem;
-  backdrop-filter: blur(8px);
+.mk1-fighter-display.p1 .mk1-fighter-info {
+  left: 0;
 }
 
-.p1-badge {
-  background: rgba(234, 179, 8, 0.2);
-  border: 1px solid #eab308;
-  color: #fde047;
+.mk1-fighter-display.p2 .mk1-fighter-info {
+  right: 0;
 }
 
-.p2-badge {
-  background: rgba(59, 130, 246, 0.2);
-  border: 1px solid #3b82f6;
-  color: #93c5fd;
-}
-
-/* Bold, Condensed AAA Fighting Game Typography (Like MK1 Geras Title) */
 .mk1-fighter-name {
   font-family: 'Oswald', sans-serif;
-  font-size: clamp(3rem, 5.2vw, 4.8rem);
+  font-size: clamp(2.6rem, 4.4vw, 4rem);
   line-height: 0.95;
   color: #ffffff;
   margin: 0;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  text-shadow: 0 4px 18px rgba(0, 0, 0, 0.95);
-}
-
-.mk1-fighter-subtitle {
-  font-size: 0.88rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  margin-top: 0.4rem;
-  color: #cbd5e1;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85);
-  text-transform: uppercase;
-}
-
-.mk1-fighter-archetype {
-  font-size: 0.76rem;
-  color: #94a3b8;
-  font-weight: 500;
-  margin-top: 0.2rem;
-  letter-spacing: 0.03em;
-  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.85);
+  text-shadow: 0 3px 16px rgba(0, 0, 0, 0.95);
 }
 
 /* Action Render Image Presentation */
 .mk1-render-wrap {
   position: relative;
   width: 100%;
-  height: clamp(380px, 58vh, 680px);
+  height: clamp(380px, 64vh, 700px);
   display: flex;
   align-items: flex-end;
   pointer-events: none;
+  margin-bottom: 25px;
 }
 
 .mk1-fighter-display.p1 .mk1-render-wrap {
@@ -352,101 +214,69 @@
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
-  /* Natural studio drop shadow on the scenic background */
-  filter: drop-shadow(0 18px 28px rgba(0, 0, 0, 0.85));
-  transition: opacity 0.25s ease, transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  filter: drop-shadow(0 16px 26px rgba(0, 0, 0, 0.85));
+  transition: opacity 0.22s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   transform-origin: bottom center;
   position: relative;
   z-index: 5;
 }
 
 .p2-render {
-  /* Face inward towards P1 */
   transform: scaleX(-1);
 }
 
 .mk1-fighter-render.fade-enter {
   opacity: 0;
-  transform: translateY(16px) scale(0.97);
+  transform: translateY(14px) scale(0.97);
 }
 
 .p2-render.fade-enter {
   opacity: 0;
-  transform: translateY(16px) scaleX(-1) scale(0.97);
+  transform: translateY(14px) scaleX(-1) scale(0.97);
 }
 
-/* Natural floor contact shadow */
 .mk1-render-shadow {
   position: absolute;
   bottom: 0px;
-  width: 320px;
-  height: 50px;
-  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0.3) 50%, transparent 75%);
+  width: 280px;
+  height: 40px;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.25) 50%, transparent 75%);
   border-radius: 50%;
   pointer-events: none;
   z-index: 3;
 }
 
 /* --------------------------------------------------------------------------
-   Center VS Crest & Launch Fight Button
+   Center Action Button (Sleek FIGHT CTA)
    -------------------------------------------------------------------------- */
 .mk1-center-pillar {
-  position: relative;
-  z-index: 10;
+  position: absolute;
+  bottom: 125px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-end;
-  padding-bottom: 2.2vh;
-  gap: 1.2rem;
   pointer-events: auto;
 }
 
-.mk1-vs-crest {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.mk1-vs-circle {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  background: rgba(12, 16, 24, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
-.mk1-vs-text {
-  font-family: 'Oswald', sans-serif;
-  font-size: 1.35rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  color: #ffffff;
-  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
-}
-
-/* Sleek, Premium Fight Button */
 .mk1-fight-btn {
   cursor: pointer;
-  padding: 0.85rem 2.6rem;
-  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
-  border: 1px solid #fef08a;
-  border-radius: 6px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7), 0 2px 10px rgba(217, 119, 6, 0.4);
+  padding: 0.65rem 2.2rem;
+  background: linear-gradient(135deg, rgba(217, 119, 6, 0.9) 0%, rgba(180, 83, 9, 0.95) 100%);
+  border: 1px solid rgba(254, 240, 138, 0.75);
+  border-radius: 4px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.75), 0 2px 8px rgba(217, 119, 6, 0.35);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(8px);
 }
 
 .mk1-fight-btn:hover {
-  transform: translateY(-2px) scale(1.03);
+  transform: translateY(-2px) scale(1.04);
   background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   border-color: #ffffff;
-  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.8), 0 4px 16px rgba(245, 158, 11, 0.55);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.85), 0 3px 14px rgba(245, 158, 11, 0.5);
 }
 
 .mk1-fight-btn:active {
@@ -455,162 +285,121 @@
 
 .mk1-fight-btn-text {
   font-family: 'Oswald', sans-serif;
-  font-size: 1.35rem;
+  font-size: 1.25rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   color: #ffffff;
   text-transform: uppercase;
   text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
 }
 
 /* --------------------------------------------------------------------------
-   Bottom Character Selection Grid (Minimal Frosted Glass Tray)
+   Bottom Avatar Roster Tray (Small, Transparent BG, Aligned Up Safe From Edge)
    -------------------------------------------------------------------------- */
 .mk1-roster-tray {
-  position: relative;
-  z-index: 15;
-  width: 100%;
-  padding: 1.2rem 2rem 1.8rem 2rem;
-  background: linear-gradient(to top, rgba(6, 8, 14, 0.94) 0%, rgba(6, 8, 14, 0.72) 65%, transparent 100%);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.6);
+  position: absolute;
+  bottom: 34px;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  z-index: 25;
   display: flex;
-  flex-direction: column;
+  justify-content: center;
   align-items: center;
-  gap: 0.75rem;
-}
-
-.mk1-tray-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  max-width: 820px;
-  padding: 0 0.5rem;
-}
-
-.mk1-tray-title {
-  font-family: 'Oswald', sans-serif;
-  font-size: 0.98rem;
-  font-weight: 700;
-  color: #ffffff;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.mk1-tray-hint {
-  font-size: 0.72rem;
-  color: #94a3b8;
-  font-weight: 500;
-  letter-spacing: 0.04em;
+  background: transparent;
+  pointer-events: auto;
 }
 
 .mk1-roster-grid {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.85rem;
-  flex-wrap: wrap;
-  max-width: 900px;
+  gap: 10px;
 }
 
-/* Individual Sleek Roster Card */
+/* Small, Compact Avatar Box with Transparent Background */
 .roster-card {
   position: relative;
-  width: clamp(92px, 7.5vw, 114px);
-  height: clamp(124px, 10vw, 150px);
-  border-radius: 6px;
-  background: rgba(18, 22, 32, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  width: 68px;
+  height: 78px;
+  border-radius: 4px;
+  background: rgba(14, 18, 28, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   cursor: pointer;
   overflow: hidden;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.18s ease, box-shadow 0.18s ease;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .roster-card:hover {
-  transform: translateY(-4px) scale(1.02);
-  border-color: rgba(255, 255, 255, 0.35);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.8);
+  transform: translateY(-3px) scale(1.05);
+  border-color: rgba(255, 255, 255, 0.45);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.7);
 }
 
 .roster-card-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.25s ease;
+  transition: transform 0.2s ease;
 }
 
 .roster-card:hover .roster-card-img {
-  transform: scale(1.04);
+  transform: scale(1.06);
 }
 
-.roster-card-name {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(to top, rgba(4, 5, 8, 0.95) 0%, rgba(4, 5, 8, 0.6) 75%, transparent 100%);
-  padding: 0.45rem 0.2rem 0.3rem 0.2rem;
-  font-family: 'Oswald', sans-serif;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: #ffffff;
-  text-align: center;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-/* Selection Cursors: Player 1 (Gold/Amber border matching MK1 reference) */
+/* Player 1 Selection Indicator (Gold Border + Tiny Corner Badge) */
 .roster-card.p1-selected {
   border: 2px solid #eab308;
-  box-shadow: 0 0 16px rgba(234, 179, 8, 0.45), 0 4px 16px rgba(0, 0, 0, 0.8);
-  transform: translateY(-4px) scale(1.03);
+  box-shadow: 0 0 14px rgba(234, 179, 8, 0.5), 0 4px 12px rgba(0, 0, 0, 0.8);
+  transform: translateY(-3px) scale(1.05);
 }
 
 .roster-card.p1-selected::before {
   content: "P1";
   position: absolute;
-  top: 4px;
-  left: 4px;
+  top: 2px;
+  left: 2px;
   z-index: 5;
   background: #eab308;
-  color: #000000;
-  font-size: 0.65rem;
-  font-weight: 900;
-  padding: 0.1rem 0.35rem;
-  border-radius: 3px;
-  letter-spacing: 0.05em;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+  color: #000;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 0.05rem 0.3rem;
+  border-radius: 2px;
+  letter-spacing: 0.04em;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
 }
 
-/* Selection Cursors: Player 2 (Royal Blue border) */
+/* Player 2 Selection Indicator (Royal Blue Border + Tiny Corner Badge) */
 .roster-card.p2-selected {
   border: 2px solid #3b82f6;
-  box-shadow: 0 0 16px rgba(59, 130, 246, 0.45), 0 4px 16px rgba(0, 0, 0, 0.8);
-  transform: translateY(-4px) scale(1.03);
+  box-shadow: 0 0 14px rgba(59, 130, 246, 0.5), 0 4px 12px rgba(0, 0, 0, 0.8);
+  transform: translateY(-3px) scale(1.05);
 }
 
 .roster-card.p2-selected::after {
   content: "P2";
   position: absolute;
-  top: 4px;
-  right: 4px;
+  top: 2px;
+  right: 2px;
   z-index: 5;
   background: #3b82f6;
-  color: #ffffff;
-  font-size: 0.65rem;
-  font-weight: 900;
-  padding: 0.1rem 0.35rem;
-  border-radius: 3px;
-  letter-spacing: 0.05em;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 0.05rem 0.3rem;
+  border-radius: 2px;
+  letter-spacing: 0.04em;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
 }
 
-/* Dual Selected: Both P1 and P2 on the same card */
+/* Both Players Selected on Same Card */
 .roster-card.p1-selected.p2-selected {
   border-color: #eab308;
-  box-shadow: 0 0 16px rgba(234, 179, 8, 0.4), 0 0 16px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 0 14px rgba(234, 179, 8, 0.4), 0 0 14px rgba(59, 130, 246, 0.4);
 }
