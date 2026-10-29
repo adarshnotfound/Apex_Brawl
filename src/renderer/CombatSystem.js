@@ -297,6 +297,76 @@ export const SAMPLE_MOVES = {
     pushbackForce: 710,
     hitLevel: 'mid',
     hitbox: { offsetX: 120, offsetY: -155, width: 140, height: 90 }
+  },
+  ZORO_CRESCENT_5A: {
+    id: 'zoro_crescent_5a',
+    name: 'Crescent Dash Slash (5A)',
+    startupFrames: 5,
+    activeFrames: 4,
+    recoveryFrames: 8,
+    damage: 48,
+    chipDamage: 0,
+    hitstunFrames: 16,
+    blockstunFrames: 9,
+    pushbackForce: 180,
+    hitLevel: 'mid',
+    hitbox: { offsetX: 80, offsetY: -150, width: 90, height: 45 }
+  },
+  ZORO_CLEAVE_5B: {
+    id: 'zoro_cleave_5b',
+    name: 'Overhead Dual Cleave (5B)',
+    startupFrames: 7,
+    activeFrames: 5,
+    recoveryFrames: 11,
+    damage: 85,
+    chipDamage: 8,
+    hitstunFrames: 19,
+    blockstunFrames: 11,
+    pushbackForce: 240,
+    hitLevel: 'mid',
+    hitbox: { offsetX: 95, offsetY: -160, width: 100, height: 60 }
+  },
+  ZORO_HEAVY_5C: {
+    id: 'zoro_heavy_5c',
+    name: 'Santoryu Dual Cleave (5C)',
+    startupFrames: 10,
+    activeFrames: 6,
+    recoveryFrames: 16,
+    damage: 125,
+    chipDamage: 15,
+    hitstunFrames: 25,
+    blockstunFrames: 14,
+    pushbackForce: 380,
+    hitLevel: 'mid',
+    hitbox: { offsetX: 110, offsetY: -160, width: 120, height: 70 }
+  },
+  ZORO_POUND_CANNON: {
+    id: 'zoro_pound_cannon',
+    name: '360 Pound Cannon (Special Projectile)',
+    startupFrames: 10,
+    activeFrames: 8,
+    recoveryFrames: 18,
+    damage: 160,
+    chipDamage: 25,
+    hitstunFrames: 28,
+    blockstunFrames: 16,
+    pushbackForce: 460,
+    hitLevel: 'mid',
+    hitbox: { offsetX: 130, offsetY: -150, width: 130, height: 75 }
+  },
+  ZORO_ONIGIRI_SUPER: {
+    id: 'zoro_onigiri_super',
+    name: 'Demon Slash Oni Giri (Super)',
+    startupFrames: 8,
+    activeFrames: 14,
+    recoveryFrames: 22,
+    damage: 260,
+    chipDamage: 40,
+    hitstunFrames: 36,
+    blockstunFrames: 20,
+    pushbackForce: 720,
+    hitLevel: 'mid',
+    hitbox: { offsetX: 140, offsetY: -150, width: 160, height: 90 }
   }
 };
 

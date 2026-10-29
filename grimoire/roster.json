@@ -58,5 +58,17 @@
     "icon": "\u26cf\ufe0f",
     "avatar": "assets/characters/Steve/select_avatar.png",
     "actionRender": "assets/characters/Steve/action_render.png"
+  },
+  {
+    "id": "zoro",
+    "name": "Roronoa Zoro",
+    "title": "Pirate Hunter & Master Swordsman",
+    "archetype": "Striker / Three-Sword Style",
+    "file": "grimoire/zoro.json",
+    "portrait": "assets/characters/Zoro/portrait.png",
+    "themeColor": "#10b981",
+    "icon": "⚔️",
+    "avatar": "assets/characters/Zoro/select_avatar.png",
+    "actionRender": "assets/characters/Zoro/action_render.png"
   }
 ]

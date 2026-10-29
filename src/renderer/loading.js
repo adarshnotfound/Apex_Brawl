@@ -84,6 +84,22 @@
         'Diamond Sword Slash (5B) has exceptional horizontal priority to swat away incoming rushdowns.',
         'Pickaxe Ground Smash (5C) causes an intense ground bounce, leaving opponents vulnerable.'
       ]
+    },
+    zoro: {
+      id: 'zoro',
+      name: 'RORONOA ZORO',
+      subtitle: 'Pirate Hunter & Master Swordsman',
+      archetype: 'Striker • Three-Sword Style',
+      portrait: '../../assets/characters/Zoro/portrait.png',
+      themeColor: '#10b981',
+      accentColor: '#34d399',
+      glowColor: 'rgba(16, 185, 129, 0.6)',
+      quote: '"Scars on the back are a swordsman\'s shame."',
+      tips: [
+        'Zoro\'s 360 Pound Cannon (R / U) fires an emerald blade cyclone across the arena.',
+        'Overhead Dual Cleave (5B / 6B) cuts through incoming attacks with tremendous vertical arc.',
+        'Oni Giri Demon Slash (Super) dashes forward in a devastating cross-cleave.'
+      ]
     }
   };
 
