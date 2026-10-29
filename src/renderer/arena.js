@@ -3588,11 +3588,11 @@ class ArenaScene extends Phaser.Scene {
     }).setOrigin(1, 0).setScrollFactor(0).setDepth(100);
 
     // --- PLAYER 2 KI METER (3 Distinct Sections, 100 Ki each, y = 104) ---
-    this.p2KiText = this.add.text(1155, 104, 'KI', {
+    this.p2KiText = this.add.text(1156, 104, 'KI', {
       fontFamily: 'Bebas Neue, Rajdhani, sans-serif',
-      fontSize: '15px',
+      fontSize: '14px',
       color: '#38bdf8'
-    }).setOrigin(0, 0.5).setScrollFactor(0).setDepth(100);
+    }).setOrigin(0.5, 0.5).setScrollFactor(0).setDepth(100);
 
     // Slot 1 (0..100 Ki, rightmost)
     this.p2KiBg1 = this.add.rectangle(1143, 104, 106, 11, 0x18181b, 0.9).setOrigin(1, 0.5).setStrokeStyle(1, 0x3f3f46).setScrollFactor(0).setDepth(100);
@@ -3757,8 +3757,12 @@ class ArenaScene extends Phaser.Scene {
     const p1Ratio = Math.max(0, this.fighterP1.hp / this.fighterP1.maxHp);
     const p2Ratio = Math.max(0, this.fighterP2.hp / this.fighterP2.maxHp);
 
-    this.p1BarFill.width = 326 * p1Ratio;
-    this.p2BarFill.width = 326 * p2Ratio;
+    const p1FillW = Math.max(0, 326 * p1Ratio);
+    const p2FillW = Math.max(0, 326 * p2Ratio);
+    this.p1BarFill.setVisible(p1Ratio > 0);
+    this.p2BarFill.setVisible(p2Ratio > 0);
+    if (p1Ratio > 0) this.p1BarFill.setSize(p1FillW, 12);
+    if (p2Ratio > 0) this.p2BarFill.setSize(p2FillW, 12);
 
     this.p1HpText.setText(`${this.fighterP1.hp} / ${this.fighterP1.maxHp}`);
     this.p2HpText.setText(`${this.fighterP2.hp} / ${this.fighterP2.maxHp}`);
@@ -3811,9 +3815,18 @@ class ArenaScene extends Phaser.Scene {
       const s2 = Math.min(100, Math.max(0, p1Ki - 100));
       const s3 = Math.min(100, Math.max(0, p1Ki - 200));
 
-      this.p1KiFill1.width = (s1 / 100) * 104;
-      this.p1KiFill2.width = (s2 / 100) * 104;
-      this.p1KiFill3.width = (s3 / 100) * 104;
+      const w1 = (s1 / 100) * 104;
+      const w2 = (s2 / 100) * 104;
+      const w3 = (s3 / 100) * 104;
+
+      this.p1KiFill1.setVisible(s1 > 0);
+      if (s1 > 0) this.p1KiFill1.setSize(w1, 9);
+
+      this.p1KiFill2.setVisible(s2 > 0);
+      if (s2 > 0) this.p1KiFill2.setSize(w2, 9);
+
+      this.p1KiFill3.setVisible(s3 > 0);
+      if (s3 > 0) this.p1KiFill3.setSize(w3, 9);
 
       if (this.p1KiBg1) this.p1KiBg1.setStrokeStyle(1, s1 >= 100 ? 0x38bdf8 : 0x3f3f46);
       if (this.p1KiBg2) this.p1KiBg2.setStrokeStyle(1, s2 >= 100 ? 0xfbbf24 : 0x3f3f46);
@@ -3837,9 +3850,18 @@ class ArenaScene extends Phaser.Scene {
       const s2 = Math.min(100, Math.max(0, p2Ki - 100));
       const s3 = Math.min(100, Math.max(0, p2Ki - 200));
 
-      this.p2KiFill1.width = (s1 / 100) * 104;
-      this.p2KiFill2.width = (s2 / 100) * 104;
-      this.p2KiFill3.width = (s3 / 100) * 104;
+      const w1 = (s1 / 100) * 104;
+      const w2 = (s2 / 100) * 104;
+      const w3 = (s3 / 100) * 104;
+
+      this.p2KiFill1.setVisible(s1 > 0);
+      if (s1 > 0) this.p2KiFill1.setSize(w1, 9);
+
+      this.p2KiFill2.setVisible(s2 > 0);
+      if (s2 > 0) this.p2KiFill2.setSize(w2, 9);
+
+      this.p2KiFill3.setVisible(s3 > 0);
+      if (s3 > 0) this.p2KiFill3.setSize(w3, 9);
 
       if (this.p2KiBg1) this.p2KiBg1.setStrokeStyle(1, s1 >= 100 ? 0x38bdf8 : 0x3f3f46);
       if (this.p2KiBg2) this.p2KiBg2.setStrokeStyle(1, s2 >= 100 ? 0xfbbf24 : 0x3f3f46);
