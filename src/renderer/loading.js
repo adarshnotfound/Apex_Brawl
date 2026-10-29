@@ -26,7 +26,7 @@
       name: 'DR. STRANGE',
       subtitle: 'Master of the Mystic Arts',
       archetype: 'Zoner • Spellcaster Supreme',
-      portrait: '../../assets/characters/Dr Strange/portrait.png',
+      portrait: '../../assets/characters/Dr_Strange/portrait.png',
       themeColor: '#f59e0b',
       accentColor: '#fde047',
       glowColor: 'rgba(245, 158, 11, 0.6)',

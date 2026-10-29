@@ -17,11 +17,11 @@
     "title": "Master of the Mystic Arts",
     "archetype": "Zoner / Spellcaster",
     "file": "grimoire/doctor_strange.json",
-    "portrait": "assets/characters/Dr Strange/portrait.png",
+    "portrait": "assets/characters/Dr_Strange/portrait.png",
     "themeColor": "#f59e0b",
-    "icon": "\ud83d\udd2e",
-    "avatar": "assets/characters/Dr Strange/select_avatar.png",
-    "actionRender": "assets/characters/Dr Strange/action_render.png"
+    "icon": "🔮",
+    "avatar": "assets/characters/Dr_Strange/select_avatar.png",
+    "actionRender": "assets/characters/Dr_Strange/action_render.png"
   },
   {
     "id": "chunli",

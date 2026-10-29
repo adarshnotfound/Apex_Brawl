@@ -291,8 +291,8 @@ const MK1_ROSTER = {
     name: 'DR. STRANGE',
     subtitle: 'MASTER OF THE MYSTIC ARTS',
     archetype: 'Zoner • Spellcaster Supreme & Space Control',
-    render: 'assets/characters/Dr Strange/action_render.png',
-    avatar: 'assets/characters/Dr Strange/select_avatar.png',
+    render: 'assets/characters/Dr_Strange/action_render.png',
+    avatar: 'assets/characters/Dr_Strange/select_avatar.png',
     themeColor: '#f59e0b',
     accentColor: '#fde047'
   },

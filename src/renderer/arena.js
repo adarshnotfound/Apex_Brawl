@@ -41,14 +41,15 @@ class FighterEntity {
     this.jumpVel = charId === 'strange' ? -720 : (charId === 'chunli' ? -760 : (charId === 'mewtwo' ? -750 : (charId === 'steve' ? -730 : -760)));
 
     // Create sprite
-    const initialTexture = charId === 'strange' ? 'strange_sheet_idle' : (charId === 'chunli' ? 'chunli_sheet_idle' : (charId === 'mewtwo' ? 'mewtwo_sheet_idle' : (charId === 'steve' ? 'steve_sheet_idle' : 'harpy_sheet_idle')));
+    const initialTexture = charId === 'strange' ? 'strange_sheet_master' : (charId === 'chunli' ? 'chunli_sheet_idle' : (charId === 'mewtwo' ? 'mewtwo_sheet_idle' : (charId === 'steve' ? 'steve_sheet_idle' : 'harpy_sheet_idle')));
     this.sprite = scene.physics.add.sprite(x, y, initialTexture);
     this.sprite.setDepth(10);
     if (charId === 'strange') {
-      this.sprite.setScale(0.80);
+      this.sprite.setScale(0.78);
       this.sprite.setCollideWorldBounds(true);
-      this.sprite.body.setSize(180, 360);
-      this.sprite.body.setOffset(166, 120);
+      this.sprite.setOrigin(0.5, 0.5);
+      this.sprite.body.setSize(96, 220);
+      this.sprite.body.setOffset(46, 14);
     } else if (charId === 'chunli') {
       // Scale 0.79 scales Chun-Li's 234px idle sprite to ~185px, perfectly matching Harpy's 185px visual height!
       this.sprite.setScale(0.79);
@@ -107,9 +108,9 @@ class FighterEntity {
   }
 
   getFacingDir() {
-    // Chun-Li, Mewtwo & Steve sprites are authored facing RIGHT by default (flipX = false).
-    // Harpy & Strange are authored facing LEFT by default (flipX = false).
-    if (this.charId === 'chunli' || this.charId === 'mewtwo' || this.charId === 'steve') {
+    // Chun-Li, Mewtwo, Steve & Strange sprites are authored facing RIGHT by default (flipX = false).
+    // Harpy is authored facing LEFT by default (flipX = false).
+    if (this.charId === 'chunli' || this.charId === 'mewtwo' || this.charId === 'steve' || this.charId === 'strange') {
       return this.sprite.flipX ? -1 : 1;
     }
     return this.sprite.flipX ? 1 : -1;
@@ -117,7 +118,7 @@ class FighterEntity {
 
   setFacingDir(dir) {
     // dir: 1 = facing RIGHT, -1 = facing LEFT
-    if (this.charId === 'chunli' || this.charId === 'mewtwo' || this.charId === 'steve') {
+    if (this.charId === 'chunli' || this.charId === 'mewtwo' || this.charId === 'steve' || this.charId === 'strange') {
       this.sprite.setFlipX(dir === -1);
     } else {
       this.sprite.setFlipX(dir === 1);
@@ -157,6 +158,15 @@ class FighterEntity {
           this.scene.spawnTNTProjectile(this);
         }
       }
+    } else if (key === 'strange_anim_sp_projectile' && !this.mysticOrbFired) {
+      const frameIdx = frame ? (frame.index !== undefined ? frame.index : Number(frame.textureFrame) + 1) : 0;
+      const textureFrameIdx = frame && frame.textureFrame !== undefined ? Number(frame.textureFrame) : -1;
+      if (frameIdx >= 10 || textureFrameIdx >= 219) {
+        this.mysticOrbFired = true;
+        if (this.scene && this.scene.spawnMysticProjectile) {
+          this.scene.spawnMysticProjectile(this);
+        }
+      }
     }
   }
 
@@ -181,6 +191,11 @@ class FighterEntity {
       this.tntFired = true;
       if (this.scene && this.scene.spawnTNTProjectile) {
         this.scene.spawnTNTProjectile(this);
+      }
+    } else if (key === 'strange_anim_sp_projectile' && !this.mysticOrbFired) {
+      this.mysticOrbFired = true;
+      if (this.scene && this.scene.spawnMysticProjectile) {
+        this.scene.spawnMysticProjectile(this);
       }
     }
 
@@ -235,6 +250,11 @@ class FighterEntity {
         if (this.sprite.body) {
           this.sprite.body.setAllowGravity(true);
         }
+      } else if (this.charId === 'strange') {
+        this.sprite.setScale(0.78);
+        this.sprite.setOrigin(0.5, 0.5);
+        this.sprite.body.setSize(96, 220);
+        this.sprite.body.setOffset(46, 14);
       } else if (this.charId === 'mewtwo') {
         this.sprite.setScale(0.78);
         this.sprite.setOrigin(0.479, 0.5);
@@ -260,6 +280,11 @@ class FighterEntity {
         if (this.sprite.body) {
           this.sprite.body.setAllowGravity(true);
         }
+      } else if (this.charId === 'strange') {
+        this.sprite.setScale(0.78);
+        this.sprite.setOrigin(0.5, 0.5);
+        this.sprite.body.setSize(96, 220);
+        this.sprite.body.setOffset(46, 14);
       } else if (this.charId === 'mewtwo') {
         this.sprite.setScale(0.78);
         this.sprite.setOrigin(0.479, 0.5);
@@ -293,7 +318,7 @@ class FighterEntity {
       this.sprite.body.setOffset(78, 22);
       this.sprite.y = 477.04;
     } else if (this.charId === 'strange') {
-      this.sprite.y = 395.80;
+      this.sprite.y = 492.32;
     } else if (this.charId === 'harpy') {
       this.sprite.y = 443.00;
     } else {
@@ -321,13 +346,11 @@ class FighterEntity {
     if (this.charId === 'strange') {
       if (this.isKnockedBack) {
         this.currentAction = 'KNOCKBACK / LAUNCH';
-        this.sprite.setTexture('strange_sheet_jump');
         this.sprite.play('strange_anim_knockback', true);
         return;
       }
       if (this.isInAir) {
         this.currentAction = this.sprite.body.velocity.y < 0 ? 'JUMP / ASCENT' : 'AIR FALL';
-        this.sprite.setTexture('strange_sheet_jump');
         this.sprite.play('strange_anim_jump', true);
       } else {
         if (this.isCrouching) {
@@ -335,7 +358,6 @@ class FighterEntity {
           this.sprite.play('strange_anim_crouch_hold', true);
         } else {
           this.currentAction = 'IDLE';
-          this.sprite.setTexture('strange_sheet_idle');
           this.sprite.play('strange_anim_idle', true);
         }
       }
@@ -568,7 +590,10 @@ class FighterEntity {
     }
 
     if (this.charId === 'strange') {
-      this.sprite.setTexture('strange_sheet_idle');
+      this.sprite.setScale(0.78);
+      this.sprite.setOrigin(0.5, 0.5);
+      this.sprite.body.setSize(96, 220);
+      this.sprite.body.setOffset(46, 14);
       this.sprite.play('strange_anim_idle', true);
     } else if (this.charId === 'chunli') {
       this.sprite.setDisplayOrigin(128, 128);
@@ -608,6 +633,7 @@ class FighterEntity {
     this.kikokenFired = false;
     this.shadowBallFired = false;
     this.tntFired = false;
+    this.mysticOrbFired = false;
 
     // Ground attacks stop horizontal movement
     if (!this.isInAir) {
@@ -732,6 +758,11 @@ class FighterEntity {
           this.sprite.body.setSize(100, 230);
           this.sprite.body.setOffset(78, 22);
           this.sprite.body.setAllowGravity(true);
+        } else if (this.charId === 'strange' && this.sprite && this.sprite.body) {
+          this.sprite.setScale(0.78);
+          this.sprite.setOrigin(0.5, 0.5);
+          this.sprite.body.setSize(96, 220);
+          this.sprite.body.setOffset(46, 14);
         } else if (this.charId === 'mewtwo' && this.sprite && this.sprite.body) {
           this.sprite.setScale(0.78);
           this.sprite.setOrigin(0.479, 0.5);
@@ -839,7 +870,6 @@ class FighterEntity {
       this.knockbackLaunchTime = (this.scene && this.scene.time) ? this.scene.time.now : Date.now();
 
       if (this.charId === 'strange') {
-        this.sprite.setTexture('strange_sheet_jump');
         this.sprite.play('strange_anim_knockback', true);
       } else if (this.charId === 'chunli') {
         this.sprite.setTexture('chunli_sheet_hit');
@@ -874,12 +904,15 @@ class FighterEntity {
       }
       this.isStunned = true;
       this.currentAction = 'STUNNED / RECOIL';
+      if (this.charId === 'strange') {
+        this.sprite.play('strange_anim_hurt', true);
+      }
       if (this.stunTimer) this.stunTimer.remove();
       this.stunTimer = this.scene.time.delayedCall(attackData.stunDuration || 140, () => {
         this.isStunned = false;
         this.stunTimer = null;
         this.updateTextureForState();
-        if (this.sprite && this.sprite.body && (this.sprite.body.blocked.down || this.sprite.y >= (this.charId === 'strange' ? 392 : 472))) {
+        if (this.sprite && this.sprite.body && (this.sprite.body.blocked.down || this.sprite.y >= 472)) {
           this.isInAir = false;
           this.snapToGround();
         }
@@ -912,7 +945,7 @@ class FighterEntity {
       this.sprite.body.blocked.down ||
       this.sprite.body.touching.down ||
       this.sprite.body.bottom >= 568 ||
-      (this.sprite.y >= (this.charId === 'strange' ? 392 : 472))
+      (this.sprite.y >= 472)
     );
 
     // Landing detection: ONLY when falling downward (velocity.y >= 0) and not during active launch ascent!
@@ -974,7 +1007,7 @@ class FighterEntity {
             knockbackX: 190,
             knockbackY: 60,
             isSpecial: false
-          });
+          }, 667);
         } else {
           this.triggerAttack('ELDRITCH STRIKE (5A)', 'strange_anim_atk_5a', {
             damage: 45,
@@ -983,7 +1016,7 @@ class FighterEntity {
             knockbackX: 180,
             knockbackY: 0,
             isSpecial: false
-          });
+          }, 667);
         }
       } else if (this.charId === 'chunli') {
         if (this.isInAir) {
@@ -1079,7 +1112,7 @@ class FighterEntity {
             knockbackX: 230,
             knockbackY: 90,
             isSpecial: false
-          });
+          }, 800);
         } else if (input.isHoldingForward) {
           this.triggerAttack('MYSTIC THRUST (6B)', 'strange_anim_atk_6b', {
             damage: 95,
@@ -1088,7 +1121,7 @@ class FighterEntity {
             knockbackX: 270,
             knockbackY: -50,
             isSpecial: false
-          });
+          }, 800);
         } else {
           this.triggerAttack('ASTRAL PUNCH (5B)', 'strange_anim_atk_5b', {
             damage: 80,
@@ -1097,7 +1130,7 @@ class FighterEntity {
             knockbackX: 240,
             knockbackY: -30,
             isSpecial: false
-          });
+          }, 800);
         }
       } else if (this.charId === 'chunli') {
         if (this.isInAir) {
@@ -1224,7 +1257,7 @@ class FighterEntity {
           knockbackX: 700,
           knockbackY: -550,
           isSpecial: true
-        });
+        }, 1000);
       } else if (this.charId === 'chunli') {
         this.triggerAttack('HOYOKU-SEN (SUPER)', 'chunli_anim_super', {
           damage: 250,
@@ -1287,14 +1320,14 @@ class FighterEntity {
       this.useKi(100);
       if (this.charId === 'strange') {
         if (input.up) {
-          this.triggerAttack('SHIELD OF SERAPHIM (AA)', 'strange_anim_sp_projectile', {
+          this.triggerAttack('SHIELD OF SERAPHIM (AA)', 'strange_anim_guard', {
             damage: 165,
             rangeX: 220,
             rangeY: 170,
             knockbackX: 320,
             knockbackY: -540,
             isSpecial: true
-          });
+          }, 667);
         } else {
           this.triggerAttack('CRIMSON BANDS (PROJECTILE)', 'strange_anim_sp_projectile', {
             damage: 155,
@@ -1303,11 +1336,7 @@ class FighterEntity {
             knockbackX: 480,
             knockbackY: -340,
             isSpecial: true
-          });
-          // Summon real traveling mystic projectile!
-          if (this.scene && this.scene.spawnMysticProjectile) {
-            this.scene.spawnMysticProjectile(this);
-          }
+          }, 1000);
         }
       } else if (this.charId === 'chunli') {
         this.triggerAttack('KIKOKEN (PROJECTILE)', 'chunli_anim_sp_kikoken', {
@@ -1381,7 +1410,7 @@ class FighterEntity {
             knockbackX: 300,
             knockbackY: 140,
             isSpecial: false
-          });
+          }, 1000);
         } else {
           this.triggerAttack('FLAMES OF FALTINE (5C)', 'strange_anim_atk_5c', {
             damage: 125,
@@ -1390,7 +1419,7 @@ class FighterEntity {
             knockbackX: 440,
             knockbackY: -300,
             isSpecial: true
-          });
+          }, 1000);
         }
       } else if (this.charId === 'chunli') {
         if (this.isInAir) {
@@ -1562,7 +1591,6 @@ class FighterEntity {
         this.isInAir = true;
         this.currentAction = 'JUMP / ASCENT';
         if (this.charId === 'strange') {
-          this.sprite.setTexture('strange_sheet_jump');
           this.sprite.play('strange_anim_jump', true);
         } else if (this.charId === 'chunli') {
           this.sprite.setDisplayOrigin(128, 128);
@@ -1610,7 +1638,10 @@ class FighterEntity {
         if (!this.isCrouching) {
           this.isCrouching = true;
           if (this.charId === 'strange') {
+            this.sprite.body.setSize(96, 140);
+            this.sprite.body.setOffset(46, 94);
             this.sprite.play('strange_anim_crouch_down').chain('strange_anim_crouch_hold');
+            this.snapToGround();
           } else if (this.charId === 'chunli') {
             this.sprite.setDisplayOrigin(128, 128);
             this.sprite.body.setSize(100, 230);
@@ -1641,7 +1672,14 @@ class FighterEntity {
         if (this.isCrouching) {
           this.isCrouching = false;
           if (this.sprite && this.sprite.chain) this.sprite.chain();
-          if (this.charId === 'chunli') {
+          if (this.charId === 'strange') {
+            this.sprite.setScale(0.78);
+            this.sprite.setOrigin(0.5, 0.5);
+            this.sprite.body.setSize(96, 220);
+            this.sprite.body.setOffset(46, 14);
+            this.sprite.play('strange_anim_idle', true);
+            this.snapToGround();
+          } else if (this.charId === 'chunli') {
             this.sprite.setDisplayOrigin(128, 128);
             this.sprite.body.setSize(100, 230);
             this.sprite.body.setOffset(78, 22);
@@ -1770,7 +1808,6 @@ class FighterEntity {
 
       this.currentAction = this.sprite.body.velocity.y < 0 ? 'JUMP / ASCENT' : 'AIR FALL';
       if (this.charId === 'strange' && this.sprite.anims.currentAnim?.key !== 'strange_anim_jump') {
-        this.sprite.setTexture('strange_sheet_jump');
         this.sprite.play('strange_anim_jump', true);
       } else if (this.charId === 'chunli' && !onGround && this.sprite.anims.currentAnim?.key !== 'chunli_anim_jump') {
         this.sprite.setDisplayOrigin(128, 128);
@@ -1858,21 +1895,16 @@ class ArenaScene extends Phaser.Scene {
 
     // Character Portraits
     this.load.image('harpy_portrait', '../../assets/characters/harpy/portrait.png');
-    this.load.image('strange_portrait', '../../assets/characters/Dr Strange/portrait.png');
+    this.load.image('strange_portrait', '../../assets/characters/Dr_Strange/portrait.png');
     this.load.image('chunli_portrait', '../../assets/characters/ChunLi/portrait.png');
     this.load.image('mewtwo_portrait', '../../assets/characters/Mewtwo/portrait.png');
     this.load.image('steve_portrait', '../../assets/characters/Steve/portrait.png');
 
-    // 2. Doctor Strange Sprite Sheets (512x512 Standardized Grid)
-    const sBase = '../../assets/characters/Dr Strange/';
-    this.load.spritesheet('strange_sheet_idle', sBase + 'SheetIdle.png', { frameWidth: 512, frameHeight: 512 });
-    this.load.spritesheet('strange_sheet_walk', sBase + 'SheetWalk.png', { frameWidth: 512, frameHeight: 512 });
-    this.load.spritesheet('strange_sheet_crouch', sBase + 'SheetCrouch.png', { frameWidth: 512, frameHeight: 512 });
-    this.load.spritesheet('strange_sheet_jump', sBase + 'SheetJump.png', { frameWidth: 512, frameHeight: 512 });
-    this.load.spritesheet('strange_sheet_punch', sBase + 'SheetPunch.png', { frameWidth: 512, frameHeight: 512 });
-    this.load.spritesheet('strange_sheet_blast', sBase + 'SheetBlast.png', { frameWidth: 512, frameHeight: 512 });
-    this.load.spritesheet('strange_sheet_power', sBase + 'SheetPower.png', { frameWidth: 512, frameHeight: 512 });
-    this.load.spritesheet('strange_sheet_ultimate', sBase + 'SheetUltimate.png', { frameWidth: 512, frameHeight: 512 });
+    // 2. Doctor Strange 30 FPS Master Sprite Sheet & VFX (256x256 Grid)
+    const sBase = '../../assets/characters/Dr_Strange/';
+    this.load.spritesheet('strange_sheet_master', sBase + 'doctor_strange_master_combined_30fps_spritesheet.png', { frameWidth: 256, frameHeight: 256 });
+    this.load.spritesheet('strange_vfx_eye', sBase + 'strips_30fps/vfx_eye_of_agamotto_loop_30fps.png', { frameWidth: 256, frameHeight: 256 });
+    this.load.spritesheet('strange_vfx_portal', sBase + 'strips_30fps/vfx_sling_portal_loop_30fps.png', { frameWidth: 256, frameHeight: 256 });
 
     // 3. Harpy Sprite Sheets
     const hBase = '../../assets/characters/harpy/';
@@ -2369,29 +2401,45 @@ class ArenaScene extends Phaser.Scene {
     };
 
     // Stances
-    defineAnim('strange_anim_idle', 'strange_sheet_idle', 0, 3, 6, -1);
-    defineAnim('strange_anim_walk', 'strange_sheet_walk', 0, 7, 10, -1);
-    defineAnim('strange_anim_dash', 'strange_sheet_walk', 0, 4, 18, 0);
-    defineAnim('strange_anim_crouch_down', 'strange_sheet_crouch', 0, 4, 14, 0);
-    defineAnim('strange_anim_crouch_hold', 'strange_sheet_crouch', 4, 6, 8, -1);
-    defineAnim('strange_anim_crouch', 'strange_sheet_crouch', 4, 6, 8, -1);
-    defineAnim('strange_anim_jump', 'strange_sheet_jump', 0, 7, 12, 0);
-    defineAnim('strange_anim_knockback', 'strange_sheet_jump', 4, 8, 10, 0);
+    // Row 0: frames 0..29 (Idle Stance, 30 FPS looping)
+    defineAnim('strange_anim_idle', 'strange_sheet_master', 0, 29, 30, -1);
+    // Row 1: frames 30..59 (Walk / Float Glide, 30 FPS looping)
+    defineAnim('strange_anim_walk', 'strange_sheet_master', 30, 59, 30, -1);
+    // Row 9: frames 270..289 (Sling Ring Portal Teleport Dash, 30 FPS)
+    defineAnim('strange_anim_dash', 'strange_sheet_master', 270, 289, 30, 0);
+    // Row 2: frames 60..79 (Crouch Stance)
+    defineAnim('strange_anim_crouch_down', 'strange_sheet_master', 60, 72, 30, 0);
+    defineAnim('strange_anim_crouch_hold', 'strange_sheet_master', 72, 79, 15, -1);
+    defineAnim('strange_anim_crouch', 'strange_sheet_master', 60, 79, 30, -1);
+    // Row 3: frames 90..113 (Jump Aerial Arc, 30 FPS)
+    defineAnim('strange_anim_jump', 'strange_sheet_master', 90, 113, 30, 0);
+    // Row 10: frames 300..319 (Hit Stripes Hurt Recoil, 30 FPS)
+    defineAnim('strange_anim_hurt', 'strange_sheet_master', 300, 319, 30, 0);
+    // Row 11: frames 330..353 (Heavy Knockback, 30 FPS)
+    defineAnim('strange_anim_knockback', 'strange_sheet_master', 330, 353, 30, 0);
+    // Row 8: frames 240..259 (Tao Shield Barrier, 30 FPS)
+    defineAnim('strange_anim_guard', 'strange_sheet_master', 240, 259, 30, -1);
 
     // Normal Attacks
-    defineAnim('strange_anim_atk_5a', 'strange_sheet_punch', 0, 4, 16, 0);
-    defineAnim('strange_anim_atk_5b', 'strange_sheet_punch', 2, 7, 14, 0);
-    defineAnim('strange_anim_atk_6b', 'strange_sheet_punch', 3, 9, 14, 0);
-    defineAnim('strange_anim_atk_5c', 'strange_sheet_blast', 0, 14, 14, 0);
+    // Row 4: frames 120..139 (Eldritch Whip light attack, 30 FPS)
+    defineAnim('strange_anim_atk_5a', 'strange_sheet_master', 120, 139, 30, 0);
+    // Row 6: frames 180..203 (Astral Crows / Cleave medium attack, 30 FPS)
+    defineAnim('strange_anim_atk_5b', 'strange_sheet_master', 180, 203, 30, 0);
+    defineAnim('strange_anim_atk_6b', 'strange_sheet_master', 180, 203, 30, 0);
+    // Row 5: frames 150..179 (Heavy Mandala Blast, 30 FPS)
+    defineAnim('strange_anim_atk_5c', 'strange_sheet_master', 150, 179, 30, 0);
 
     // Air Attacks
-    defineAnim('strange_anim_atk_8a', 'strange_sheet_punch', 0, 4, 15, 0);
-    defineAnim('strange_anim_atk_8c', 'strange_sheet_blast', 6, 14, 14, 0);
+    defineAnim('strange_anim_atk_8a', 'strange_sheet_master', 120, 139, 30, 0);
+    defineAnim('strange_anim_atk_8c', 'strange_sheet_master', 150, 179, 30, 0);
 
     // Special & Super
-    defineAnim('strange_anim_sp_projectile', 'strange_sheet_power', 0, 9, 14, 0);
-    defineAnim('strange_anim_super', 'strange_sheet_ultimate', 0, 15, 12, 0);
-    defineAnim('strange_anim_orb', 'strange_sheet_power', 8, 11, 12, -1);
+    // Row 7: frames 210..239 (Eye of Agamotto cast, 30 FPS)
+    defineAnim('strange_anim_sp_projectile', 'strange_sheet_master', 210, 239, 30, 0);
+    // Super: Eye of Agamotto / Dimension Shatter (Row 7, 30 FPS)
+    defineAnim('strange_anim_super', 'strange_sheet_master', 210, 239, 30, 0);
+    // VFX Orb: Eye of Agamotto looping projectile (30 FPS)
+    defineAnim('strange_anim_orb', 'strange_vfx_eye', 0, 29, 30, -1);
   }
 
   registerChunLiAnimations() {
@@ -2536,7 +2584,7 @@ class ArenaScene extends Phaser.Scene {
     const spawnX = caster.sprite.x + (facingRight ? 70 : -70);
     const spawnY = caster.sprite.y - 25;
 
-    const proj = this.physics.add.sprite(spawnX, spawnY, 'strange_sheet_power');
+    const proj = this.physics.add.sprite(spawnX, spawnY, 'strange_vfx_eye');
     this.projectiles.add(proj);
     proj.setDepth(20);
 
@@ -2544,8 +2592,8 @@ class ArenaScene extends Phaser.Scene {
     proj.body.allowGravity = false;
     proj.body.setAllowGravity(false);
     proj.body.gravity.y = 0;
-    proj.body.setSize(180, 180);
-    proj.body.setOffset(166, 166);
+    proj.body.setSize(120, 120);
+    proj.body.setOffset(68, 68);
     proj.play('strange_anim_orb');
     proj.caster = caster;
     proj.isMystic = true;
