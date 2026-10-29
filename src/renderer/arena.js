@@ -52,11 +52,12 @@ class FighterEntity {
       this.sprite.body.setSize(160, 320);
       this.sprite.body.setOffset(176, 130);
     } else if (charId === 'strange') {
-      this.sprite.setScale(0.78);
+      // Scale 1.04 scales Strange's 180px sprite to ~187px, perfectly matching Chun-Li and Zoro's heroic stature!
+      this.sprite.setScale(1.04);
       this.sprite.setCollideWorldBounds(true);
       this.sprite.setOrigin(0.5, 0.5);
-      this.sprite.body.setSize(96, 220);
-      this.sprite.body.setOffset(46, 14);
+      this.sprite.body.setSize(90, 182);
+      this.sprite.body.setOffset(83, 54);
     } else if (charId === 'chunli') {
       // Scale 0.79 scales Chun-Li's 234px idle sprite to ~185px, perfectly matching Harpy's 185px visual height!
       this.sprite.setScale(0.79);
@@ -283,10 +284,10 @@ class FighterEntity {
           this.sprite.body.setAllowGravity(true);
         }
       } else if (this.charId === 'strange') {
-        this.sprite.setScale(0.78);
+        this.sprite.setScale(1.04);
         this.sprite.setOrigin(0.5, 0.5);
-        this.sprite.body.setSize(96, 220);
-        this.sprite.body.setOffset(46, 14);
+        this.sprite.body.setSize(90, 182);
+        this.sprite.body.setOffset(83, 54);
       } else if (this.charId === 'mewtwo') {
         this.sprite.setScale(0.78);
         this.sprite.setOrigin(0.479, 0.5);
@@ -318,10 +319,10 @@ class FighterEntity {
           this.sprite.body.setAllowGravity(true);
         }
       } else if (this.charId === 'strange') {
-        this.sprite.setScale(0.78);
+        this.sprite.setScale(1.04);
         this.sprite.setOrigin(0.5, 0.5);
-        this.sprite.body.setSize(96, 220);
-        this.sprite.body.setOffset(46, 14);
+        this.sprite.body.setSize(90, 182);
+        this.sprite.body.setOffset(83, 54);
       } else if (this.charId === 'mewtwo') {
         this.sprite.setScale(0.78);
         this.sprite.setOrigin(0.479, 0.5);
@@ -357,7 +358,7 @@ class FighterEntity {
       this.sprite.body.setOffset(78, 22);
       this.sprite.y = 477.04;
     } else if (this.charId === 'strange') {
-      this.sprite.y = 492.32;
+      this.sprite.y = 462.68;
     } else if (this.charId === 'harpy') {
       this.sprite.y = 443.00;
     } else {
@@ -421,20 +422,30 @@ class FighterEntity {
     }
 
     if (this.charId === 'strange') {
+      this.sprite.setScale(1.04);
+      this.sprite.setOrigin(0.5, 0.5);
       if (this.isKnockedBack) {
         this.currentAction = 'KNOCKBACK / LAUNCH';
+        this.sprite.body.setSize(90, 182);
+        this.sprite.body.setOffset(83, 54);
         this.sprite.play('strange_anim_knockback', true);
         return;
       }
       if (this.isInAir) {
         this.currentAction = this.sprite.body.velocity.y < 0 ? 'JUMP / ASCENT' : 'AIR FALL';
+        this.sprite.body.setSize(90, 182);
+        this.sprite.body.setOffset(83, 54);
         this.sprite.play('strange_anim_jump', true);
       } else {
         if (this.isCrouching) {
           this.currentAction = 'CROUCH';
+          this.sprite.body.setSize(90, 140);
+          this.sprite.body.setOffset(83, 96);
           this.sprite.play('strange_anim_crouch_hold', true);
         } else {
           this.currentAction = 'IDLE';
+          this.sprite.body.setSize(90, 182);
+          this.sprite.body.setOffset(83, 54);
           this.sprite.play('strange_anim_idle', true);
         }
       }
@@ -675,10 +686,10 @@ class FighterEntity {
       this.sprite.setTexture('zoro_sheet_idle');
       this.sprite.play('zoro_anim_idle', true);
     } else if (this.charId === 'strange') {
-      this.sprite.setScale(0.78);
+      this.sprite.setScale(1.04);
       this.sprite.setOrigin(0.5, 0.5);
-      this.sprite.body.setSize(96, 220);
-      this.sprite.body.setOffset(46, 14);
+      this.sprite.body.setSize(90, 182);
+      this.sprite.body.setOffset(83, 54);
       this.sprite.play('strange_anim_idle', true);
     } else if (this.charId === 'chunli') {
       this.sprite.setDisplayOrigin(128, 128);
@@ -850,10 +861,10 @@ class FighterEntity {
           this.sprite.body.setOffset(78, 22);
           this.sprite.body.setAllowGravity(true);
         } else if (this.charId === 'strange' && this.sprite && this.sprite.body) {
-          this.sprite.setScale(0.78);
+          this.sprite.setScale(1.04);
           this.sprite.setOrigin(0.5, 0.5);
-          this.sprite.body.setSize(96, 220);
-          this.sprite.body.setOffset(46, 14);
+          this.sprite.body.setSize(90, 182);
+          this.sprite.body.setOffset(83, 54);
         } else if (this.charId === 'mewtwo' && this.sprite && this.sprite.body) {
           this.sprite.setScale(0.78);
           this.sprite.setOrigin(0.479, 0.5);
@@ -1044,7 +1055,7 @@ class FighterEntity {
       this.sprite.body.blocked.down ||
       this.sprite.body.touching.down ||
       this.sprite.body.bottom >= 568 ||
-      (this.charId === 'zoro' ? this.sprite.y >= 450 : this.sprite.y >= 472)
+      ((this.charId === 'zoro' || this.charId === 'strange') ? this.sprite.y >= 455 : this.sprite.y >= 472)
     );
 
     // Landing detection: ONLY when falling downward (velocity.y >= 0) and not during active launch ascent!
