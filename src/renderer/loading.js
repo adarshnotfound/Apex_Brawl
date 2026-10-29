@@ -141,8 +141,6 @@
         'Press [Tab] or click [TRAINING (TAB)] to customize dummy action and guard states.'
       ]
     }
-      ]
-    }
   };
 
   const GENERAL_TIPS = [
