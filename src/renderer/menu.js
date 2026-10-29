@@ -418,8 +418,8 @@ const MK1_ROSTER = {
     name: 'RORONOA ZORO',
     subtitle: 'PIRATE HUNTER & SANTORYU SWORDSMAN',
     archetype: 'Striker • Three-Sword Style & Demon Slash',
-    render: 'assets/characters/Zoro/action_render.png',
-    avatar: 'assets/characters/Zoro/select_avatar.png',
+    render: 'assets/characters/zoro/action_render.png',
+    avatar: 'assets/characters/zoro/select_avatar.png',
     themeColor: '#10b981',
     accentColor: '#34d399'
   }
@@ -510,18 +510,34 @@ function initCharacterSelection() {
     const overlay = document.getElementById('modal-battle-prompt');
     if (!overlay || !overlay.classList.contains('open')) return;
 
-    // Player 1 navigation: A / D
-    if (e.key === 'a' || e.key === 'A') {
-      cycleFighter('1', -1);
-    } else if (e.key === 'd' || e.key === 'D') {
-      cycleFighter('1', 1);
+    // In LAN mode: A/D and Left/Right both cycle the player's own fighter!
+    if (window.isLanMatch && window.lanManager && window.lanManager.isConnected) {
+      const myPlayer = (window.lanManager.role === 'HOST') ? '1' : '2';
+      if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') {
+        cycleFighter(myPlayer, -1);
+      } else if (e.key === 'd' || e.key === 'D' || e.key === 'ArrowRight') {
+        cycleFighter(myPlayer, 1);
+      }
+    } else {
+      // Player 1 navigation: A / D
+      if (e.key === 'a' || e.key === 'A') {
+        cycleFighter('1', -1);
+      } else if (e.key === 'd' || e.key === 'D') {
+        cycleFighter('1', 1);
+      }
+
+      // Player 2 navigation: Left / Right arrows
+      if (e.key === 'ArrowLeft') {
+        cycleFighter('2', -1);
+      } else if (e.key === 'ArrowRight') {
+        cycleFighter('2', 1);
+      }
     }
 
-    // Player 2 navigation: Left / Right arrows
-    if (e.key === 'ArrowLeft') {
-      cycleFighter('2', -1);
-    } else if (e.key === 'ArrowRight') {
-      cycleFighter('2', 1);
+    // W / S or Up / Down toggles Stage selection
+    if (e.key === 'w' || e.key === 'W' || e.key === 's' || e.key === 'S' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      const stageSelector = document.getElementById('mk1StageSelector');
+      if (stageSelector) stageSelector.click();
     }
 
     // Space / Enter launches fight
@@ -537,14 +553,18 @@ function initCharacterSelection() {
 }
 
 function cycleFighter(player, dir) {
+  if (window.isLanMatch && window.lanManager && window.lanManager.isConnected) {
+    const myPlayer = (window.lanManager.role === 'HOST') ? '1' : '2';
+    player = myPlayer;
+  }
   const current = (player === '1') ? window.selectedFighterP1 : window.selectedFighterP2;
   const idx = ROSTER_KEYS.indexOf(current);
   const nextIdx = (idx + dir + ROSTER_KEYS.length) % ROSTER_KEYS.length;
-  setFighterSelection(player, ROSTER_KEYS[nextIdx]);
+  setFighterSelection(player, ROSTER_KEYS[nextIdx], true, true);
   if (window.soundFX) window.soundFX.playSelect();
 }
 
-function setFighterSelection(player, charId, animate = true) {
+function setFighterSelection(player, charId, animate = true, broadcast = true) {
   if (window.isTrainingModeSelected && player === '2') {
     // Opponent in Training Mode is locked to Dummy
     return;
@@ -569,6 +589,14 @@ function setFighterSelection(player, charId, animate = true) {
 
   // Update fighter presentation display
   updateFighterDisplay(player, charId, animate);
+
+  // Broadcast over LAN if this is the active player's selection
+  if (broadcast && window.isLanMatch && window.lanManager && window.lanManager.isConnected) {
+    const myPlayer = (window.lanManager.role === 'HOST') ? '1' : '2';
+    if (String(player) === myPlayer) {
+      window.lanManager.send('CHAR_SELECT', { player: Number(myPlayer), charId });
+    }
+  }
 }
 
 function updateFighterDisplay(player, charId, animate = true) {
@@ -658,11 +686,11 @@ function switchGrimoireCharacter(charId) {
         <td>155 HP (Orb Missile)</td>
       </tr>
       <tr>
-        <td><strong>Mirror Dimension Shatter</strong></td>
+        <td><strong>Mirror Dimension Shatter (Ultimate)</strong></td>
         <td><span class="command-key">S+H / Y / ↓+L / I</span></td>
         <td>10f</td><td>12f</td><td>22f</td>
         <td><span style="color: #f87171;">-5f</span></td>
-        <td>245 HP (Super)</td>
+        <td>290 HP (Dimensional Shatter)</td>
       </tr>
     `;
   } else if (charId === 'chunli') {
@@ -698,11 +726,11 @@ function switchGrimoireCharacter(charId) {
       </tr>
 
       <tr>
-        <td><strong>Hoyoku-sen (Super Art Finisher)</strong></td>
+        <td><strong>Hoyoku-sen: Phoenix Flurry (Ultimate)</strong></td>
         <td><span class="command-key">S+H / Y / ↓+L / I</span></td>
         <td>9f</td><td>12f</td><td>22f</td>
         <td><span style="color: #f87171;">-5f</span></td>
-        <td>250 HP (Super)</td>
+        <td>290 HP (11-Hit Phoenix Finisher)</td>
       </tr>
     `;
   } else if (charId === 'mewtwo') {
@@ -741,7 +769,7 @@ function switchGrimoireCharacter(charId) {
         <td><span class="command-key">S+H / Y / ↓+L / I</span></td>
         <td>9f</td><td>12f</td><td>22f</td>
         <td><span style="color: #f87171;">-5f</span></td>
-        <td>260 HP (Super Explosion)</td>
+        <td>285 HP (Supernova Detonation)</td>
       </tr>
     `;
   } else if (charId === 'steve') {
@@ -801,11 +829,11 @@ function switchGrimoireCharacter(charId) {
         <td>85 HP</td>
       </tr>
       <tr>
-        <td><strong>Santoryu Dual Cleave (5C Heavy)</strong></td>
+        <td><strong>Santoryu Dash Slash (5C Heavy)</strong></td>
         <td><span class="command-key">H / L</span></td>
         <td>10f</td><td>6f</td><td>16f</td>
         <td><span style="color: #fde047;">-2f</span></td>
-        <td>125 HP (Wallbounce)</td>
+        <td>135 HP (Wallbounce)</td>
       </tr>
       <tr>
         <td><strong>360 Pound Cannon (Special Projectile)</strong></td>
@@ -815,11 +843,11 @@ function switchGrimoireCharacter(charId) {
         <td>160 HP (Flying Slash)</td>
       </tr>
       <tr>
-        <td><strong>Demon Slash Oni Giri (Super)</strong></td>
+        <td><strong>Santoryu Ougi: Demon Slash Oni Giri (Ultimate)</strong></td>
         <td><span class="command-key">S+H / Y / ↓+L / I</span></td>
         <td>8f</td><td>14f</td><td>22f</td>
         <td><span style="color: #f87171;">-5f</span></td>
-        <td>260 HP (Demon Cross Slash)</td>
+        <td>295 HP (Demon Cross Burst)</td>
       </tr>
     `;
   } else {
@@ -854,11 +882,11 @@ function switchGrimoireCharacter(charId) {
         <td>150 HP</td>
       </tr>
       <tr>
-        <td><strong>Tempest Feather Storm</strong></td>
+        <td><strong>Tempest Carnage (Ultimate)</strong></td>
         <td><span class="command-key">S+H / Y / ↓+L / I</span></td>
         <td>12f</td><td>10f</td><td>20f</td>
         <td><span style="color: #f87171;">-6f</span></td>
-        <td>220 HP (Super)</td>
+        <td>290 HP (Tempest Cyclone Barrage)</td>
       </tr>
     `;
   }
@@ -872,7 +900,10 @@ function openCharacterSelect(mode = 'VERSUS') {
 
   if (mode === 'ARCADE') {
     window.isCpuMatch = true;
-    window.arcadeStage = window.arcadeStage || 1;
+    window.arcadeStage = 1;
+    window.cpuDifficulty = 'EASY';
+    const available = ROSTER_KEYS.filter(k => k !== window.selectedFighterP1);
+    window.selectedFighterP2 = available[Math.floor(Math.random() * available.length)] || 'strange';
   } else if (mode === 'VERSUS') {
     window.isCpuMatch = false; // Always default Local 1v1 Kombat to human 2-player!
   } else {
@@ -907,7 +938,9 @@ function openCharacterSelect(mode = 'VERSUS') {
     updateFighterDisplay('2', 'dummy', false);
     document.querySelectorAll('.roster-card').forEach(card => card.classList.remove('p2-selected'));
   } else if (window.isArcadeMode) {
-    const floorOpponent = (window.arcadeStage === 2) ? 'chunli' : ((window.arcadeStage >= 3) ? 'harpy' : 'strange');
+    // Randomize arcade opponent from roster (excluding player's picked champion)
+    const available = ROSTER_KEYS.filter(k => k !== window.selectedFighterP1);
+    const floorOpponent = available[Math.floor(Math.random() * available.length)] || 'strange';
     window.selectedFighterP2 = floorOpponent;
     updateFighterDisplay('1', window.selectedFighterP1 || 'harpy', false);
     updateFighterDisplay('2', floorOpponent, false);
@@ -1297,11 +1330,35 @@ function initLANLobbyUI() {
   if (window.lanManager) {
     window.lanManager.on('OPEN_CHAR_SELECT', () => {
       openCharacterSelect('LAN');
+      // If Host, synchronize initial roster state
+      if (window.lanManager.role === 'HOST') {
+        window.lanManager.send('ROSTER_STATE_SYNC', {
+          p1Char: window.selectedFighterP1,
+          p2Char: window.selectedFighterP2,
+          stage: window.selectedStage || 'japanese_temple'
+        });
+      }
+    });
+
+    window.lanManager.on('ROSTER_STATE_SYNC', (data) => {
+      if (data) {
+        if (data.p1Char) setFighterSelection('1', data.p1Char, true, false);
+        if (data.p2Char) setFighterSelection('2', data.p2Char, true, false);
+        if (data.stage) {
+          window.selectedStage = data.stage;
+          updateStagePillUI();
+        }
+        // Client confirms its pick back to host
+        if (window.lanManager.role === 'CLIENT') {
+          window.lanManager.send('CHAR_SELECT', { player: 2, charId: window.selectedFighterP2 });
+        }
+      }
     });
 
     window.lanManager.on('CHAR_SELECT', (data) => {
       if (data && data.player && data.charId) {
-        setFighterSelection(String(data.player), data.charId);
+        // Update without re-broadcasting
+        setFighterSelection(String(data.player), data.charId, true, false);
       }
     });
 
@@ -1463,7 +1520,7 @@ if (window.electronAPI && window.electronAPI.onMobileStatus) {
   });
 }
 
-// Central Unified Mobile Input Dispatcher (Always Active)
+// Central Unified Mobile Input Dispatcher (Always Active Across Every Menu)
 if (window.electronAPI && window.electronAPI.onMobileInput) {
   window.electronAPI.onMobileInput((data) => {
     if (!data) return;
@@ -1476,26 +1533,30 @@ if (window.electronAPI && window.electronAPI.onMobileInput) {
       return;
     }
 
-    // B. Otherwise, we are in Menus / Character Select:
+    // B. Otherwise, we are navigating Menus / Modals:
     if (!data.isDown) return;
 
-    // 1. If Mobile Controller modal is open, ESC or ENTER closes it
-    const mobileModal = document.getElementById('modal-mobile-controller');
-    if (mobileModal && mobileModal.classList.contains('open')) {
-      if (data.key === 'esc' || data.key === 'enter') {
-        closeAllModals();
-      }
-      return;
-    }
+    const isConfirmKey = (data.key === 'enter' || data.key === 'j' || data.key === 'k' || data.key === 'l' || data.key === 'r' || data.key === 'y');
 
-    // 2. If Character Select is open, let phones navigate and launch
-    const overlay = document.getElementById('modal-battle-prompt');
-    if (overlay && overlay.classList.contains('open')) {
+    // 1. Character Select Modal
+    const charSelectModal = document.getElementById('modal-battle-prompt');
+    if (charSelectModal && charSelectModal.classList.contains('open')) {
       if (data.key === 'left') {
-        cycleFighter(String(data.player), -1);
+        if (window.isLanMatch && window.lanManager && window.lanManager.isConnected) {
+          cycleFighter((window.lanManager.role === 'HOST') ? '1' : '2', -1);
+        } else {
+          cycleFighter(String(data.player || '1'), -1);
+        }
       } else if (data.key === 'right') {
-        cycleFighter(String(data.player), 1);
-      } else if (data.key === 'enter' || data.key === 'j' || data.key === 'k' || data.key === 'u') {
+        if (window.isLanMatch && window.lanManager && window.lanManager.isConnected) {
+          cycleFighter((window.lanManager.role === 'HOST') ? '1' : '2', 1);
+        } else {
+          cycleFighter(String(data.player || '1'), 1);
+        }
+      } else if (data.key === 'up' || data.key === 'down') {
+        const stageSelector = document.getElementById('mk1StageSelector');
+        if (stageSelector) stageSelector.click();
+      } else if (isConfirmKey) {
         const fightBtn = document.getElementById('btnLaunchFight');
         if (fightBtn) fightBtn.click();
       } else if (data.key === 'esc') {
@@ -1504,16 +1565,94 @@ if (window.electronAPI && window.electronAPI.onMobileInput) {
       return;
     }
 
-    // 3. If any other modal is open (Controls, Settings, Arcade, LAN, Grimoire), ESC or ENTER closes it
-    const anyModal = document.querySelector('.modal-overlay.open');
-    if (anyModal) {
-      if (data.key === 'esc' || data.key === 'enter') {
+    // 2. LAN Multiplayer Modal
+    const lanModal = document.getElementById('modal-lan');
+    if (lanModal && lanModal.classList.contains('open')) {
+      const hostTabBtn = document.querySelector('.lan-tab-btn[data-tab="host"]');
+      const joinTabBtn = document.querySelector('.lan-tab-btn[data-tab="join"]');
+      const isHostActive = hostTabBtn && hostTabBtn.classList.contains('active');
+
+      if (data.key === 'left' || data.key === 'right') {
+        // Toggle between Host and Join tabs
+        if (isHostActive && joinTabBtn) joinTabBtn.click();
+        else if (!isHostActive && hostTabBtn) hostTabBtn.click();
+        if (window.soundFX) window.soundFX.playSelect();
+        return;
+      }
+
+      if (isHostActive) {
+        if (isConfirmKey) {
+          const btnEnter = document.getElementById('btnHostEnterSelect');
+          if (btnEnter && !btnEnter.disabled) {
+            btnEnter.click();
+          }
+        }
+      } else {
+        // In Join Tab: navigate rooms with up/down
+        const rooms = Array.from(document.querySelectorAll('#lanRoomList .lan-room-item'));
+        if (rooms.length > 0) {
+          let selectedIdx = rooms.findIndex(r => r.classList.contains('selected'));
+          if (data.key === 'up') {
+            selectedIdx = (selectedIdx - 1 + rooms.length) % rooms.length;
+            rooms.forEach((r, i) => r.classList.toggle('selected', i === selectedIdx));
+            if (window.soundFX) window.soundFX.playHover();
+          } else if (data.key === 'down') {
+            selectedIdx = (selectedIdx + 1) % rooms.length;
+            rooms.forEach((r, i) => r.classList.toggle('selected', i === selectedIdx));
+            if (window.soundFX) window.soundFX.playHover();
+          } else if (isConfirmKey) {
+            if (selectedIdx >= 0 && rooms[selectedIdx]) {
+              rooms[selectedIdx].click();
+            } else {
+              const btnConnect = document.getElementById('btnJoinConnect');
+              if (btnConnect) btnConnect.click();
+            }
+          }
+        } else if (isConfirmKey) {
+          const btnConnect = document.getElementById('btnJoinConnect');
+          if (btnConnect) btnConnect.click();
+        }
+      }
+
+      if (data.key === 'esc') {
         closeAllModals();
       }
       return;
     }
 
-    // 4. Main Menu Navigation (Full control from mobile: D-Pad Up/Down + ENTER/J)
+    // 3. Grimoire Modal: Left/Right cycles fighter tabs
+    const grimoireModal = document.getElementById('modal-grimoire');
+    if (grimoireModal && grimoireModal.classList.contains('open')) {
+      const tabs = Array.from(document.querySelectorAll('.grimoire-tab-btn'));
+      if (tabs.length > 0) {
+        let activeTabIdx = tabs.findIndex(t => t.classList.contains('active'));
+        if (activeTabIdx < 0) activeTabIdx = 0;
+        if (data.key === 'left') {
+          activeTabIdx = (activeTabIdx - 1 + tabs.length) % tabs.length;
+          tabs[activeTabIdx].click();
+          return;
+        } else if (data.key === 'right') {
+          activeTabIdx = (activeTabIdx + 1) % tabs.length;
+          tabs[activeTabIdx].click();
+          return;
+        }
+      }
+      if (data.key === 'esc' || isConfirmKey) {
+        closeAllModals();
+      }
+      return;
+    }
+
+    // 4. Any other modal (Settings, Controls, Mobile pairing)
+    const anyModal = document.querySelector('.modal-overlay.open');
+    if (anyModal) {
+      if (data.key === 'esc' || isConfirmKey) {
+        closeAllModals();
+      }
+      return;
+    }
+
+    // 5. Main Menu Navigation
     if (!menuItems || menuItems.length === 0) {
       menuItems = Array.from(document.querySelectorAll('.temple-menu .menu-item'));
     }
@@ -1526,11 +1665,14 @@ if (window.electronAPI && window.electronAPI.onMobileInput) {
         activeIndex = (activeIndex + 1) % menuItems.length;
         menuItems.forEach((item, i) => item.classList.toggle('active', i === activeIndex));
         if (window.soundFX) window.soundFX.playHover();
-      } else if (data.key === 'enter' || data.key === 'j') {
+      } else if (isConfirmKey) {
         if (window.menuInputCooldown && Date.now() < window.menuInputCooldown) return;
         executeMenuItem(menuItems[activeIndex]?.dataset.action);
       } else if (data.key === 'esc') {
-        closeAllModals();
+        // Focus Quit or close
+        activeIndex = menuItems.length - 1;
+        menuItems.forEach((item, i) => item.classList.toggle('active', i === activeIndex));
+        if (window.soundFX) window.soundFX.playHover();
       }
     }
   });

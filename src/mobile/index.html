@@ -337,21 +337,19 @@
       transform: scale(0.95);
     }
 
-    /* 4-Button Arcade Combat Diamond */
-    .combat-diamond {
+    /* 5-Button Pokemon Unite Combat Cluster */
+    .combat-unite-cluster {
       position: relative;
-      width: 260px;
-      height: 180px;
+      width: 290px;
+      height: 270px;
     }
 
     .action-btn {
       position: absolute;
-      width: 72px;
-      height: 72px;
       border-radius: 50%;
-      background: rgba(22, 17, 30, 0.96);
+      background: rgba(20, 16, 28, 0.95);
       border: 2px solid rgba(255, 255, 255, 0.2);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.7), inset 0 0 12px rgba(255, 255, 255, 0.08);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7), inset 0 0 12px rgba(255, 255, 255, 0.08);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -359,39 +357,77 @@
       color: #fff;
       font-weight: 900;
       transition: transform 0.08s, box-shadow 0.08s, background 0.08s;
+      cursor: pointer;
+    }
+
+    .action-btn .btn-icon {
+      font-size: 15px;
+      line-height: 1;
+      margin-bottom: 2px;
     }
 
     .action-btn .btn-label {
-      font-size: 13px;
+      font-size: 12px;
       letter-spacing: 1px;
     }
 
     .action-btn .btn-sub {
-      font-size: 9px;
-      opacity: 0.6;
+      font-size: 8px;
+      opacity: 0.65;
       letter-spacing: 0.5px;
     }
 
-    /* Light Attack: Left of diamond */
-    .btn-light {
-      bottom: 24px;
-      left: 0;
-      border-color: #38bdf8;
+    /* 1. Large Basic Attack Button in Corner */
+    .btn-basic {
+      bottom: 8px;
+      right: 8px;
+      width: 92px;
+      height: 92px;
+      border: 3px solid #38bdf8;
       color: #38bdf8;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.45), inset 0 0 15px rgba(56, 189, 248, 0.2);
     }
-    .btn-light.active, .btn-light:active {
+    .btn-basic .btn-label {
+      font-size: 14px;
+      font-weight: 900;
+    }
+    .btn-basic .btn-sub {
+      font-size: 9px;
+      opacity: 0.85;
+    }
+    .btn-basic.active, .btn-basic:active {
       background: #38bdf8 !important;
       color: #000 !important;
-      box-shadow: 0 0 25px #38bdf8 !important;
+      box-shadow: 0 0 32px #38bdf8 !important;
       transform: scale(0.92);
     }
 
-    /* Heavy Attack: Top of diamond */
+    /* 2. Medium Attack (Left of Basic along thumb arc) */
+    .btn-medium {
+      bottom: 18px;
+      right: 112px;
+      width: 66px;
+      height: 66px;
+      border-color: #2dd4bf;
+      color: #2dd4bf;
+      box-shadow: 0 0 15px rgba(45, 212, 191, 0.3);
+    }
+    .btn-medium.active, .btn-medium:active {
+      background: #2dd4bf !important;
+      color: #000 !important;
+      box-shadow: 0 0 25px #2dd4bf !important;
+      transform: scale(0.92);
+    }
+
+    /* 3. Heavy Attack (Diagonally Up-Left of Basic) */
     .btn-heavy {
-      top: 0;
-      left: 74px;
+      bottom: 96px;
+      right: 118px;
+      width: 66px;
+      height: 66px;
       border-color: #f59e0b;
       color: #f59e0b;
+      box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
     }
     .btn-heavy.active, .btn-heavy:active {
       background: #f59e0b !important;
@@ -400,32 +436,34 @@
       transform: scale(0.92);
     }
 
-    /* Special: Bottom of diamond */
+    /* 4. Special Attack (Above Basic) */
     .btn-special {
-      bottom: 0;
-      left: 92px;
-      border-color: #a855f7;
-      color: #a855f7;
+      bottom: 112px;
+      right: 36px;
+      width: 70px;
+      height: 70px;
+      border-color: #c084fc;
+      color: #c084fc;
+      box-shadow: 0 0 18px rgba(192, 132, 252, 0.35);
     }
     .btn-special.active, .btn-special:active {
-      background: #a855f7 !important;
+      background: #c084fc !important;
       color: #000 !important;
-      box-shadow: 0 0 25px #a855f7 !important;
+      box-shadow: 0 0 28px #c084fc !important;
       transform: scale(0.92);
     }
 
-    /* Ultimate Attack: Right of diamond (Super Flaming) */
+    /* 5. Ultimate Move (Unite Move - Top of the Arc) */
     .btn-ult {
-      top: 14px;
-      right: 10px;
+      bottom: 188px;
+      right: 66px;
       width: 78px;
       height: 78px;
-      border-color: var(--ult);
+      border: 3px solid var(--ult);
       color: var(--ult);
-      box-shadow: 0 0 20px var(--ult-glow);
+      box-shadow: 0 0 25px var(--ult-glow), inset 0 0 15px rgba(239, 68, 68, 0.25);
       animation: pulseSuper 2s infinite ease-in-out;
     }
-
     .btn-ult.active, .btn-ult:active {
       background: var(--ult) !important;
       color: #fff !important;
@@ -557,24 +595,36 @@
           <div class="btn-aux taunt-btn" data-key="t">🔥 TAUNT</div>
         </div>
 
-        <!-- 4-Button Combat Diamond -->
-        <div class="combat-diamond">
-          <div class="action-btn btn-light" data-key="j">
-            <span class="btn-label">LIGHT</span>
-            <span class="btn-sub">STRIKE</span>
+        <!-- 5-Button Pokemon Unite Combat Cluster -->
+        <div class="combat-unite-cluster">
+          <!-- 1. Large Basic Attack Button (Bottom-Right Corner) -->
+          <div class="action-btn btn-basic" data-key="j" title="Basic Attack (Light 5A)">
+            <span class="btn-icon">⚡</span>
+            <span class="btn-label">BASIC</span>
+            <span class="btn-sub">LIGHT 5A</span>
           </div>
 
-          <div class="action-btn btn-heavy" data-key="k">
+          <!-- 2. Medium Attack (Left of Basic along natural arc) -->
+          <div class="action-btn btn-medium" data-key="k" title="Medium Attack (5B)">
+            <span class="btn-label">MEDIUM</span>
+            <span class="btn-sub">5B</span>
+          </div>
+
+          <!-- 3. Heavy Attack (Diagonally Up-Left of Basic) -->
+          <div class="action-btn btn-heavy" data-key="l" title="Heavy Attack (5C)">
             <span class="btn-label">HEAVY</span>
-            <span class="btn-sub">SMASH</span>
+            <span class="btn-sub">5C</span>
           </div>
 
-          <div class="action-btn btn-special" data-key="l">
+          <!-- 4. Special Attack (Above Basic) -->
+          <div class="action-btn btn-special" data-key="r" title="Special Move (Skill)">
             <span class="btn-label">SPECIAL</span>
             <span class="btn-sub">SKILL</span>
           </div>
 
-          <div class="action-btn btn-ult" data-key="u">
+          <!-- 5. Ultimate Move (Unite Move - Top of Arc) -->
+          <div class="action-btn btn-ult" data-key="y" title="Ultimate Move (Super Art)">
+            <span class="btn-icon">💥</span>
             <span class="btn-label">ULTIMATE</span>
             <span class="btn-sub">SUPER</span>
           </div>

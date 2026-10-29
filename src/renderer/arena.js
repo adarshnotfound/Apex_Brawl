@@ -156,7 +156,7 @@ class FighterEntity {
           this.scene.spawnKikokenProjectile(this);
         }
       }
-    } else if ((key === 'mewtwo_anim_super' || key === 'mewtwo_anim_sp_shadow_ball') && !this.shadowBallFired) {
+    } else if (key === 'mewtwo_anim_sp_shadow_ball' && !this.shadowBallFired) {
       const frameIdx = frame ? (frame.index !== undefined ? frame.index : Number(frame.textureFrame) + 1) : 0;
       const textureFrameIdx = frame && frame.textureFrame !== undefined ? Number(frame.textureFrame) : -1;
       if (frameIdx >= 13 || textureFrameIdx >= 12) {
@@ -165,12 +165,8 @@ class FighterEntity {
           this.activeShadowBallChargeVFX.destroy();
           this.activeShadowBallChargeVFX = null;
         }
-        if (this.scene) {
-          if (key === 'mewtwo_anim_super' && this.scene.spawnMewtwoUltimateChargeBall) {
-            this.scene.spawnMewtwoUltimateChargeBall(this);
-          } else if (this.scene.spawnShadowBallProjectile) {
-            this.scene.spawnShadowBallProjectile(this);
-          }
+        if (this.scene && this.scene.spawnShadowBallProjectile) {
+          this.scene.spawnShadowBallProjectile(this);
         }
       }
     } else if ((key === 'steve_anim_super' || key === 'steve_anim_sp_tnt') && !this.tntFired) {
@@ -213,15 +209,11 @@ class FighterEntity {
       if (this.scene && this.scene.spawnKikokenProjectile) {
         this.scene.spawnKikokenProjectile(this);
       }
-    } else if (key === 'mewtwo_anim_super' || key === 'mewtwo_anim_sp_shadow_ball') {
+    } else if (key === 'mewtwo_anim_sp_shadow_ball') {
       if (!this.shadowBallFired) {
         this.shadowBallFired = true;
-        if (this.scene) {
-          if (key === 'mewtwo_anim_super' && this.scene.spawnMewtwoUltimateChargeBall) {
-            this.scene.spawnMewtwoUltimateChargeBall(this);
-          } else if (this.scene.spawnShadowBallProjectile) {
-            this.scene.spawnShadowBallProjectile(this);
-          }
+        if (this.scene && this.scene.spawnShadowBallProjectile) {
+          this.scene.spawnShadowBallProjectile(this);
         }
       }
       if (this.activeShadowBallChargeVFX && this.activeShadowBallChargeVFX.active) {
@@ -826,12 +818,12 @@ class FighterEntity {
           this.sprite.setOrigin(0.483, 0.509);
           this.sprite.body.setSize(110, 195);
           this.sprite.body.setOffset(50, 10);
-        } else if (animKey === 'mewtwo_anim_sp_shadow_ball' || animKey === 'mewtwo_anim_super') {
+        } else if (animKey === 'mewtwo_anim_sp_shadow_ball') {
           this.sprite.setScale(0.86);
           this.sprite.setOrigin(0.457, 0.497);
           this.sprite.body.setSize(110, 216);
           this.sprite.body.setOffset(60, 10);
-        } else if (animKey === 'mewtwo_anim_sp_psystrike') {
+        } else if (animKey === 'mewtwo_anim_sp_psystrike' || animKey === 'mewtwo_anim_super') {
           this.sprite.setScale(0.98);
           this.sprite.setOrigin(0.476, 0.523);
           this.sprite.body.setSize(110, 198);
@@ -1571,18 +1563,17 @@ class FighterEntity {
           this.scene.spawnHoyokuSenVFX(this);
         }
       } else if (this.charId === 'mewtwo') {
-        this.shadowBallFired = false;
-        this.triggerAttack('CHARGE BALL: GIGA SHADOW BALL (ULTIMATE)', 'mewtwo_anim_super', {
+        this.triggerAttack('PSYSTRIKE (ULTIMATE)', 'mewtwo_anim_super', {
           damage: 260,
           rangeX: 850,
           rangeY: 500,
-          knockbackX: 760,
+          knockbackX: 720,
           knockbackY: -560,
           isSpecial: true
         }, 1500);
-        this.hasDealtDamage = true; // Damage applies when charged ball hits and detonates!
-        if (this.scene && this.scene.spawnMewtwoChargeBallSuper) {
-          this.scene.spawnMewtwoChargeBallSuper(this);
+        this.hasDealtDamage = true; // Damage applies when Psystrike supernova detonates!
+        if (this.scene && this.scene.spawnPsystrikeVFX) {
+          this.scene.spawnPsystrikeVFX(this);
         }
       } else if (this.charId === 'steve') {
         this.tntFired = false;
@@ -1656,7 +1647,8 @@ class FighterEntity {
           isSpecial: true
         }, 1200);
       } else if (this.charId === 'mewtwo') {
-        this.triggerAttack('PSYSTRIKE (SPECIAL)', 'mewtwo_anim_sp_psystrike', {
+        this.shadowBallFired = false;
+        this.triggerAttack('SHADOW BALL (SPECIAL)', 'mewtwo_anim_sp_shadow_ball', {
           damage: 155,
           rangeX: 180,
           rangeY: 100,
@@ -1664,8 +1656,9 @@ class FighterEntity {
           knockbackY: -360,
           isSpecial: true
         }, 1000);
-        if (this.scene && this.scene.spawnPsystrikeVFX) {
-          this.scene.spawnPsystrikeVFX(this);
+        this.hasDealtDamage = true; // Damage applies when projectile hits!
+        if (this.scene && this.scene.spawnShadowBallChargeVFX) {
+          this.scene.spawnShadowBallChargeVFX(this);
         }
       } else if (this.charId === 'steve') {
         this.triggerAttack('MEGATON PUNCH (SPECIAL)', 'steve_anim_sp_punch', {
@@ -1729,14 +1722,18 @@ class FighterEntity {
             isSpecial: false
           }, 850);
         } else {
-          this.triggerAttack('SANTORYU CLEAVE (5C)', 'zoro_anim_atk_5c', {
-            damage: 125,
-            rangeX: 230,
-            rangeY: 110,
-            knockbackX: 440,
-            knockbackY: -300,
+          this.triggerAttack('SANTORYU DASH SLASH (5C)', 'zoro_anim_sp_dash', {
+            damage: 135,
+            rangeX: 250,
+            rangeY: 120,
+            knockbackX: 460,
+            knockbackY: -320,
             isSpecial: true
-          }, 920);
+          }, 1200);
+          this.hasDealtDamage = true; // Wait for the slash to land!
+          if (this.scene && this.scene.executeZoroHeavyDashCleave) {
+            this.scene.executeZoroHeavyDashCleave(this);
+          }
         }
       } else if (this.charId === 'strange') {
         if (this.isInAir) {
@@ -1897,7 +1894,7 @@ class FighterEntity {
         });
       } else if (this.charId === 'mewtwo') {
         this.currentAction = 'TELEPORT DASH';
-        this.sprite.setOrigin(0.5, 0.5);
+        this.sprite.setOrigin(0.5, 0.507);
         this.sprite.play('mewtwo_anim_dash', true);
         this.sprite.setTint(0xc084fc);
         if (this.scene && this.scene.spawnTeleportVFX) {
@@ -2076,13 +2073,12 @@ class FighterEntity {
               this.sprite.setDisplayOrigin(128, 128);
               this.sprite.body.setSize(100, 230);
               this.sprite.body.setOffset(78, 22);
-              this.sprite.setTexture('chunli_sheet_walk');
               this.sprite.play('chunli_anim_walk', true);
             } else if (this.charId === 'mewtwo') {
               this.sprite.setScale(0.78);
-              this.sprite.setOrigin(0.502, 0.5);
+              this.sprite.setOrigin(0.502, 0.507);
               this.sprite.body.setSize(110, 240);
-              this.sprite.body.setOffset(73, 20);
+              this.sprite.body.setOffset(73, 22);
               this.sprite.play('mewtwo_anim_walk', true);
             } else if (this.charId === 'steve') {
               this.sprite.setScale(0.40);
@@ -2103,13 +2099,12 @@ class FighterEntity {
               this.sprite.setDisplayOrigin(128, 128);
               this.sprite.body.setSize(100, 230);
               this.sprite.body.setOffset(78, 22);
-              this.sprite.setTexture('chunli_sheet_walk');
               this.sprite.play('chunli_anim_walk', true);
             } else if (this.charId === 'mewtwo') {
               this.sprite.setScale(0.78);
-              this.sprite.setOrigin(0.502, 0.5);
+              this.sprite.setOrigin(0.502, 0.507);
               this.sprite.body.setSize(110, 240);
-              this.sprite.body.setOffset(73, 20);
+              this.sprite.body.setOffset(73, 22);
               this.sprite.play('mewtwo_anim_walk', true);
             } else if (this.charId === 'steve') {
               this.sprite.setScale(0.40);
@@ -2131,7 +2126,6 @@ class FighterEntity {
               this.sprite.setDisplayOrigin(128, 128);
               this.sprite.body.setSize(100, 230);
               this.sprite.body.setOffset(78, 22);
-              this.sprite.setTexture('chunli_sheet_idle');
               this.sprite.play('chunli_anim_idle', true);
               this.snapToGround();
             } else if (this.charId === 'mewtwo') {
@@ -2261,12 +2255,12 @@ class ArenaScene extends Phaser.Scene {
     this.load.image('sky_floor', skBase + 'sky_temple_floor_transparent.png');
 
     // Character Portraits
-    this.load.image('zoro_portrait', '../../assets/characters/Zoro/portrait.png');
-    this.load.image('harpy_portrait', '../../assets/characters/harpy/portrait.png');
-    this.load.image('strange_portrait', '../../assets/characters/Dr_Strange/portrait.png');
-    this.load.image('chunli_portrait', '../../assets/characters/ChunLi/portrait.png');
-    this.load.image('mewtwo_portrait', '../../assets/characters/Mewtwo/portrait.png');
-    this.load.image('steve_portrait', '../../assets/characters/Steve/portrait.png');
+    this.load.image('zoro_portrait', '../../assets/characters/zoro/select_avatar.png');
+    this.load.image('harpy_portrait', '../../assets/characters/harpy/select_avatar.png');
+    this.load.image('strange_portrait', '../../assets/characters/Dr_Strange/select_avatar.png');
+    this.load.image('chunli_portrait', '../../assets/characters/ChunLi/select_avatar.png');
+    this.load.image('mewtwo_portrait', '../../assets/characters/Mewtwo/select_avatar.png');
+    this.load.image('steve_portrait', '../../assets/characters/Steve/select_avatar.png');
 
     // 2. Doctor Strange 30 FPS Master Sprite Sheet & VFX (256x256 Grid)
     const sBase = '../../assets/characters/Dr_Strange/';
@@ -2322,7 +2316,7 @@ class ArenaScene extends Phaser.Scene {
     const mBase = '../../assets/characters/Mewtwo/';
     const mOrig = mBase + 'orig/';
     this.load.spritesheet('mewtwo_sheet_idle', mOrig + '01_Mewtwo_Idle.png', { frameWidth: 256, frameHeight: 256 });
-    this.load.spritesheet('mewtwo_sheet_walk', mOrig + '02_Mewtwo_Walk.png', { frameWidth: 256, frameHeight: 256 });
+    this.load.spritesheet('mewtwo_sheet_walk', mOrig + '02_Mewtwo_Walk.png', { frameWidth: 256, frameHeight: 272 });
     this.load.spritesheet('mewtwo_sheet_jump', mOrig + '03_Mewtwo_Jump.png', { frameWidth: 230, frameHeight: 232 });
     this.load.spritesheet('mewtwo_sheet_crouch', mOrig + '04_Mewtwo_Crouch.png', { frameWidth: 300, frameHeight: 298 });
     this.load.spritesheet('mewtwo_sheet_hit', mOrig + '05_Mewtwo_HitReaction.png', { frameWidth: 300, frameHeight: 298 });
@@ -2372,7 +2366,7 @@ class ArenaScene extends Phaser.Scene {
 
     // 6. Training Dummy Assets
     this.load.image('dummy_sprite', 'assets/characters/dummy/dummy_sprite.png');
-    this.load.image('dummy_portrait', 'assets/characters/dummy/portrait.png');
+    this.load.image('dummy_portrait', 'assets/characters/dummy/select_avatar.png');
   }
 
   create() {
@@ -2446,8 +2440,14 @@ class ArenaScene extends Phaser.Scene {
     // 6. Visual Screen-Locked HUD
     this.buildDualPlayerHUD(p1Char, p2Char);
 
-    // 6.4. LAN Disconnection Guard
+    // 6.4. LAN Disconnection & Match Control Guards
     if (window.isLanMatch && window.lanManager) {
+      window.lanManager.on('REMATCH', () => {
+        this.restartMatch();
+      });
+      window.lanManager.on('EXIT_TO_MENU', () => {
+        if (window.exitArenaToMenu) window.exitArenaToMenu();
+      });
       window.lanManager.on('PEER_DISCONNECTED', () => {
         if (this.lanDisconnected) return;
         this.lanDisconnected = true;
@@ -2955,7 +2955,7 @@ class ArenaScene extends Phaser.Scene {
     defineAnim('mewtwo_anim_atk_8c', 'mewtwo_sheet_teleport_strike', 6, 18, 20, 0);
 
     // Special & Super
-    defineAnim('mewtwo_anim_super', 'mewtwo_sheet_shadow_ball', 0, 19, 16, 0);
+    defineAnim('mewtwo_anim_super', 'mewtwo_sheet_psystrike', 0, 23, 16, 0);
     defineAnim('mewtwo_anim_sp_shadow_ball', 'mewtwo_sheet_shadow_ball', 0, 19, 18, 0);
     defineAnim('mewtwo_anim_sp_psystrike', 'mewtwo_sheet_psystrike', 0, 23, 16, 0);
 
@@ -3047,11 +3047,14 @@ class ArenaScene extends Phaser.Scene {
     defineAnim('zoro_anim_atk_8c', 'zoro_sheet_overhead', 4, 20, 24, 0);
 
     // Special & Super
+    defineAnim('zoro_anim_sp_dash', 'zoro_sheet_slash', 4, 12, 24, -1);
     defineAnim('zoro_anim_sp_cannon', 'zoro_sheet_cannon', 0, 23, 24, 0);
     defineAnim('zoro_anim_super', 'zoro_sheet_onigiri', 0, 23, 24, 0);
 
     // Zoro VFX & Projectiles
-    defineAnim('zoro_anim_vfx_slash', 'zoro_sheet_vfx', 0, 23, 28, -1);
+    defineAnim('zoro_anim_vfx_slash', 'zoro_sheet_vfx', 0, 5, 24, 0);
+    defineAnim('zoro_anim_vfx_cyclone', 'zoro_sheet_vfx', 6, 11, 24, 0);
+    defineAnim('zoro_anim_vfx_onigiri', 'zoro_sheet_vfx', 12, 23, 24, 0);
   }
 
   spawnPoundCannonProjectile(caster) {
@@ -3087,23 +3090,743 @@ class ArenaScene extends Phaser.Scene {
   }
 
   spawnOniGiriVFX(caster) {
+    this.executeZoroUltimate(caster);
+  }
+
+  spawnCharacterAfterimage(caster, tint = 0xffffff, duration = 220, alpha = 0.65) {
     if (!caster || !caster.sprite) return;
-    const facingDir = caster.getFacingDir ? caster.getFacingDir() : 1;
+    const ghost = this.add.sprite(caster.sprite.x, caster.sprite.y, caster.sprite.texture.key, caster.sprite.frame.name);
+    ghost.setScale(caster.sprite.scaleX, caster.sprite.scaleY);
+    ghost.setOrigin(caster.sprite.originX, caster.sprite.originY);
+    ghost.setFlipX(caster.sprite.flipX);
+    ghost.setTint(tint);
+    ghost.setAlpha(alpha);
+    ghost.setDepth(9);
+    this.tweens.add({
+      targets: ghost,
+      alpha: 0,
+      duration: duration,
+      onComplete: () => {
+        if (ghost && ghost.active) ghost.destroy();
+      }
+    });
+  }
+
+  spawnZoroAfterimage(caster) {
+    this.spawnCharacterAfterimage(caster, 0x10b981, 220, 0.65);
+  }
+
+  executeZoroUltimate(caster) {
+    if (!caster || !caster.sprite) return;
+    const target = caster.playerNum === 1 ? this.fighterP2 : this.fighterP1;
+
+    let facingDir = caster.getFacingDir ? caster.getFacingDir() : 1;
+    if (target && target.sprite) {
+      facingDir = target.sprite.x >= caster.sprite.x ? 1 : -1;
+      caster.setFacingDir(facingDir);
+    }
     const facingRight = facingDir === 1;
 
-    // Fast forward lunge dash during Oni Giri
-    caster.sprite.setVelocityX(facingRight ? 450 : -450);
+    // Cinematic Super Freeze & Screen Emerald Flash
+    this.cameras.main.flash(220, 16, 185, 129);
+    this.cameras.main.shake(180, 0.012);
+    if (window.soundFX) window.soundFX.playStartBoom();
+    if (window.soundFX && window.soundFX.playSuperWhoosh) window.soundFX.playSuperWhoosh();
 
-    const vfxX = caster.sprite.x + (facingRight ? 60 : -60);
-    const vfxY = caster.sprite.y - 10;
-    const vfx = this.add.sprite(vfxX, vfxY, 'zoro_sheet_vfx');
-    vfx.setDepth(25);
-    vfx.setScale(0.75);
-    vfx.setFlipX(!facingRight);
-    vfx.setTint(0x10b981);
-    vfx.play('zoro_anim_vfx_slash');
-    vfx.on('animationcomplete', () => { if (vfx.active) vfx.destroy(); });
-    this.time.delayedCall(900, () => { if (vfx && vfx.active) vfx.destroy(); });
+    // Demon Stance & Supersonic Flash Step (Shukuchi)
+    caster.sprite.play('zoro_anim_super', true);
+    caster.sprite.setTint(0x10b981);
+    caster.sprite.setVelocityX(facingRight ? 1150 : -1150);
+
+    // Trail emerald afterimages
+    const afterimageTimer = this.time.addEvent({
+      delay: 35,
+      repeat: 4,
+      callback: () => {
+        this.spawnCharacterAfterimage(caster, 0x10b981, 250, 0.75);
+      }
+    });
+
+    let hasCrossed = false;
+    const triggerDemonCrossSlash = () => {
+      if (hasCrossed) return;
+      hasCrossed = true;
+      afterimageTimer.remove();
+
+      if (!caster || !caster.sprite || caster.hp <= 0) return;
+      caster.sprite.setVelocityX(0);
+
+      if (!target || !target.sprite || target.hp <= 0) {
+        if (caster && caster.sprite) caster.sprite.clearTint();
+        return;
+      }
+
+      // 1. Zan-shin Pause: Target frozen in place with demon cross lines
+      target.isCaptured = true;
+      target.isStunned = true;
+      target.isAttacking = false;
+      target.isCrouching = false;
+      target.currentAttackData = null;
+      if (target.attackTimer) { target.attackTimer.remove(); target.attackTimer = null; }
+      target.sprite.setVelocity(0, 0);
+      if (target.sprite.body) target.sprite.body.setAllowGravity(false);
+      target.sprite.setTint(0x34d399);
+      target.currentAction = 'DEMON CROSS SLICE LOCKED';
+
+      this.cameras.main.shake(140, 0.007);
+      if (window.soundFX && window.soundFX.playHover) window.soundFX.playHover();
+
+      // 2. Delayed Demon Cross-Slash Detonation (at 240ms)
+      this.time.delayedCall(240, () => {
+        if (!target || !target.sprite || target.hp <= 0) {
+          if (caster && caster.sprite) caster.sprite.clearTint();
+          return;
+        }
+
+        // Spawn massive Oni Giri Cross-Burst VFX (Frames 12 to 23 of zoro_sheet_vfx)
+        const vfxX = target.sprite.x;
+        const vfxY = target.sprite.y - 15;
+                const crossVFX = this.add.sprite(vfxX, vfxY, 'zoro_sheet_vfx');
+        crossVFX.setDepth(29);
+        crossVFX.setScale(1.55);
+        crossVFX.setFlipX(!facingRight);
+        crossVFX.setTint(0x10b981);
+        crossVFX.play('zoro_anim_vfx_onigiri');
+        crossVFX.on('animationcomplete', () => {
+          if (crossVFX.active) crossVFX.destroy();
+        });
+        // Failsafe timer guarantees the slash VFX never lingers on screen
+        this.time.delayedCall(380, () => {
+          if (crossVFX && crossVFX.active) crossVFX.destroy();
+        });
+
+        // 3 razor blade impacts (3 * 45 = 135 damage)
+        const sliceDelays = [60, 130, 200];
+        sliceDelays.forEach(d => {
+          this.time.delayedCall(d, () => {
+            if (!target || !target.sprite || target.hp <= 0) return;
+            target.takeHit({ damage: 45, isSpecial: false, knockbackX: 0.001 }, caster);
+            target.sprite.setVelocity(0, 0);
+            target.isCaptured = true;
+            target.isStunned = true;
+
+            this.cameras.main.shake(80, 0.009);
+            if (window.soundFX && window.soundFX.playSelect) window.soundFX.playSelect();
+          });
+        });
+
+                // 3. Final Demon Burst Eruption (at 360ms): 160 damage (Total 135 + 160 = 295!)
+        this.time.delayedCall(360, () => {
+          if (crossVFX && crossVFX.active) crossVFX.destroy();
+          if (!target || !target.sprite || target.hp <= 0) {
+            if (caster && caster.sprite) caster.sprite.clearTint();
+            return;
+          }
+
+          // Full screen flash & heavy earthquake shake
+          this.cameras.main.flash(320, 52, 211, 153);
+          this.cameras.main.shake(480, 0.035);
+          if (window.soundFX && window.soundFX.playShatter) window.soundFX.playShatter();
+          else if (window.soundFX) window.soundFX.playStartBoom();
+
+          // Release capture & deliver final 160 damage
+          target.isCaptured = false;
+          target.isStunned = false;
+          if (target.sprite && target.sprite.body) target.sprite.body.setAllowGravity(true);
+          if (target.sprite) {
+            if (target.isMirror) target.sprite.setTint(0xc4b5fd);
+            else target.sprite.clearTint();
+          }
+
+          target.takeHit({
+            damage: 160,
+            isSpecial: true,
+            knockbackX: facingRight ? 860 : -860,
+            knockbackY: -640
+          }, caster);
+
+          // Restore Zoro tint
+          this.time.delayedCall(400, () => {
+            if (caster && caster.sprite) {
+              if (caster.isMirror) caster.sprite.setTint(0xc4b5fd);
+              else caster.sprite.clearTint();
+            }
+          });
+        });
+      });
+    };
+
+    // Check if Zoro has crossed the target
+    const checkFlashStep = () => {
+      if (hasCrossed) return;
+      if (!caster || !caster.sprite || caster.hp <= 0) {
+        this.events.off('update', checkFlashStep);
+        return;
+      }
+      const hasPassed = facingRight ? (caster.sprite.x >= target.sprite.x + 80) : (caster.sprite.x <= target.sprite.x - 80);
+      if (hasPassed || (facingRight && caster.sprite.x >= 1700) || (!facingRight && caster.sprite.x <= 220)) {
+        this.events.off('update', checkFlashStep);
+        triggerDemonCrossSlash();
+      }
+    };
+    this.events.on('update', checkFlashStep);
+
+    // Failsafe trigger after 160ms
+    this.time.delayedCall(160, () => {
+      this.events.off('update', checkFlashStep);
+      triggerDemonCrossSlash();
+    });
+  }
+
+  executeStrangeUltimate(caster) {
+    if (!caster || !caster.sprite) return;
+    const target = caster.playerNum === 1 ? this.fighterP2 : this.fighterP1;
+
+    // Face the target
+    let facingDir = caster.getFacingDir ? caster.getFacingDir() : 1;
+    if (target && target.sprite) {
+      facingDir = target.sprite.x >= caster.sprite.x ? 1 : -1;
+      caster.setFacingDir(facingDir);
+    }
+    const facingRight = facingDir === 1;
+
+    // Cinematic Super Freeze & Screen Light
+    this.cameras.main.flash(220, 245, 158, 11);
+    this.cameras.main.shake(180, 0.012);
+    if (window.soundFX) window.soundFX.playStartBoom();
+
+    // Golden mystic aura & levitation pose on Doctor Strange
+    caster.sprite.play('strange_anim_super', true);
+    caster.sprite.setTint(0xfde047);
+    caster.sprite.setVelocity(0, 0);
+
+    // Rotating Sling-Ring Portal behind Strange
+    const portalX = caster.sprite.x - (facingRight ? 50 : -50);
+    const portalY = caster.sprite.y - 25;
+    const portal = this.add.sprite(portalX, portalY, 'strange_vfx_portal');
+    portal.setDepth(15);
+    portal.setScale(1.25);
+    portal.setFlipX(!facingRight);
+    portal.play('strange_anim_vfx_portal');
+    this.time.delayedCall(1600, () => { if (portal && portal.active) portal.destroy(); });
+
+    if (!target || !target.sprite || target.hp <= 0) return;
+
+    // 1. Trap opponent inside the Mirror Dimension
+    target.isCaptured = true;
+    target.isStunned = true;
+    target.isAttacking = false;
+    target.isCrouching = false;
+    target.currentAttackData = null;
+    if (target.attackTimer) { target.attackTimer.remove(); target.attackTimer = null; }
+    target.sprite.setVelocity(0, 0);
+    if (target.sprite.body) target.sprite.body.setAllowGravity(false);
+    target.sprite.setTint(0xfbbf24);
+    target.currentAction = 'MIRROR DIMENSION TRAPPED';
+
+    // 2. Colossal Dimensional Vortex centered directly on opponent
+    const vortexX = target.sprite.x;
+    const vortexY = target.sprite.y - 20;
+    const vortex = this.add.sprite(vortexX, vortexY, 'strange_vfx_vortex');
+    vortex.setDepth(28);
+    vortex.setScale(1.9);
+    vortex.setTint(0xf59e0b);
+    vortex.play('strange_anim_vfx_vortex');
+
+    // 3. Multi-Hit Reality Tears (4 shredding hits = 30 * 4 = 120 damage)
+    const tearTimes = [120, 240, 360, 480];
+    tearTimes.forEach((delay) => {
+      this.time.delayedCall(delay, () => {
+        if (!target || !target.sprite || target.hp <= 0) return;
+        target.takeHit({ damage: 30, isSpecial: false, knockbackX: 0.001 }, caster);
+        target.sprite.setVelocity(0, 0);
+        target.isCaptured = true;
+        target.isStunned = true;
+
+        // Dimensional spark at random offset
+        const sparkX = target.sprite.x + Phaser.Math.Between(-30, 30);
+        const sparkY = target.sprite.y + Phaser.Math.Between(-35, 15);
+        const spark = this.add.sprite(sparkX, sparkY, 'strange_vfx_impact');
+        spark.setDepth(29);
+        spark.setScale(1.1);
+        spark.play('strange_anim_vfx_impact');
+        spark.on('animationcomplete', () => spark.destroy());
+
+        this.cameras.main.shake(70, 0.008);
+        if (window.soundFX && window.soundFX.playSelect) window.soundFX.playSelect();
+      });
+    });
+
+    // 4. Catastrophic Reality Shatter Finisher (at 640ms)
+    this.time.delayedCall(640, () => {
+      if (vortex && vortex.active) vortex.destroy();
+      if (!target || !target.sprite || target.hp <= 0) {
+        if (caster && caster.sprite) caster.sprite.clearTint();
+        return;
+      }
+
+      // Blinding white/gold flash & earthquake shake
+      this.cameras.main.flash(320, 255, 255, 255);
+      this.cameras.main.shake(480, 0.035);
+      if (window.soundFX && window.soundFX.playShatter) window.soundFX.playShatter();
+      else if (window.soundFX) window.soundFX.playStartBoom();
+
+      // Giant shatter burst impact
+      const shatterVFX = this.add.sprite(target.sprite.x, target.sprite.y - 20, 'strange_vfx_impact');
+      shatterVFX.setDepth(30);
+      shatterVFX.setScale(2.2);
+      shatterVFX.play('strange_anim_vfx_impact');
+      shatterVFX.on('animationcomplete', () => shatterVFX.destroy());
+
+      // Release capture & deliver final 170 damage (Total 290!)
+      target.isCaptured = false;
+      target.isStunned = false;
+      if (target.sprite && target.sprite.body) target.sprite.body.setAllowGravity(true);
+      if (target.sprite) {
+        if (target.isMirror) target.sprite.setTint(0xc4b5fd);
+        else target.sprite.clearTint();
+      }
+
+      target.takeHit({
+        damage: 170,
+        isSpecial: true,
+        knockbackX: facingRight ? 850 : -850,
+        knockbackY: -620
+      }, caster);
+
+      // Restore Strange tint
+      this.time.delayedCall(400, () => {
+        if (caster && caster.sprite) {
+          if (caster.isMirror) caster.sprite.setTint(0xc4b5fd);
+          else caster.sprite.clearTint();
+        }
+      });
+    });
+  }
+
+  executeHarpyUltimate(caster) {
+    if (!caster || !caster.sprite) return;
+    const target = caster.playerNum === 1 ? this.fighterP2 : this.fighterP1;
+
+    let facingDir = caster.getFacingDir ? caster.getFacingDir() : 1;
+    if (target && target.sprite) {
+      facingDir = target.sprite.x >= caster.sprite.x ? 1 : -1;
+      caster.setFacingDir(facingDir);
+    }
+    const facingRight = facingDir === 1;
+
+    // Cinematic Super Freeze & Screen Amethyst Flash
+    this.cameras.main.flash(200, 168, 85, 247);
+    this.cameras.main.shake(180, 0.014);
+    if (window.soundFX) window.soundFX.playStartBoom();
+    if (window.soundFX && window.soundFX.playSuperWhoosh) window.soundFX.playSuperWhoosh();
+
+    // Supersonic Tempest Wing Dash across arena
+    caster.sprite.play('harpy_anim_super', true);
+    caster.sprite.setTint(0xc084fc);
+    caster.sprite.setVelocityX(facingRight ? 950 : -950);
+
+    // Trail afterimages
+    const afterimageTimer = this.time.addEvent({
+      delay: 40,
+      repeat: 4,
+      callback: () => {
+        this.spawnCharacterAfterimage(caster, 0xa855f7, 240, 0.7);
+      }
+    });
+
+    let hasTriggeredVortex = false;
+    const triggerTempestVortex = () => {
+      if (hasTriggeredVortex) return;
+      hasTriggeredVortex = true;
+      afterimageTimer.remove();
+
+      if (!caster || !caster.sprite || caster.hp <= 0) return;
+      caster.sprite.setVelocityX(0);
+
+      if (!target || !target.sprite || target.hp <= 0) {
+        if (caster && caster.sprite) caster.sprite.clearTint();
+        return;
+      }
+
+      // 1. Trap opponent inside the Tempest Cyclone
+      target.isCaptured = true;
+      target.isStunned = true;
+      target.isAttacking = false;
+      target.isCrouching = false;
+      target.currentAttackData = null;
+      if (target.attackTimer) { target.attackTimer.remove(); target.attackTimer = null; }
+      target.sprite.setVelocity(0, 0);
+      if (target.sprite.body) target.sprite.body.setAllowGravity(false);
+      target.sprite.setTint(0xd8b4fe);
+      target.currentAction = 'TEMPEST TRAPPED';
+
+      // 2. Colossal Rising Wind Cyclone
+      const cycloneX = target.sprite.x;
+      const cycloneY = target.sprite.y - 35;
+      const cyclone = this.add.sprite(cycloneX, cycloneY, 'harpy_sheet_262c');
+      cyclone.setDepth(27);
+      cyclone.setScale(1.25);
+      cyclone.setTint(0xd8b4fe);
+      cyclone.play('harpy_anim_vfx_cyclone');
+
+      // 3. Razor Feather Barrage (5 rapid wing strikes = 30 * 5 = 150 damage)
+      const flurryTimes = [90, 170, 250, 330, 410];
+      flurryTimes.forEach((delay) => {
+        this.time.delayedCall(delay, () => {
+          if (!target || !target.sprite || target.hp <= 0) return;
+          target.takeHit({ damage: 30, isSpecial: false, knockbackX: 0.001 }, caster);
+          target.sprite.setVelocity(0, 0);
+          target.isCaptured = true;
+          target.isStunned = true;
+
+          this.cameras.main.shake(70, 0.008);
+          if (window.soundFX && window.soundFX.playHover) window.soundFX.playHover();
+        });
+      });
+
+      // 4. Cataclysmic Sky Cleave Finisher (at 520ms)
+      this.time.delayedCall(520, () => {
+        if (cyclone && cyclone.active) cyclone.destroy();
+        if (!target || !target.sprite || target.hp <= 0) {
+          if (caster && caster.sprite) caster.sprite.clearTint();
+          return;
+        }
+
+        // Full screen flash & heavy impact shake
+        this.cameras.main.flash(260, 216, 180, 254);
+        this.cameras.main.shake(450, 0.032);
+        if (window.soundFX) window.soundFX.playStartBoom();
+
+        // Release capture & deliver final 140 damage (Total 290!)
+        target.isCaptured = false;
+        target.isStunned = false;
+        if (target.sprite && target.sprite.body) target.sprite.body.setAllowGravity(true);
+        if (target.sprite) {
+          if (target.isMirror) target.sprite.setTint(0xc4b5fd);
+          else target.sprite.clearTint();
+        }
+
+        target.takeHit({
+          damage: 140,
+          isSpecial: true,
+          knockbackX: facingRight ? 840 : -840,
+          knockbackY: -580
+        }, caster);
+
+        // Reset Harpy tint
+        this.time.delayedCall(400, () => {
+          if (caster && caster.sprite) {
+            if (caster.isMirror) caster.sprite.setTint(0xc4b5fd);
+            else caster.sprite.clearTint();
+          }
+        });
+      });
+    };
+
+    // Check proximity to opponent during dash
+    const checkDash = () => {
+      if (hasTriggeredVortex) return;
+      if (!caster || !caster.sprite || caster.hp <= 0) {
+        this.events.off('update', checkDash);
+        return;
+      }
+      const dist = target && target.sprite ? Math.abs(target.sprite.x - caster.sprite.x) : 999;
+      if (dist <= 160 || (facingRight && caster.sprite.x >= 1700) || (!facingRight && caster.sprite.x <= 220)) {
+        this.events.off('update', checkDash);
+        triggerTempestVortex();
+      }
+    };
+    this.events.on('update', checkDash);
+
+    // Failsafe trigger after 160ms
+    this.time.delayedCall(160, () => {
+      this.events.off('update', checkDash);
+      triggerTempestVortex();
+    });
+  }
+
+  executeChunLiUltimate(caster) {
+    if (!caster || !caster.sprite) return;
+    const target = caster.playerNum === 1 ? this.fighterP2 : this.fighterP1;
+
+    let facingDir = caster.getFacingDir ? caster.getFacingDir() : 1;
+    if (target && target.sprite) {
+      facingDir = target.sprite.x >= caster.sprite.x ? 1 : -1;
+      caster.setFacingDir(facingDir);
+    }
+    const facingRight = facingDir === 1;
+
+    // Cinematic Super Freeze & Screen Blue Flash
+    this.cameras.main.flash(200, 59, 130, 246);
+    this.cameras.main.shake(180, 0.012);
+    if (window.soundFX) window.soundFX.playStartBoom();
+
+    // Chun-Li advances kicking in Hoyoku-sen stance
+    caster.sprite.play('chunli_anim_super', true);
+    caster.sprite.setTint(0x60a5fa);
+    caster.sprite.setVelocityX(facingRight ? 420 : -420);
+
+    let hasLockedCombo = false;
+    const triggerFlurry = () => {
+      if (hasLockedCombo) return;
+      hasLockedCombo = true;
+
+      if (!caster || !caster.sprite || caster.hp <= 0) return;
+      caster.sprite.setVelocityX(facingRight ? 50 : -50);
+
+      if (!target || !target.sprite || target.hp <= 0) {
+        if (caster && caster.sprite) caster.sprite.clearTint();
+        return;
+      }
+
+      // 1. Lock opponent directly at kick range
+      target.isCaptured = true;
+      target.isStunned = true;
+      target.isAttacking = false;
+      target.isCrouching = false;
+      target.currentAttackData = null;
+      if (target.attackTimer) { target.attackTimer.remove(); target.attackTimer = null; }
+      target.sprite.setVelocity(0, 0);
+      if (target.sprite.body) target.sprite.body.setAllowGravity(false);
+      target.sprite.setTint(0xbfdbfe);
+      target.currentAction = 'HOYOKU-SEN LOCK';
+
+      // 2. Multi-Kick Flurry (10 kicks total: 10 * 18 = 180 damage)
+      // Phase 1 (First Leg: 5 kicks) + Phase 2 (Second Leg: 5 kicks)
+      const kickTimes = [60, 130, 200, 270, 340, 420, 490, 560, 630, 700];
+      kickTimes.forEach((delay) => {
+        this.time.delayedCall(delay, () => {
+          if (!target || !target.sprite || target.hp <= 0) return;
+          target.takeHit({ damage: 18, isSpecial: false, knockbackX: 0.001 }, caster);
+          target.sprite.setVelocity(0, 0);
+          target.isCaptured = true;
+          target.isStunned = true;
+
+          // Impact hitspark
+          const hitX = (caster.sprite.x + target.sprite.x) / 2;
+          const hitY = target.sprite.y - 20 + Phaser.Math.Between(-15, 15);
+          this.spawnKikokenImpact(hitX, hitY);
+
+          this.cameras.main.shake(50, 0.006);
+          if (window.soundFX && window.soundFX.playSelect) window.soundFX.playSelect();
+        });
+      });
+
+      // 3. Phase 3: Rising Phoenix Finisher (at 820ms)
+      this.time.delayedCall(820, () => {
+        caster.sprite.setVelocityX(0);
+        if (!target || !target.sprite || target.hp <= 0) {
+          if (caster && caster.sprite) caster.sprite.clearTint();
+          return;
+        }
+
+        // Spawn giant Phoenix Finisher blast
+        const blastX = target.sprite.x + (facingRight ? 30 : -30);
+        const blastY = target.sprite.y - 25;
+        const blast = this.add.sprite(blastX, blastY, 'chunli_sheet_vfx_hoyoku');
+        blast.setDepth(28);
+        blast.setScale(1.45);
+        blast.setFlipX(!facingRight);
+        blast.play('chunli_anim_vfx_hoyoku');
+        blast.on('animationcomplete', () => blast.destroy());
+
+        // Full screen flash & earthquake shake
+        this.cameras.main.flash(280, 147, 197, 253);
+        this.cameras.main.shake(440, 0.03);
+        if (window.soundFX) window.soundFX.playStartBoom();
+
+        // Release capture & deliver final 110 damage (Total 180 + 110 = 290!)
+        target.isCaptured = false;
+        target.isStunned = false;
+        if (target.sprite && target.sprite.body) target.sprite.body.setAllowGravity(true);
+        if (target.sprite) {
+          if (target.isMirror) target.sprite.setTint(0xc4b5fd);
+          else target.sprite.clearTint();
+        }
+
+        target.takeHit({
+          damage: 110,
+          isSpecial: true,
+          knockbackX: facingRight ? 850 : -850,
+          knockbackY: -620
+        }, caster);
+
+        // Reset Chun-Li tint
+        this.time.delayedCall(400, () => {
+          if (caster && caster.sprite) {
+            if (caster.isMirror) caster.sprite.setTint(0xc4b5fd);
+            else caster.sprite.clearTint();
+          }
+        });
+      });
+    };
+
+    // Check distance to opponent during kick advance
+    const checkKicks = () => {
+      if (hasLockedCombo) return;
+      if (!caster || !caster.sprite || caster.hp <= 0) {
+        this.events.off('update', checkKicks);
+        return;
+      }
+      const dist = target && target.sprite ? Math.abs(target.sprite.x - caster.sprite.x) : 999;
+      if (dist <= 145 || (facingRight && caster.sprite.x >= 1700) || (!facingRight && caster.sprite.x <= 220)) {
+        this.events.off('update', checkKicks);
+        triggerFlurry();
+      }
+    };
+    this.events.on('update', checkKicks);
+
+    // Failsafe trigger after 160ms
+    this.time.delayedCall(160, () => {
+      this.events.off('update', checkKicks);
+      triggerFlurry();
+    });
+  }
+
+  executeZoroHeavyDashCleave(caster) {
+    if (!caster || !caster.sprite) return;
+    if (caster.zoroDashHandler) {
+      this.events.off('update', caster.zoroDashHandler);
+      caster.zoroDashHandler = null;
+    }
+
+    const target = caster.playerNum === 1 ? this.fighterP2 : this.fighterP1;
+
+    // 1. Immediately turn to face the opponent
+    let facingDir = caster.getFacingDir ? caster.getFacingDir() : 1;
+    if (target && target.sprite) {
+      facingDir = target.sprite.x >= caster.sprite.x ? 1 : -1;
+      caster.setFacingDir(facingDir);
+    }
+    const facingRight = facingDir === 1;
+
+    // 2. Play dash animation & emerald aura streak
+    caster.sprite.play('zoro_anim_sp_dash', true);
+    caster.sprite.setTint(0x10b981);
+    if (window.soundFX && window.soundFX.playDash) {
+      window.soundFX.playDash();
+    } else if (window.soundFX && window.soundFX.playHover) {
+      window.soundFX.playHover();
+    }
+
+    // High velocity forward dash toward opponent
+    const dashSpeed = 720;
+    caster.sprite.setVelocityX(facingRight ? dashSpeed : -dashSpeed);
+
+    // Spawn green ghost afterimage at dash startup
+    this.spawnZoroAfterimage(caster);
+
+    let hasSlashed = false;
+    const startTime = this.time.now;
+    const maxDashTime = 260;     // Max dash duration in ms
+    const targetSlashDist = 135; // Desired distance to opponent to begin slash
+
+    const cleanup = () => {
+      if (caster.zoroDashHandler) {
+        this.events.off('update', caster.zoroDashHandler);
+        caster.zoroDashHandler = null;
+      }
+    };
+
+    const triggerSlash = () => {
+      if (hasSlashed) return;
+      hasSlashed = true;
+      cleanup();
+
+      if (!caster || !caster.sprite || caster.hp <= 0 || caster.isStunned || caster.isKnockedBack || !caster.isAttacking) {
+        return;
+      }
+
+      // Decelerate smoothly
+      caster.sprite.setVelocityX(facingRight ? 100 : -100);
+      this.time.delayedCall(120, () => {
+        if (caster && caster.sprite && caster.isAttacking) {
+          caster.sprite.setVelocityX(0);
+        }
+      });
+
+      // Restore tint
+      if (caster.isMirror) caster.sprite.setTint(0xc4b5fd);
+      else caster.sprite.clearTint();
+
+      // Trigger heavy Santoryu Cleave animation
+      caster.currentAction = 'SANTORYU CLEAVE (5C)';
+      caster.sprite.play('zoro_anim_atk_5c', true);
+
+      // Arm the attack hitbox & damage!
+      caster.hasDealtDamage = false;
+      caster.currentAttackData = {
+        damage: 135,
+        rangeX: 250,
+        rangeY: 120,
+        knockbackX: 460,
+        knockbackY: -320,
+        isSpecial: true
+      };
+
+      // Reset attack timer for the slash animation duration
+      if (caster.attackTimer) {
+        caster.attackTimer.remove();
+        caster.attackTimer = null;
+      }
+      caster.attackTimer = this.time.delayedCall(920, () => {
+        caster.isAttacking = false;
+        caster.currentAttackData = null;
+        caster.updateTextureForState();
+      });
+
+      // Spawn Emerald Crescent Slash VFX in front of Zoro
+      const vfxX = caster.sprite.x + (facingRight ? 70 : -70);
+      const vfxY = caster.sprite.y - 10;
+      const vfx = this.add.sprite(vfxX, vfxY, 'zoro_sheet_vfx');
+      vfx.setDepth(26);
+      vfx.setScale(0.85);
+      vfx.setFlipX(!facingRight);
+      vfx.setTint(0x10b981);
+      vfx.play('zoro_anim_vfx_slash');
+      vfx.on('animationcomplete', () => { if (vfx.active) vfx.destroy(); });
+      this.time.delayedCall(800, () => { if (vfx && vfx.active) vfx.destroy(); });
+
+      // Camera rumble & sound
+      this.cameras.main.shake(180, 0.015);
+      if (window.soundFX && window.soundFX.playStartBoom) {
+        window.soundFX.playStartBoom();
+      }
+    };
+
+    const onUpdate = () => {
+      if (hasSlashed) return;
+      if (!caster || !caster.sprite || caster.hp <= 0 || caster.isStunned || caster.isKnockedBack || !caster.isAttacking) {
+        cleanup();
+        return;
+      }
+
+      // Check distance to opponent
+      const currentDist = target && target.sprite ? Math.abs(target.sprite.x - caster.sprite.x) : 999;
+      const elapsed = this.time.now - startTime;
+
+      // Arena boundary collision clamp
+      if ((facingRight && caster.sprite.x >= 1730) || (!facingRight && caster.sprite.x <= 190)) {
+        triggerSlash();
+        return;
+      }
+
+      // If in front and reached striking range (min 60ms dash so the dash is clearly visible and snappy)
+      if (elapsed >= 60 && (currentDist <= targetSlashDist || elapsed >= maxDashTime)) {
+        triggerSlash();
+      }
+    };
+
+    caster.zoroDashHandler = onUpdate;
+    this.events.on('update', onUpdate);
+
+    // Failsafe timer: after maxDashTime + 20ms, if slash hasn't triggered yet, trigger it
+    this.time.delayedCall(maxDashTime + 20, () => {
+      if (!hasSlashed) {
+        triggerSlash();
+      }
+    });
   }
 
   spawnMysticProjectile(caster) {
@@ -3808,18 +4531,20 @@ class ArenaScene extends Phaser.Scene {
     charge.setDepth(25);
     charge.setScale(0.85);
     charge.play('mewtwo_anim_vfx_charge');
+    caster.activePsystrikeVFX = charge;
     charge.on('animationcomplete', () => { if (charge.active) charge.destroy(); });
 
     // 2. Releases powerful ranged blast shot across the stage in the facing direction
     this.time.delayedCall(300, () => {
       if (!caster || !caster.sprite || caster.hp <= 0) return;
+      if (caster.activePsystrikeVFX === charge) caster.activePsystrikeVFX = null;
       const spawnX = caster.sprite.x + (facingRight ? 95 : -95);
       const spawnY = caster.sprite.y - 25;
 
       const proj = this.physics.add.sprite(spawnX, spawnY, 'mewtwo_sheet_vfx_psystrike');
       this.projectiles.add(proj);
       proj.setDepth(26);
-      proj.setScale(1.15);
+      proj.setScale(1.45);
       proj.setFlipX(!facingRight);
       proj.play('mewtwo_anim_vfx_psystrike_ball');
 
@@ -3831,6 +4556,7 @@ class ArenaScene extends Phaser.Scene {
 
       proj.caster = caster;
       proj.isPsystrike = true;
+      proj.isSuper = true;
 
       const speed = 900;
       proj.setVelocityX(facingRight ? speed : -speed);
@@ -4403,7 +5129,7 @@ class ArenaScene extends Phaser.Scene {
       return;
     }
 
-    // 3. During active combat:
+    // 3. During active combat (5 Attacks: Light, Medium, Heavy, Special, Ultimate + Dash/Taunt):
     const v = (input.player === 1) ? this.virtualP1 : this.virtualP2;
     if (!v) return;
 
@@ -4421,17 +5147,19 @@ class ArenaScene extends Phaser.Scene {
       v.left = input.isDown;
     } else if (input.key === 'right') {
       v.right = input.isDown;
-    } else if (input.key === 'j') {
+    } else if (input.key === 'j' || input.key === 'light' || input.key === 'f') {
       if (input.isDown) v.lightJustDown = true;
-    } else if (input.key === 'k') {
+    } else if (input.key === 'k' || input.key === 'medium' || input.key === 'g') {
+      if (input.isDown) v.mediumJustDown = true;
+    } else if (input.key === 'l' || input.key === 'heavy' || input.key === 'h') {
       if (input.isDown) v.heavyJustDown = true;
-    } else if (input.key === 'l') {
+    } else if (input.key === 'r' || input.key === 'special' || input.key === 'u') {
       if (input.isDown) v.specialJustDown = true;
-    } else if (input.key === 'u') {
+    } else if (input.key === 'y' || input.key === 'super' || input.key === 'ult' || input.key === 'i') {
       if (input.isDown) v.superJustDown = true;
-    } else if (input.key === 'q') {
+    } else if (input.key === 'q' || input.key === 'dash' || input.key === 'o') {
       if (input.isDown) v.dashJustDown = true;
-    } else if (input.key === 't') {
+    } else if (input.key === 't' || input.key === 'taunt' || input.key === 'p') {
       if (input.isDown) v.tauntJustDown = true;
     }
   }
@@ -5711,12 +6439,24 @@ class ArenaScene extends Phaser.Scene {
   advanceArcadeFloor() {
     this.clearBanners();
     window.arcadeStage = (window.arcadeStage || 1) + 1;
-    let nextOpponent = 'chunli';
-    let nextStage = 'japanese_temple';
-    if (window.arcadeStage >= 3) {
-      nextOpponent = 'harpy';
-      nextStage = 'sky_temple';
+
+    // Dynamically scale AI difficulty per Arcade Floor
+    if (window.arcadeStage === 2) {
+      window.cpuDifficulty = 'MEDIUM';
+    } else if (window.arcadeStage === 3) {
+      window.cpuDifficulty = 'HARD';
+    } else {
+      window.cpuDifficulty = 'APEX';
     }
+
+    // Pick a fresh random opponent from ROSTER_KEYS that isn't P1 and isn't the previous opponent
+    const roster = ['harpy', 'strange', 'chunli', 'mewtwo', 'steve', 'zoro'];
+    const p1 = window.selectedFighterP1 || 'harpy';
+    const lastOpponent = this.fighterP2 ? this.fighterP2.charId : '';
+    const pool = roster.filter(k => k !== p1 && k !== lastOpponent);
+    const available = pool.length > 0 ? pool : roster.filter(k => k !== p1);
+    const nextOpponent = available[Math.floor(Math.random() * available.length)] || 'strange';
+    const nextStage = (Math.random() < 0.5) ? 'sky_temple' : 'japanese_temple';
 
     window.selectedFighterP2 = nextOpponent;
     window.selectedStage = nextStage;
@@ -5728,7 +6468,7 @@ class ArenaScene extends Phaser.Scene {
         stage: nextStage,
         isArcade: true,
         isCpu: true,
-        difficulty: window.cpuDifficulty || 'MEDIUM'
+        difficulty: window.cpuDifficulty
       });
     } else {
       this.scene.restart();
@@ -5739,6 +6479,12 @@ class ArenaScene extends Phaser.Scene {
     if (window.isArcadeMode && (this.p1RoundWins >= this.maxRoundsToWin) && (window.arcadeStage || 1) < 3) {
       this.advanceArcadeFloor();
       return;
+    }
+    // Broadcast rematch over LAN if Host
+    if (window.isLanMatch && window.lanManager && window.lanManager.isConnected) {
+      if (window.lanManager.role === 'HOST') {
+        window.lanManager.send('REMATCH');
+      }
     }
     this.clearBanners();
     this.currentRound = 1;
@@ -6021,8 +6767,8 @@ class ArenaScene extends Phaser.Scene {
         if (!this.lastLanSyncTime || time - this.lastLanSyncTime > 80) {
           this.lastLanSyncTime = time;
           window.lanManager.send('STATE_SYNC', {
-            p1: { x: this.fighterP1.sprite.x, y: this.fighterP1.sprite.y, hp: this.fighterP1.hp },
-            p2: { x: this.fighterP2.sprite.x, y: this.fighterP2.sprite.y, hp: this.fighterP2.hp },
+            p1: { x: this.fighterP1.sprite.x, y: this.fighterP1.sprite.y, hp: this.fighterP1.hp, ki: this.fighterP1.ki },
+            p2: { x: this.fighterP2.sprite.x, y: this.fighterP2.sprite.y, hp: this.fighterP2.hp, ki: this.fighterP2.ki },
             roundTimer: this.roundTimer,
             roundState: this.roundState,
             p1Wins: this.p1RoundWins,
@@ -6072,6 +6818,8 @@ class ArenaScene extends Phaser.Scene {
           }
           this.fighterP1.hp = sync.p1.hp;
           this.fighterP2.hp = sync.p2.hp;
+          if (sync.p1 && sync.p1.ki !== undefined) this.fighterP1.ki = sync.p1.ki;
+          if (sync.p2 && sync.p2.ki !== undefined) this.fighterP2.ki = sync.p2.ki;
           this.roundTimer = sync.roundTimer;
           this.p1RoundWins = sync.p1Wins;
           this.p2RoundWins = sync.p2Wins;

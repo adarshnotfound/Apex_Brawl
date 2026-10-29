@@ -6,7 +6,9 @@
   "description": "Offline 2D one-on-one fighting game built with Electron and Phaser (Softablitz 2026)",
   "main": "src/main/main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "dist": "electron-builder --win nsis",
+    "dist:portable": "electron-builder --win portable"
   },
   "repository": {
     "type": "git",
@@ -27,11 +29,42 @@
   },
   "homepage": "https://github.com/adarshnotfound/Apex_Brawl#readme",
   "devDependencies": {
-    "electron": "^45.0.0"
+    "electron": "^45.0.0",
+    "electron-builder": "^26.18.0"
   },
   "dependencies": {
     "phaser": "^3.90.0",
     "qrcode": "^1.5.4",
     "ws": "^8.22.0"
+  },
+  "build": {
+    "appId": "com.softablitz.apexbrawl",
+    "productName": "Apex Brawl",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "grimoire/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Apex Brawl"
+    }
   }
 }

@@ -192,6 +192,66 @@ class SoundFX {
     osc.stop(t + 0.14);
   }
 
+  // High velocity aerodynamic whoosh for Super dashes
+  playSuperWhoosh() {
+    this.init();
+    if (this.isMuted) return;
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    const filter = this.ctx.createBiquadFilter();
+
+    osc.type = 'sawtooth';
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(2400, t);
+    filter.frequency.exponentialRampToValueAtTime(300, t + 0.35);
+
+    osc.frequency.setValueAtTime(800, t);
+    osc.frequency.exponentialRampToValueAtTime(90, t + 0.35);
+
+    gain.gain.setValueAtTime(0.35, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.masterGain);
+
+    osc.start(t);
+    osc.stop(t + 0.35);
+  }
+
+  // Shatter / reality glass break sound for Dimension Shatter & Demon Slices
+  playShatter() {
+    this.init();
+    if (this.isMuted) return;
+    const t = this.ctx.currentTime;
+
+    // Metallic shimmer
+    const osc1 = this.ctx.createOscillator();
+    const osc2 = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc1.type = 'triangle';
+    osc1.frequency.setValueAtTime(1400, t);
+    osc1.frequency.exponentialRampToValueAtTime(220, t + 0.45);
+
+    osc2.type = 'sawtooth';
+    osc2.frequency.setValueAtTime(2800, t);
+    osc2.frequency.exponentialRampToValueAtTime(110, t + 0.4);
+
+    gain.gain.setValueAtTime(0.45, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+
+    osc1.connect(gain);
+    osc2.connect(gain);
+    gain.connect(this.masterGain);
+
+    osc1.start(t);
+    osc2.start(t);
+    osc1.stop(t + 0.45);
+    osc2.stop(t + 0.45);
+  }
+
   // Ambient Dark Martial Drone (Temple of Kombat)
   toggleAmbientDrone() {
     this.init();

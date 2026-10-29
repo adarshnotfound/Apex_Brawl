@@ -9,6 +9,18 @@ class FightingAI {
     this.reset();
   }
 
+  canUseSpecial(fighter) {
+    if (!fighter) return false;
+    if (typeof fighter.hasKi === 'function') return fighter.hasKi(100);
+    return fighter.ki !== undefined ? (fighter.ki >= 100) : false;
+  }
+
+  canUseSuper(fighter) {
+    if (!fighter) return false;
+    if (typeof fighter.hasKi === 'function') return fighter.hasKi(300);
+    return fighter.ki !== undefined ? (fighter.ki >= 300) : false;
+  }
+
   reset() {
     this.currentAction = 'NEUTRAL';
     this.actionTimer = 0;
@@ -66,6 +78,7 @@ class FightingAI {
           spacingVariance: 25
         };
 
+      case 'APEX':
       case 'INSANE':
       case 'GRANDMASTER':
         return {
@@ -191,10 +204,13 @@ class FightingAI {
         this.comboTimer = time + 180;
         return input;
       } else if (this.comboStep === 2) {
-        if (Math.random() < profile.superFrequency && (p2.hp < 400 || difficulty === 'INSANE')) {
+        if (this.canUseSuper(p2) && Math.random() < profile.superFrequency && (p2.hp < 450 || difficulty === 'HARD' || difficulty === 'APEX' || difficulty === 'INSANE')) {
           input.superJustDown = true; // Level 3 Super confirm!
-        } else {
+        } else if (this.canUseSpecial(p2) && Math.random() < profile.comboConfirmRate) {
           input.specialJustDown = true; // Special move confirm
+        } else {
+          // Insufficient Ki: finish Gatling sequence with Heavy Strike (5C) for wallbounce/knockdown!
+          input.heavyJustDown = true;
         }
         this.comboStep = 0;
         return input;
@@ -247,8 +263,8 @@ class FightingAI {
       if (!p2.isAttacking) {
         const roll = Math.random();
 
-        // 1. Super attack (if available / low health)
-        if (roll < profile.superFrequency && p2.hp < 450) {
+        // 1. Super attack (ONLY if full 300 Ki is available)
+        if (roll < profile.superFrequency && p2.hp < 450 && this.canUseSuper(p2)) {
           input.superJustDown = true;
           return input;
         }
@@ -267,9 +283,14 @@ class FightingAI {
           return input;
         }
 
-        // 4. Special Strike (e.g. Harpy Talon / Chun-Li Lightning Legs)
+        // 4. Special Strike (ONLY if 100 Ki is available)
         if (roll < 0.70) {
-          input.specialJustDown = true;
+          if (this.canUseSpecial(p2)) {
+            input.specialJustDown = true;
+          } else {
+            // Insufficient Ki: substitute with Heavy (5C) or Light (5A)
+            input.heavyJustDown = true;
+          }
           return input;
         }
 
@@ -310,10 +331,16 @@ class FightingAI {
         return input;
       }
 
-      // Special Zoning / Fireball Poke
+      // Special Zoning / Fireball Poke (ONLY if 100 Ki available)
       if (roll < profile.specialFrequency) {
-        input.specialJustDown = true;
-        return input;
+        if (this.canUseSpecial(p2)) {
+          input.specialJustDown = true;
+          return input;
+        } else {
+          // No Ki for projectile: poke with Heavy (5C)
+          input.heavyJustDown = true;
+          return input;
+        }
       }
 
       // Heavy Long-Range Poke (5C)
@@ -346,10 +373,19 @@ class FightingAI {
     else {
       const roll = Math.random();
 
-      // Character-specific projectile barrage
+      // Character-specific projectile barrage (ONLY if 100 Ki available)
       if ((p2.charId === 'strange' || p2.charId === 'chunli' || p2.charId === 'mewtwo') && roll < profile.specialFrequency * 1.5) {
-        input.specialJustDown = true;
-        return input;
+        if (this.canUseSpecial(p2)) {
+          input.specialJustDown = true;
+          return input;
+        } else {
+          // No Ki: close distance with dash
+          if (distToP1 > 0) input.right = true;
+          else input.left = true;
+          input.dashJustDown = true;
+          input.isHoldingForward = true;
+          return input;
+        }
       }
 
       // Jump Approach

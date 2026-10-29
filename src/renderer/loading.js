@@ -10,7 +10,7 @@
       name: 'HARPY',
       subtitle: 'The Sky Terror',
       archetype: 'Rushdown • Aerial Striker',
-      portrait: 'assets/characters/harpy/portrait.png',
+      portrait: 'assets/characters/harpy/select_avatar.png',
       actionRender: 'assets/characters/harpy/action_render.png',
       themeColor: '#06b6d4',
       accentColor: '#67e8f9',
@@ -27,7 +27,7 @@
       name: 'DR. STRANGE',
       subtitle: 'Master of the Mystic Arts',
       archetype: 'Zoner • Spellcaster Supreme',
-      portrait: 'assets/characters/Dr_Strange/portrait.png',
+      portrait: 'assets/characters/Dr_Strange/select_avatar.png',
       actionRender: 'assets/characters/Dr_Strange/action_render.png',
       themeColor: '#f59e0b',
       accentColor: '#fde047',
@@ -44,7 +44,7 @@
       name: 'CHUN-LI',
       subtitle: 'Strongest Woman in the World',
       archetype: 'Rushdown • Lightning Strikes',
-      portrait: 'assets/characters/ChunLi/portrait.png',
+      portrait: 'assets/characters/ChunLi/select_avatar.png',
       actionRender: 'assets/characters/ChunLi/action_render.png',
       themeColor: '#0284c7',
       accentColor: '#38bdf8',
@@ -61,7 +61,7 @@
       name: 'MEWTWO',
       subtitle: 'Genetic Apex & Psychic Overlord',
       archetype: 'Zoner • Telekinetic Striker',
-      portrait: 'assets/characters/Mewtwo/portrait.png',
+      portrait: 'assets/characters/Mewtwo/select_avatar.png',
       actionRender: 'assets/characters/Mewtwo/action_render.png',
       themeColor: '#9333ea',
       accentColor: '#c084fc',
@@ -78,7 +78,7 @@
       name: 'RORONOA ZORO',
       subtitle: 'King of Hell • Three-Sword Master',
       archetype: 'Mid-Range Slash • Burst Striker',
-      portrait: 'assets/characters/zoro/portrait.png',
+      portrait: 'assets/characters/zoro/select_avatar.png',
       actionRender: 'assets/characters/zoro/action_render.png',
       themeColor: '#10b981',
       accentColor: '#34d399',
@@ -95,7 +95,7 @@
       name: 'STEVE',
       subtitle: 'Master Crafter & Sandbox Champion',
       archetype: 'Brawler • Trap Specialist',
-      portrait: 'assets/characters/Steve/portrait.png',
+      portrait: 'assets/characters/Steve/select_avatar.png',
       actionRender: 'assets/characters/Steve/action_render.png',
       themeColor: '#0d9488',
       accentColor: '#2dd4bf',
@@ -112,7 +112,7 @@
       name: 'RORONOA ZORO',
       subtitle: 'Pirate Hunter & Master Swordsman',
       archetype: 'Striker • Three-Sword Style',
-      portrait: 'assets/characters/zoro/portrait.png',
+      portrait: 'assets/characters/zoro/select_avatar.png',
       actionRender: 'assets/characters/zoro/action_render.png',
       themeColor: '#10b981',
       accentColor: '#34d399',
@@ -129,7 +129,7 @@
       name: 'TRAINING DUMMY',
       subtitle: 'Combat Automaton',
       archetype: 'Practice Target • Punching Dummy',
-      portrait: 'assets/characters/dummy/portrait.png',
+      portrait: 'assets/characters/dummy/select_avatar.png',
       actionRender: 'assets/characters/dummy/action_render.png',
       themeColor: '#64748b',
       accentColor: '#94a3b8',
@@ -181,6 +181,8 @@
     const p1Id = options.p1Char || window.selectedFighterP1 || 'harpy';
     const p2Id = options.p2Char || window.selectedFighterP2 || 'strange';
     const selectedStage = options.stage || window.selectedStage || 'japanese_temple';
+    window.selectedFighterP1 = p1Id;
+    window.selectedFighterP2 = p2Id;
     window.selectedStage = selectedStage;
     window.isTrainingMode = (options.isTraining === true);
     window.isLanMatch = (options.isLan === true);
