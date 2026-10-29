@@ -27,8 +27,8 @@
       name: 'DR. STRANGE',
       subtitle: 'Master of the Mystic Arts',
       archetype: 'Zoner • Spellcaster Supreme',
-      portrait: 'assets/characters/Dr Strange/portrait.png',
-      actionRender: 'assets/characters/Dr Strange/action_render.png',
+      portrait: 'assets/characters/Dr_Strange/portrait.png',
+      actionRender: 'assets/characters/Dr_Strange/action_render.png',
       themeColor: '#f59e0b',
       accentColor: '#fde047',
       glowColor: 'rgba(245, 158, 11, 0.6)',
@@ -107,6 +107,23 @@
         'Pickaxe Ground Smash (5C) causes an intense ground bounce, leaving opponents vulnerable.'
       ]
     },
+    zoro: {
+      id: 'zoro',
+      name: 'RORONOA ZORO',
+      subtitle: 'Pirate Hunter & Master Swordsman',
+      archetype: 'Striker • Three-Sword Style',
+      portrait: 'assets/characters/zoro/portrait.png',
+      actionRender: 'assets/characters/zoro/action_render.png',
+      themeColor: '#10b981',
+      accentColor: '#34d399',
+      glowColor: 'rgba(16, 185, 129, 0.6)',
+      quote: '"Scars on the back are a swordsman\'s shame."',
+      tips: [
+        'Zoro\'s 360 Pound Cannon (R / U) fires an emerald blade cyclone across the arena.',
+        'Overhead Dual Cleave (5B / 6B) cuts through incoming attacks with tremendous vertical arc.',
+        'Oni Giri Demon Slash (Super) dashes forward in a devastating cross-cleave.'
+      ]
+    },
     dummy: {
       id: 'dummy',
       name: 'TRAINING DUMMY',
@@ -122,6 +139,8 @@
         'Use Training Mode to test combo routes, frame advantage, and damage scaling.',
         'Toggle hitboxes with [H] to see active strike boxes (Red) and hurtboxes.',
         'Press [Tab] or click [TRAINING (TAB)] to customize dummy action and guard states.'
+      ]
+    }
       ]
     }
   };

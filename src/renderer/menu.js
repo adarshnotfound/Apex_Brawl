@@ -325,8 +325,8 @@ const MK1_ROSTER = {
     name: 'DR. STRANGE',
     subtitle: 'MASTER OF THE MYSTIC ARTS',
     archetype: 'Zoner • Spellcaster Supreme & Space Control',
-    render: 'assets/characters/Dr Strange/action_render.png',
-    avatar: 'assets/characters/Dr Strange/select_avatar.png',
+    render: 'assets/characters/Dr_Strange/action_render.png',
+    avatar: 'assets/characters/Dr_Strange/select_avatar.png',
     themeColor: '#f59e0b',
     accentColor: '#fde047'
   },
@@ -375,8 +375,8 @@ const MK1_ROSTER = {
     name: 'RORONOA ZORO',
     subtitle: 'PIRATE HUNTER & SANTORYU SWORDSMAN',
     archetype: 'Striker • Three-Sword Style & Demon Slash',
-    render: 'assets/characters/zoro/action_render.png',
-    avatar: 'assets/characters/zoro/select_avatar.png',
+    render: 'assets/characters/Zoro/action_render.png',
+    avatar: 'assets/characters/Zoro/select_avatar.png',
     themeColor: '#10b981',
     accentColor: '#34d399'
   }
@@ -738,6 +738,45 @@ function switchGrimoireCharacter(charId) {
         <td>9f</td><td>12f</td><td>22f</td>
         <td><span style="color: #f87171;">-5f</span></td>
         <td>255 HP (Voxel Cataclysm)</td>
+      </tr>
+    `;
+  } else if (charId === 'zoro') {
+    if (title) title.textContent = '⚔️ RORONOA ZORO (STRIKER / THREE-SWORD STYLE)';
+    tbody.innerHTML = `
+      <tr>
+        <td><strong>Crescent Dash Slash (5A)</strong></td>
+        <td><span class="command-key">F / J</span></td>
+        <td>5f</td><td>4f</td><td>8f</td>
+        <td><span style="color: #4ade80;">+3f</span></td>
+        <td>48 HP</td>
+      </tr>
+      <tr>
+        <td><strong>Overhead Dual Cleave (5B / 6B)</strong></td>
+        <td><span class="command-key">G / K</span></td>
+        <td>7f</td><td>5f</td><td>11f</td>
+        <td><span style="color: #4ade80;">+2f</span></td>
+        <td>85 HP</td>
+      </tr>
+      <tr>
+        <td><strong>Santoryu Dual Cleave (5C Heavy)</strong></td>
+        <td><span class="command-key">H / L</span></td>
+        <td>10f</td><td>6f</td><td>16f</td>
+        <td><span style="color: #fde047;">-2f</span></td>
+        <td>125 HP (Wallbounce)</td>
+      </tr>
+      <tr>
+        <td><strong>360 Pound Cannon (Special Projectile)</strong></td>
+        <td><span class="command-key">R / U</span></td>
+        <td>10f</td><td>8f</td><td>18f</td>
+        <td><span style="color: #f87171;">-2f</span></td>
+        <td>160 HP (Flying Slash)</td>
+      </tr>
+      <tr>
+        <td><strong>Demon Slash Oni Giri (Super)</strong></td>
+        <td><span class="command-key">S+H / Y / ↓+L / I</span></td>
+        <td>8f</td><td>14f</td><td>22f</td>
+        <td><span style="color: #f87171;">-5f</span></td>
+        <td>260 HP (Demon Cross Slash)</td>
       </tr>
     `;
   } else {
