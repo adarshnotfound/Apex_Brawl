@@ -10,8 +10,8 @@
   inset: 0;
   width: 100vw;
   height: 100vh;
-  z-index: 90;
-  background: #040508;
+  z-index: 120;
+  background: #040508 !important;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
