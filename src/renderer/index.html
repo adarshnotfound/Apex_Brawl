@@ -16,6 +16,9 @@
   </script>
   <link rel="stylesheet" href="styles/loading.css">
   <link rel="stylesheet" href="styles/character_select.css">
+  <link rel="stylesheet" href="styles/training.css">
+  <link rel="stylesheet" href="styles/lan.css">
+  <link rel="stylesheet" href="styles/unified_buttons.css">
 </head>
 
 <body>
@@ -36,14 +39,23 @@
 
   <!-- Arena Top Control & Return Bar -->
   <div id="arenaControlBar"
-    style="display: none; position: fixed; top: 16px; right: 24px; z-index: 100; gap: 0.8rem; align-items: center;">
+    style="display: none; position: fixed; top: 16px; right: 24px; z-index: 100; gap: 0.6rem; align-items: center;">
+    <button class="training-btn btn-settings" id="btnToggleTrainingMenu" onclick="window.activeArenaScene && window.activeArenaScene.toggleTrainingMenu()" style="display: none;">
+      ⚙ TRAINING (TAB)
+    </button>
+    <button class="training-btn btn-reset" id="btnResetTrainingPos" onclick="window.activeArenaScene && window.activeArenaScene.resetPositions('CENTER')" style="display: none;">
+      ↺ RESET (R)
+    </button>
+    <button class="training-btn btn-hitbox" id="btnToggleHitboxes" onclick="window.activeArenaScene && window.activeArenaScene.toggleHitboxes()" style="display: none;">
+      📦 HITBOXES (H)
+    </button>
     <button class="icon-btn" onclick="window.restartMatch && window.restartMatch()"
       style="background: rgba(180, 83, 9, 0.85); border-color: #f59e0b; color: #fff; cursor: pointer;">
-      🔄 RESTART MATCH
+      🔄 RESTART
     </button>
     <button class="icon-btn" onclick="window.exitArenaToMenu()"
       style="background: rgba(127, 29, 29, 0.85); border-color: #ef4444; color: #fff; cursor: pointer;">
-      🚪 EXIT TO MENU (ESC)
+      🚪 EXIT (ESC)
     </button>
   </div>
 
@@ -150,6 +162,14 @@
         <span class="menu-indicator">▶</span>
       </button>
 
+      <button class="menu-item" data-action="lan" id="menu-lan">
+        <span class="menu-label-group">
+          <span class="menu-icon">🌐</span>
+          <span>LAN MULTIPLAYER</span>
+        </span>
+        <span class="menu-indicator">▶</span>
+      </button>
+
       <button class="menu-item" data-action="arcade" id="menu-arcade">
         <span class="menu-label-group">
           <span class="menu-icon">🤖</span>
@@ -210,37 +230,16 @@
       <div class="mk1-bg-layer" style="background-image: url('assets/backgrounds/char_select_bg_mk1.png');"></div>
       <div class="mk1-ambient-vignette"></div>
 
-      <!-- Top Navigation Bar -->
-      <div class="mk1-top-bar">
-        <div class="mk1-top-left">
-          <button class="mk1-circle-btn close-btn" aria-label="Close" title="Return to Main Menu (ESC)">
-            <span class="mk1-btn-icon">✕</span>
-          </button>
-          <div class="mk1-mode-tag">
-            <span style="font-size: 1.2rem;">⚔️</span>
-            <div>
-              <span class="mk1-tag-title">VERSUS KOMBAT</span>
-              <span class="mk1-tag-sub">LOCAL 1v1</span>
-            </div>
-          </div>
-        </div>
+      <!-- Minimal Floating Corner Controls -->
+      <div class="mk1-floating-top">
+        <button class="mk1-circle-btn close-btn" aria-label="Close" title="Return to Main Menu (ESC)">
+          <span class="mk1-btn-icon">✕</span>
+        </button>
+        <button class="mk1-stage-toggle-btn" id="mk1StageSelector" title="Click to Switch Arena">
+          <img id="mk1-stage-thumb" src="assets/backgrounds/japanese_temple/japanese_temple_thumb.png" alt="Arena">
+          <span id="mk1-stage-name">ARENA</span>
+        </button>
 
-        <!-- Center Stage Selection Pill -->
-        <div class="mk1-stage-pill" id="mk1StageSelector" title="Click to Switch Battle Arena">
-          <div class="mk1-stage-thumb-wrap">
-            <img id="mk1-stage-thumb" src="assets/backgrounds/japanese_temple/japanese_temple_thumb.png" alt="Arena">
-          </div>
-          <div class="mk1-stage-info">
-            <div class="mk1-stage-label">ARENA: <span id="mk1-stage-name">MOONLIT MOUNTAIN SHRINE</span></div>
-            <div class="mk1-stage-hint">CLICK TO TOGGLE ARENA ⛩️ / ☁️</div>
-          </div>
-        </div>
-
-        <div class="mk1-top-right">
-          <div class="mk1-prompt-badge" id="p2-join-prompt">
-            <span>🎮 P1: WASD / CLICK • P2: ARROWS / R-CLICK</span>
-          </div>
-        </div>
       </div>
 
       <!-- Main Visual Stage: Fighters Confrontation -->
@@ -248,10 +247,7 @@
         <!-- Player 1 (Left Fighter) -->
         <div class="mk1-fighter-display p1" id="p1-display">
           <div class="mk1-fighter-info">
-            <div class="mk1-player-badge p1-badge">PLAYER 1</div>
             <h1 class="mk1-fighter-name" id="p1-name">HARPY</h1>
-            <div class="mk1-fighter-subtitle" id="p1-subtitle">THE SKY TERROR • WINGED AERIAL STRIKER</div>
-            <div class="mk1-fighter-archetype" id="p1-archetype">Rushdown • High Air Mobility & Frame Traps</div>
           </div>
           <div class="mk1-render-wrap">
             <img class="mk1-fighter-render p1-render" id="p1-render-img" src="assets/characters/harpy/action_render.png" alt="Player 1">
@@ -261,23 +257,15 @@
 
         <!-- Center VS Crest & Enter Kombat CTA -->
         <div class="mk1-center-pillar">
-          <div class="mk1-vs-crest">
-            <div class="mk1-vs-circle">
-              <span class="mk1-vs-text">VS</span>
-            </div>
-          </div>
           <button class="mk1-fight-btn" id="btnLaunchFight" title="Begin Match">
-            <span class="mk1-fight-btn-text">⚔️ ENTER KOMBAT</span>
+            <span class="mk1-fight-btn-text">FIGHT</span>
           </button>
         </div>
 
         <!-- Player 2 (Right Fighter) -->
         <div class="mk1-fighter-display p2" id="p2-display">
           <div class="mk1-fighter-info p2-info">
-            <div class="mk1-player-badge p2-badge">PLAYER 2</div>
             <h1 class="mk1-fighter-name" id="p2-name">DR. STRANGE</h1>
-            <div class="mk1-fighter-subtitle" id="p2-subtitle">MASTER OF THE MYSTIC ARTS</div>
-            <div class="mk1-fighter-archetype" id="p2-archetype">Zoner • Spellcaster Supreme & Space Control</div>
           </div>
           <div class="mk1-render-wrap">
             <img class="mk1-fighter-render p2-render" id="p2-render-img" src="assets/characters/Dr_Strange/action_render.png" alt="Player 2">
@@ -285,79 +273,160 @@
           </div>
         </div>
       </div>
-      <!-- Bottom Character Selection Grid Tray -->
+
+      <!-- Bottom Character Selection Grid (Small Avatar Boxes, Transparent BG, Aligned Up) -->
       <div class="mk1-roster-tray">
-        <div class="mk1-tray-header">
-          <span class="mk1-tray-title">CHOOSE YOUR COMBATANT</span>
-          <span class="mk1-tray-hint">LEFT-CLICK: P1 (GOLD) &nbsp;|&nbsp; RIGHT-CLICK: P2 (CYAN)</span>
-        </div>
         <div class="mk1-roster-grid" id="mk1RosterGrid">
           <!-- Fighter 1: Harpy -->
-          <div class="roster-card p1-selected" data-char="harpy" id="rcard-harpy" title="Harpy the Sky Terror">
+          <div class="roster-card p1-selected" data-char="harpy" id="rcard-harpy" title="Harpy">
             <img class="roster-card-img" src="assets/characters/harpy/select_avatar.png" alt="Harpy">
-            <div class="roster-card-name">HARPY</div>
           </div>
           <!-- Fighter 2: Dr. Strange -->
           <div class="roster-card p2-selected" data-char="strange" id="rcard-strange" title="Doctor Strange">
             <img class="roster-card-img" src="assets/characters/Dr_Strange/select_avatar.png" alt="Dr. Strange">
             <div class="roster-card-name">STRANGE</div>
+          <div class="roster-card p2-selected" data-char="strange" id="rcard-strange" title="Dr. Strange">
+            <img class="roster-card-img" src="assets/characters/Dr Strange/select_avatar.png" alt="Dr. Strange">
           </div>
           <!-- Fighter 3: Chun-Li -->
           <div class="roster-card" data-char="chunli" id="rcard-chunli" title="Chun-Li">
             <img class="roster-card-img" src="assets/characters/ChunLi/select_avatar.png" alt="Chun-Li">
-            <div class="roster-card-name">CHUN-LI</div>
           </div>
           <!-- Fighter 4: Mewtwo -->
           <div class="roster-card" data-char="mewtwo" id="rcard-mewtwo" title="Mewtwo">
             <img class="roster-card-img" src="assets/characters/Mewtwo/select_avatar.png" alt="Mewtwo">
-            <div class="roster-card-name">MEWTWO</div>
           </div>
           <!-- Fighter 5: Steve -->
           <div class="roster-card" data-char="steve" id="rcard-steve" title="Steve">
             <img class="roster-card-img" src="assets/characters/Steve/select_avatar.png" alt="Steve">
-            <div class="roster-card-name">STEVE</div>
           </div>
           <!-- Secret / Locked Slot: Zoro -->
           <div class="roster-card" data-char="zoro" id="rcard-zoro" title="Roronoa Zoro">
             <img class="roster-card-img" src="assets/characters/Zoro/select_avatar.png" alt="Zoro">
             <div class="roster-card-name">ZORO</div>
+          <!-- Fighter 6: Zoro -->
+          <div class="roster-card" data-char="zoro" id="rcard-zoro" title="Zoro">
+            <img class="roster-card-img" src="assets/characters/zoro/select_avatar.png" alt="Zoro">
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. LAN Multiplayer Modal -->
+  <div class="modal-overlay" id="modal-lan">
+    <div class="modal-card lan-glass-card">
+      <div class="lan-header-tabs">
+        <div class="lan-tab-group">
+          <button class="lan-tab-btn active" data-tab="host">
+            <span>📡</span> HOST LOBBY
+          </button>
+          <button class="lan-tab-btn" data-tab="join">
+            <span>🔗</span> JOIN LOBBY
+          </button>
+        </div>
+        <button class="close-btn lan-close-btn" aria-label="Close" title="Close LAN Lobby">&times;</button>
+      </div>
+
+      <!-- Host Panel -->
+      <div class="lan-panel active" id="lan-panel-host">
+        <div class="lan-ip-card">
+          <div class="lan-ip-label">HOST ADDRESS</div>
+          <div class="lan-ip-row">
+            <span class="lan-ip-display" id="lanHostIP">127.0.0.1:8765</span>
+            <button class="lan-copy-btn" id="btnCopyHostIP" title="Copy Host IP to Clipboard">COPY IP</button>
+          </div>
+        </div>
+
+        <div class="lan-peer-box">
+          <div class="lan-peer-info">
+            <div class="lan-pulse-dot" id="lanPeerDot"></div>
+            <div class="lan-peer-text" id="lanPeerStatus">WAITING FOR CHALLENGER...</div>
+          </div>
+          <div class="lan-ping-pill" id="lanPingPill" style="display: none;">0ms LAN</div>
+        </div>
+
+        <div class="lan-status-banner" id="lanHostBanner"></div>
+
+        <button class="lan-action-cta" id="btnHostEnterSelect" disabled>
+          <span>⚔️</span> START MATCH
+        </button>
+      </div>
+
+      <!-- Join Panel -->
+      <div class="lan-panel" id="lan-panel-join">
+        <div class="lan-discovered-section">
+          <div class="lan-section-title">AVAILABLE LOBBIES</div>
+          <div class="lan-rooms-list" id="lanRoomsList">
+            <div class="lan-no-rooms">Searching for LAN lobbies...</div>
+          </div>
+        </div>
+
+        <div class="lan-section-title">DIRECT IP CONNECT</div>
+        <div class="lan-direct-connect">
+          <input type="text" class="lan-input-ip" id="lanInputIP" placeholder="Enter Host IP (e.g. 192.168.1.50)" />
+          <button class="lan-btn-connect" id="btnDirectConnect">CONNECT</button>
+        </div>
+
+        <div class="lan-status-banner" id="lanJoinBanner"></div>
       </div>
     </div>
   </div>
 
   <!-- 2. Arcade Modal -->
   <div class="modal-overlay" id="modal-arcade">
-    <div class="modal-card">
+    <div class="modal-card" style="max-width: 580px;">
       <div class="modal-header">
-        <div class="modal-title">🤖 ARCADE LADDER (VS AI)</div>
+        <div class="modal-title">🤖 ARCADE TOWER (VS CPU)</div>
         <button class="close-btn" aria-label="Close">&times;</button>
       </div>
-      <p style="color: var(--text-muted); line-height: 1.6;">
-        Ascend the Mystic Tower defeating elemental bosses in sequence, culminating in Harpy the Sky Terror.
+      <p style="color: var(--text-muted); line-height: 1.5; font-size: 0.95rem; margin-bottom: 1.2rem;">
+        Ascend the ancient Mystic Tower defeating elemental adversaries in sequence, culminating in a showdown against Harpy the Sky Terror!
       </p>
-      <div
-        style="margin: 1.5rem 0; padding: 1rem; background: rgba(255,255,255,0.03); border-left: 3px solid var(--gold-glow);">
-        <strong>Opponent:</strong> Harpy (Aerial Rushdown, high jump velocity, Talon frame traps)
-      </div>
-      <button class="fight-cta-btn" onclick="document.getElementById('btnLaunchFight').click()">START ARCADE
-        RUN</button>
-    </div>
-  </div>
 
-  <!-- 3. Training Modal -->
-  <div class="modal-overlay" id="modal-training">
-    <div class="modal-card">
-      <div class="modal-header">
-        <div class="modal-title">🥋 DOJO / PRACTICE ARENA</div>
-        <button class="close-btn" aria-label="Close">&times;</button>
+      <!-- AI Difficulty Selection -->
+      <div style="margin-bottom: 1.4rem;">
+        <div style="font-family: var(--font-heading); font-size: 0.85rem; color: #fbbf24; letter-spacing: 0.08em; margin-bottom: 0.5rem;">
+          SELECT CPU DIFFICULTY
+        </div>
+        <div class="arcade-diff-selector" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+          <button class="arcade-diff-btn" data-diff="EASY" style="flex: 1; padding: 0.5rem; border: 1px solid #10b981; background: rgba(16, 185, 129, 0.1); color: #6ee7b7; font-family: var(--font-heading); font-size: 0.9rem; font-weight: bold; border-radius: 4px; cursor: pointer;">
+            🟢 NOVICE
+          </button>
+          <button class="arcade-diff-btn active" data-diff="MEDIUM" style="flex: 1; padding: 0.5rem; border: 1px solid #f59e0b; background: rgba(245, 158, 11, 0.25); color: #fbbf24; font-family: var(--font-heading); font-size: 0.9rem; font-weight: bold; border-radius: 4px; cursor: pointer;">
+            🟡 WARRIOR
+          </button>
+          <button class="arcade-diff-btn" data-diff="HARD" style="flex: 1; padding: 0.5rem; border: 1px solid #ef4444; background: rgba(239, 68, 68, 0.1); color: #fca5a5; font-family: var(--font-heading); font-size: 0.9rem; font-weight: bold; border-radius: 4px; cursor: pointer;">
+            🔴 MASTER
+          </button>
+          <button class="arcade-diff-btn" data-diff="INSANE" style="flex: 1; padding: 0.5rem; border: 1px solid #a855f7; background: rgba(168, 85, 247, 0.1); color: #d8b4fe; font-family: var(--font-heading); font-size: 0.9rem; font-weight: bold; border-radius: 4px; cursor: pointer;">
+            🟣 GRANDMASTER
+          </button>
+        </div>
       </div>
-      <p style="color: var(--text-muted); line-height: 1.6;">
-        Enter the practice arena to test Harpy's frame data, sprite animations, hitboxes, and cancel chains in real
-        time.
-      </p>
-      <button class="fight-cta-btn" onclick="document.getElementById('btnLaunchFight').click()">ENTER DOJO</button>
+
+      <!-- Tower Ladder Preview -->
+      <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.5rem;">
+        <div style="font-family: var(--font-heading); font-size: 0.85rem; color: #94a3b8; letter-spacing: 0.08em;">
+          TOWER LADDER STAGES
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.8rem; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 4px;">
+          <span style="color: #e2e8f0; font-family: var(--font-heading); font-size: 0.95rem;">FLOOR 1: 🔮 DR. STRANGE</span>
+          <span style="font-size: 0.75rem; color: #94a3b8;">Celestial Abyss • Zoner</span>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.8rem; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 4px;">
+          <span style="color: #e2e8f0; font-family: var(--font-heading); font-size: 0.95rem;">FLOOR 2: ⚡ CHUN-LI</span>
+          <span style="font-size: 0.75rem; color: #94a3b8;">Moonlit Shrine • Rushdown</span>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.8rem; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 4px;">
+          <span style="color: #fbbf24; font-family: var(--font-heading); font-size: 0.95rem; font-weight: bold;">TOWER APEX: 🦅 HARPY THE SKY TERROR</span>
+          <span style="font-size: 0.75rem; color: #f59e0b; font-weight: bold;">FINAL BOSS</span>
+        </div>
+      </div>
+
+      <button class="fight-cta-btn" id="btnStartArcadeLadder" style="width: 100%;">
+        ⚔️ ENTER ARCADE TOWER
+      </button>
     </div>
   </div>
 
@@ -610,12 +679,244 @@
     </div>
   </div>
 
+  <!-- Live Training Mode HUD Overlay -->
+  <div id="trainingInputHistory" style="display: none;"></div>
+  <div id="trainingAttackData" style="display: none;">
+    <div class="data-row" style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 3px; margin-bottom: 2px;">
+      <span>ATTACK:</span>
+      <span class="data-val" id="tdAttackName" style="color: #67e8f9; font-size: 0.88rem;">-</span>
+    </div>
+    <div class="data-row">
+      <span>COMBO:</span>
+      <span class="data-val combo-hits" id="tdComboHits">0 HITS</span>
+    </div>
+    <div class="data-row">
+      <span>DAMAGE:</span>
+      <span class="data-val damage" id="tdDamage">0</span>
+    </div>
+    <div class="data-row">
+      <span>TOTAL:</span>
+      <span class="data-val" id="tdTotalDamage">0</span>
+    </div>
+    <div class="data-row">
+      <span>SCALING:</span>
+      <span class="data-val" id="tdScaling">100%</span>
+    </div>
+    <div class="data-row">
+      <span>ADVANTAGE:</span>
+      <span class="data-val" id="tdAdvantage">-</span>
+    </div>
+  </div>
+
+  <!-- In-Game Training Settings Modal (Modern Tabbed Overlay) -->
+  <div id="trainingSettingsModal" style="display: none;">
+    <div class="training-dialog">
+      <div class="training-dialog-header">
+        <div class="training-dialog-title">
+          <span>🥋 DOJO</span> TRAINING SETTINGS
+        </div>
+        <button class="training-close-btn" onclick="window.activeArenaScene && window.activeArenaScene.toggleTrainingMenu(false)">&times;</button>
+      </div>
+
+      <div class="training-tabs">
+        <button class="training-tab-btn active" data-tab="dummy">🥋 DUMMY</button>
+        <button class="training-tab-btn" data-tab="display">📊 DISPLAY</button>
+        <button class="training-tab-btn" data-tab="gauges">⚡ GAUGES</button>
+        <button class="training-tab-btn" data-tab="position">📍 POSITION</button>
+      </div>
+
+      <!-- Tab 1: Opponent Behavior Settings -->
+      <div class="training-tab-content active" id="ttab-dummy">
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">OPPONENT BEHAVIOR</span>
+            <span class="setting-desc">Stationary practice dummy, continuous guard, or attacking</span>
+          </div>
+          <div class="segmented-control" data-setting="dummyAction">
+            <button class="seg-btn active" data-val="STAND">STAND STILL</button>
+            <button class="seg-btn" data-val="GUARD">GUARD</button>
+            <button class="seg-btn" data-val="ATTACK">ATTACK</button>
+            <button class="seg-btn" data-val="CROUCH">CROUCH</button>
+            <button class="seg-btn" data-val="JUMP">JUMP</button>
+            <button class="seg-btn" data-val="CPU">SPARRING AI</button>
+            <button class="seg-btn" data-val="MANUAL">2P</button>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">BLOCK / GUARD</span>
+            <span class="setting-desc">When the dummy blocks attacks</span>
+          </div>
+          <div class="segmented-control" data-setting="dummyGuard">
+            <button class="seg-btn active" data-val="NONE">OFF</button>
+            <button class="seg-btn" data-val="ALL">ALL GUARD</button>
+            <button class="seg-btn" data-val="AFTER_FIRST_HIT">AFTER 1ST HIT</button>
+            <button class="seg-btn" data-val="RANDOM">RANDOM</button>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">GUARD TYPE</span>
+            <span class="setting-desc">Standing (High/Mid) or Crouching (Low)</span>
+          </div>
+          <div class="segmented-control" data-setting="dummyGuardType">
+            <button class="seg-btn active" data-val="STAND">HIGH / MID</button>
+            <button class="seg-btn" data-val="CROUCH">LOW</button>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">COUNTER HIT</span>
+            <span class="setting-desc">Test counter-hit damage (+25%) and hitstun</span>
+          </div>
+          <div class="segmented-control" data-setting="dummyCounterHit">
+            <button class="seg-btn active" data-val="NORMAL">NORMAL</button>
+            <button class="seg-btn" data-val="ALWAYS">ALWAYS COUNTER</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: Display Settings -->
+      <div class="training-tab-content" id="ttab-display">
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">VIRTUAL INPUT HISTORY</span>
+            <span class="setting-desc">Display live directional and button inputs</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="chkInputHistory" checked onchange="window.activeArenaScene && window.activeArenaScene.setTrainingSetting('inputHistory', this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">ATTACK & FRAME DATA HUD</span>
+            <span class="setting-desc">Show combo hits, damage, scaling & advantage</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="chkAttackData" checked onchange="window.activeArenaScene && window.activeArenaScene.setTrainingSetting('attackData', this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">HITBOXES & HURTBOXES</span>
+            <span class="setting-desc">Visual collision and attack boundaries</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="chkHitboxes" onchange="window.activeArenaScene && window.activeArenaScene.setTrainingSetting('showHitboxes', this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Tab 3: Gauges & Life -->
+      <div class="training-tab-content" id="ttab-gauges">
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">DISABLE DAMAGE</span>
+            <span class="setting-desc">Hits register & combos display, but fighters take 0 damage</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="chkDisableDamage" onchange="window.activeArenaScene && window.activeArenaScene.setTrainingSetting('disableDamage', this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">UNLIMITED HEALTH</span>
+            <span class="setting-desc">Keep both fighters locked at 100% health constantly</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="chkUnlimitedHealth" onchange="window.activeArenaScene && window.activeArenaScene.setTrainingSetting('unlimitedHealth', this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">AUTO HEALTH REGEN</span>
+            <span class="setting-desc">Refill health immediately after combo ends</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="chkHealthRegen" checked onchange="window.activeArenaScene && window.activeArenaScene.setTrainingSetting('healthRegen', this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">PLAYER 1 HEALTH</span>
+            <span class="setting-desc">Preset starting HP (e.g. low HP clutch practice)</span>
+          </div>
+          <div class="segmented-control" data-setting="p1HealthPreset">
+            <button class="seg-btn active" data-val="100">100%</button>
+            <button class="seg-btn" data-val="50">50%</button>
+            <button class="seg-btn" data-val="25">25%</button>
+            <button class="seg-btn" data-val="1">1%</button>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">DUMMY HEALTH</span>
+            <span class="setting-desc">Preset dummy HP</span>
+          </div>
+          <div class="segmented-control" data-setting="p2HealthPreset">
+            <button class="seg-btn active" data-val="100">100%</button>
+            <button class="seg-btn" data-val="50">50%</button>
+            <button class="seg-btn" data-val="25">25%</button>
+            <button class="seg-btn" data-val="1">1%</button>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">INFINITE SUPER / EX</span>
+            <span class="setting-desc">Unlimited meter for special & super moves</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="chkInfiniteSuper" checked onchange="window.activeArenaScene && window.activeArenaScene.setTrainingSetting('infiniteSuper', this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Tab 4: Position Reset -->
+      <div class="training-tab-content" id="ttab-position">
+        <div class="position-grid">
+          <button class="pos-btn" onclick="window.activeArenaScene && window.activeArenaScene.resetPositions('CENTER')">
+            ⚖️ CENTER STAGE
+          </button>
+          <button class="pos-btn" onclick="window.activeArenaScene && window.activeArenaScene.resetPositions('LEFT_CORNER')">
+            ⬅️ LEFT CORNER
+          </button>
+          <button class="pos-btn" onclick="window.activeArenaScene && window.activeArenaScene.resetPositions('RIGHT_CORNER')">
+            ➡️ RIGHT CORNER
+          </button>
+          <button class="pos-btn" onclick="window.activeArenaScene && window.activeArenaScene.resetPositions('SWAP')">
+            🔄 SWAP SIDES
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
   <!-- Scripts -->
   <script src="../../node_modules/phaser/dist/phaser.min.js"></script>
   <script src="config.js"></script>
+  <script src="fightingAI.js"></script>
   <script src="arena.js"></script>
   <script src="audio.js"></script>
   <script src="loading.js"></script>
+  <script src="lanManager.js"></script>
   <script src="menu.js"></script>
 </body>
 

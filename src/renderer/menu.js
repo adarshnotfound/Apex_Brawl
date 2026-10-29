@@ -1,9 +1,16 @@
 // Main Menu Controller for Apex Brawl (Mystic Kombat)
+window.cpuDifficulty = 'MEDIUM';
+window.isCpuMatch = false; // Local 1v1 Kombat defaults to human 2-player!
+window.isArcadeMode = false;
+window.arcadeStage = 1;
+
 document.addEventListener('DOMContentLoaded', () => {
   initEmbersCanvas();
   initMenuNavigation();
   initModals();
   initGamepadSupport();
+  initLANLobbyUI();
+  initArcadeAndAIControls();
 });
 
 // ----------------------------------------------------
@@ -160,13 +167,16 @@ function executeMenuItem(action) {
 
   switch (action) {
     case 'local-1v1':
-      openModal('modal-battle-prompt');
+      openCharacterSelect('VERSUS');
       break;
     case 'arcade':
       openModal('modal-arcade');
       break;
+    case 'lan':
+      openLANModal();
+      break;
     case 'training':
-      openModal('modal-training');
+      openCharacterSelect('TRAINING');
       break;
     case 'controls':
       openModal('modal-controls');
@@ -248,14 +258,37 @@ function initModals() {
   const fightBtn = document.getElementById('btnLaunchFight');
   if (fightBtn) {
     fightBtn.addEventListener('click', () => {
-      closeAllModals();
-      if (window.startMatchWithLoadingScreen) {
-        window.startMatchWithLoadingScreen({
+      if (window.isLanMatch && window.lanManager) {
+        if (window.lanManager.role !== 'HOST') {
+          // Client cannot launch until host triggers it
+          return;
+        }
+        window.lanManager.send('START_MATCH', {
           p1Char: window.selectedFighterP1,
           p2Char: window.selectedFighterP2,
           stage: window.selectedStage || 'japanese_temple'
         });
+      }
+
+      closeAllModals();
+      const isTraining = (window.isTrainingModeSelected === true);
+      const isArcade = (window.isArcadeMode === true);
+      const isCpu = !isTraining && !window.isLanMatch && (isArcade || window.isCpuMatch === true);
+      if (window.startMatchWithLoadingScreen) {
+        window.startMatchWithLoadingScreen({
+          p1Char: window.selectedFighterP1,
+          p2Char: window.selectedFighterP2,
+          stage: window.selectedStage || 'japanese_temple',
+          isTraining: isTraining,
+          isLan: window.isLanMatch,
+          isArcade: isArcade,
+          isCpu: isCpu,
+          difficulty: window.cpuDifficulty || 'MEDIUM'
+        });
       } else if (window.startPhaserArena) {
+        window.isTrainingMode = isTraining;
+        window.isCpuMatch = isCpu;
+        window.isArcadeMode = isArcade;
         window.startPhaserArena();
       }
     });
@@ -269,6 +302,7 @@ function initModals() {
 
   // Battle Arena Selection
   initStageSelection();
+  initDojoSetup();
 }
 
 window.selectedFighterP1 = 'harpy';
@@ -326,6 +360,16 @@ const MK1_ROSTER = {
     themeColor: '#0d9488',
     accentColor: '#2dd4bf'
   },
+  dummy: {
+    id: 'dummy',
+    name: 'TRAINING DUMMY',
+    subtitle: 'COMBAT AUTOMATON • PRACTICE TARGET',
+    archetype: 'Practice Target • Telemetry & Combos',
+    render: 'assets/characters/dummy/action_render.png',
+    avatar: 'assets/characters/dummy/select_avatar.png',
+    themeColor: '#64748b',
+    accentColor: '#94a3b8'
+  },
   zoro: {
     id: 'zoro',
     name: 'RORONOA ZORO',
@@ -346,6 +390,9 @@ function initStageSelection() {
     pill.addEventListener('click', () => {
       window.selectedStage = (window.selectedStage === 'sky_temple') ? 'japanese_temple' : 'sky_temple';
       updateStagePillUI();
+      if (window.isLanMatch && window.lanManager) {
+        window.lanManager.send('STAGE_SELECT', { stage: window.selectedStage });
+      }
       if (window.soundFX) window.soundFX.playSelect();
     });
   }
@@ -367,7 +414,7 @@ function updateStagePillUI() {
   const nameEl = document.getElementById('mk1-stage-name');
   const thumbEl = document.getElementById('mk1-stage-thumb');
   if (nameEl) {
-    nameEl.textContent = isSky ? 'THE ETERNAL SKY TEMPLE' : 'MOONLIT MOUNTAIN SHRINE';
+    nameEl.textContent = isSky ? 'SKY TEMPLE' : 'SHRINE';
     nameEl.style.color = isSky ? '#67e8f9' : '#fef08a';
   }
   if (thumbEl) {
@@ -382,15 +429,25 @@ function initCharacterSelection() {
   document.querySelectorAll('.roster-card').forEach(card => {
     if (card.classList.contains('locked')) return;
 
-    // Left click: Select Player 1 (or toggle if Shift held)
+    // Left click: Select character
     card.addEventListener('click', (e) => {
       const charId = card.dataset.char;
       if (!charId || !MK1_ROSTER[charId]) return;
 
-      if (e.shiftKey || e.altKey) {
-        setFighterSelection('2', charId);
-      } else {
+      if (window.isTrainingModeSelected || window.isArcadeMode) {
+        // Training or Arcade Tower: Player selects their champion (P1)
         setFighterSelection('1', charId);
+      } else if (window.isLanMatch && window.lanManager) {
+        // LAN Mode: Host selects P1, Client selects P2
+        const myPlayer = (window.lanManager.role === 'HOST') ? '1' : '2';
+        setFighterSelection(myPlayer, charId);
+        window.lanManager.send('CHAR_SELECT', { player: Number(myPlayer), charId });
+      } else {
+        if (e.shiftKey || e.altKey) {
+          setFighterSelection('2', charId);
+        } else {
+          setFighterSelection('1', charId);
+        }
       }
       if (window.soundFX) window.soundFX.playSelect();
     });
@@ -445,6 +502,11 @@ function cycleFighter(player, dir) {
 }
 
 function setFighterSelection(player, charId, animate = true) {
+  if (window.isTrainingModeSelected && player === '2') {
+    // Opponent in Training Mode is locked to Dummy
+    return;
+  }
+
   if (player === '1') {
     window.selectedFighterP1 = charId;
   } else {
@@ -455,7 +517,11 @@ function setFighterSelection(player, charId, animate = true) {
   document.querySelectorAll('.roster-card').forEach(card => {
     const c = card.dataset.char;
     card.classList.toggle('p1-selected', c === window.selectedFighterP1);
-    card.classList.toggle('p2-selected', c === window.selectedFighterP2);
+    if (!window.isTrainingModeSelected) {
+      card.classList.toggle('p2-selected', c === window.selectedFighterP2);
+    } else {
+      card.classList.remove('p2-selected');
+    }
   });
 
   // Update fighter presentation display
@@ -469,7 +535,13 @@ function updateFighterDisplay(player, charId, animate = true) {
   const archetypeEl = document.getElementById(`p${player}-archetype`);
   const renderImg = document.getElementById(`p${player}-render-img`);
 
-  if (nameEl) nameEl.textContent = data.name;
+  if (nameEl) {
+    if (player === '2' && window.isTrainingModeSelected) {
+      nameEl.textContent = `DUMMY: ${data.name}`;
+    } else {
+      nameEl.textContent = data.name;
+    }
+  }
   if (subtitleEl) subtitleEl.textContent = data.subtitle;
   if (archetypeEl) archetypeEl.textContent = data.archetype;
 
@@ -749,6 +821,65 @@ function switchGrimoireCharacter(charId) {
   }
 }
 
+
+function openCharacterSelect(mode = 'VERSUS') {
+  window.isTrainingModeSelected = (mode === 'TRAINING');
+  window.isLanMatch = (mode === 'LAN');
+  window.isArcadeMode = (mode === 'ARCADE');
+
+  if (mode === 'ARCADE') {
+    window.isCpuMatch = true;
+    window.arcadeStage = window.arcadeStage || 1;
+  } else if (mode === 'VERSUS') {
+    window.isCpuMatch = false; // Always default Local 1v1 Kombat to human 2-player!
+  } else {
+    window.isCpuMatch = false;
+  }
+
+  const fightBtn = document.getElementById('btnLaunchFight');
+  const fightBtnText = document.querySelector('#btnLaunchFight .mk1-fight-btn-text');
+  
+
+
+  if (fightBtnText) {
+    if (mode === 'TRAINING') {
+      fightBtnText.textContent = 'ENTER DOJO';
+      if (fightBtn) fightBtn.style.opacity = '1';
+    } else if (mode === 'LAN') {
+      const isHost = (window.lanManager && window.lanManager.role === 'HOST');
+      fightBtnText.textContent = isHost ? 'START LAN KOMBAT' : 'WAITING FOR HOST...';
+      if (fightBtn) fightBtn.style.opacity = isHost ? '1' : '0.5';
+    } else if (mode === 'ARCADE') {
+      fightBtnText.textContent = `ENTER FLOOR ${window.arcadeStage || 1}`;
+      if (fightBtn) fightBtn.style.opacity = '1';
+    } else {
+      fightBtnText.textContent = 'FIGHT';
+      if (fightBtn) fightBtn.style.opacity = '1';
+    }
+  }
+
+  if (window.isTrainingModeSelected) {
+    window.selectedFighterP2 = 'dummy';
+    updateFighterDisplay('1', window.selectedFighterP1 || 'harpy', false);
+    updateFighterDisplay('2', 'dummy', false);
+    document.querySelectorAll('.roster-card').forEach(card => card.classList.remove('p2-selected'));
+  } else if (window.isArcadeMode) {
+    const floorOpponent = (window.arcadeStage === 2) ? 'chunli' : ((window.arcadeStage >= 3) ? 'harpy' : 'strange');
+    window.selectedFighterP2 = floorOpponent;
+    updateFighterDisplay('1', window.selectedFighterP1 || 'harpy', false);
+    updateFighterDisplay('2', floorOpponent, false);
+    document.querySelectorAll('.roster-card').forEach(card => card.classList.remove('p2-selected'));
+  } else {
+    if (window.selectedFighterP2 === 'dummy') {
+      window.selectedFighterP2 = 'strange';
+    }
+    updateFighterDisplay('1', window.selectedFighterP1 || 'harpy', false);
+    updateFighterDisplay('2', window.selectedFighterP2 || 'strange', false);
+  }
+
+  openModal('modal-battle-prompt');
+}
+
 function openModal(id) {
   closeAllModals();
   const target = document.getElementById(id);
@@ -822,4 +953,390 @@ function initGamepadSupport() {
   });
 
   requestAnimationFrame(pollGamepads);
+}
+
+// ----------------------------------------------------
+// 2.5. Dojo Training Mode Setup & In-Game Controls
+// ----------------------------------------------------
+window.dojoP1 = 'harpy';
+window.dojoP2 = 'strange';
+window.dojoStage = 'japanese_temple';
+
+function initDojoSetup() {
+  // P1 Fighter Selection Pills
+  document.querySelectorAll('#dojoP1Picker .dojo-char-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('#dojoP1Picker .dojo-char-pill').forEach(p => p.classList.remove('selected'));
+      pill.classList.add('selected');
+      window.dojoP1 = pill.dataset.char;
+      if (window.soundFX) window.soundFX.playSelect();
+    });
+  });
+
+  // Dummy P2 Selection Pills
+  document.querySelectorAll('#dojoP2Picker .dojo-char-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('#dojoP2Picker .dojo-char-pill').forEach(p => p.classList.remove('dummy-selected'));
+      pill.classList.add('dummy-selected');
+      window.dojoP2 = pill.dataset.char;
+      if (window.soundFX) window.soundFX.playSelect();
+    });
+  });
+
+  // Stage Selection Pills
+  document.querySelectorAll('#dojoStagePicker .dojo-char-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('#dojoStagePicker .dojo-char-pill').forEach(p => p.classList.remove('selected'));
+      pill.classList.add('selected');
+      window.dojoStage = pill.dataset.stage;
+      if (window.soundFX) window.soundFX.playSelect();
+    });
+  });
+
+  // Launch Training Mode CTA
+  const btnLaunch = document.getElementById('btnLaunchTraining');
+  if (btnLaunch) {
+    btnLaunch.addEventListener('click', () => {
+      closeAllModals();
+      if (window.startMatchWithLoadingScreen) {
+        window.startMatchWithLoadingScreen({
+          p1Char: window.dojoP1 || 'harpy',
+          p2Char: window.dojoP2 || 'strange',
+          stage: window.dojoStage || 'japanese_temple',
+          isTraining: true
+        });
+      }
+    });
+  }
+
+  // In-Game Training Settings Modal: Tabs
+  document.querySelectorAll('.training-tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.training-tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.training-tab-content').forEach(c => c.classList.remove('active'));
+
+      btn.classList.add('active');
+      const tabId = 'ttab-' + btn.dataset.tab;
+      const content = document.getElementById(tabId);
+      if (content) content.classList.add('active');
+      if (window.soundFX) window.soundFX.playHover();
+    });
+  });
+
+  // In-Game Training Settings Modal: Segmented Controls
+  document.querySelectorAll('.segmented-control').forEach(seg => {
+    const settingKey = seg.dataset.setting;
+    seg.querySelectorAll('.seg-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        seg.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const val = btn.dataset.val;
+        if (window.activeArenaScene) {
+          window.activeArenaScene.setTrainingSetting(settingKey, isNaN(Number(val)) ? val : Number(val));
+        }
+        if (window.soundFX) window.soundFX.playSelect();
+      });
+    });
+  });
+}
+
+
+
+// ----------------------------------------------------
+// 5. LAN Multiplayer Lobby Controller
+// ----------------------------------------------------
+function openLANModal() {
+  openModal('modal-lan');
+  switchLANTab('host');
+}
+
+function switchLANTab(tab) {
+  document.querySelectorAll('.lan-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.lan-panel').forEach(p => p.classList.toggle('active', p.id === `lan-panel-${tab}`));
+
+  if (tab === 'host') {
+    startHostMode();
+  } else if (tab === 'join') {
+    startJoinMode();
+  }
+}
+
+async function startHostMode() {
+  const hostIPElem = document.getElementById('lanHostIP');
+  const banner = document.getElementById('lanHostBanner');
+  if (banner) {
+    banner.textContent = 'Initializing host server on LAN...';
+    banner.className = 'lan-status-banner info';
+  }
+
+  if (window.electronAPI && window.electronAPI.startHostServer) {
+    try {
+      const res = await window.electronAPI.startHostServer(8765);
+      const ip = (res && res.ip) || (await window.electronAPI.getLocalIP()) || '127.0.0.1';
+      if (hostIPElem) {
+        hostIPElem.textContent = `${ip}:8765`;
+      }
+      if (banner) {
+        banner.textContent = 'Host server running. Waiting for Challenger to join...';
+        banner.className = 'lan-status-banner success';
+      }
+      // Connect local client to server as Host
+      await window.lanManager.connect('127.0.0.1', 8765, 'host');
+    } catch (err) {
+      console.error('[Host Mode Error]', err);
+      if (banner) {
+        banner.textContent = `Server Error: ${err.message || err}`;
+        banner.className = 'lan-status-banner error';
+      }
+    }
+  } else {
+    if (banner) {
+      banner.textContent = 'Local LAN Server is supported in desktop app.';
+      banner.className = 'lan-status-banner info';
+    }
+  }
+}
+
+async function startJoinMode() {
+  if (window.lanManager && window.lanManager.role === 'HOST') {
+    window.lanManager.disconnect();
+  }
+  if (window.electronAPI && window.electronAPI.stopHostServer) {
+    await window.electronAPI.stopHostServer();
+  }
+
+  if (window.electronAPI && window.electronAPI.startDiscovery) {
+    await window.electronAPI.startDiscovery();
+  }
+}
+
+async function connectToHost(ip, port = 8765) {
+  const banner = document.getElementById('lanJoinBanner');
+  if (banner) {
+    banner.textContent = `Connecting to ${ip}:${port}...`;
+    banner.className = 'lan-status-banner info';
+  }
+
+  try {
+    await window.lanManager.connect(ip, port, 'client');
+    if (banner) {
+      banner.textContent = 'CONNECTED! Waiting for Host to start Character Select...';
+      banner.className = 'lan-status-banner success';
+    }
+    if (window.soundFX) window.soundFX.playSelect();
+  } catch (err) {
+    console.error('[LAN Connect Error]', err);
+    if (banner) {
+      banner.textContent = `Failed to connect: ${err.message || 'Host unreachable'}`;
+      banner.className = 'lan-status-banner error';
+    }
+  }
+}
+
+function escapeLANHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function initLANLobbyUI() {
+  // Tab switching
+  document.querySelectorAll('.lan-tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      switchLANTab(btn.dataset.tab);
+      if (window.soundFX) window.soundFX.playHover();
+    });
+  });
+
+  // Copy IP button
+  const copyBtn = document.getElementById('btnCopyHostIP');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', () => {
+      const ipText = document.getElementById('lanHostIP')?.textContent;
+      if (ipText && navigator.clipboard) {
+        navigator.clipboard.writeText(ipText).then(() => {
+          copyBtn.textContent = 'COPIED!';
+          setTimeout(() => { copyBtn.textContent = 'COPY IP'; }, 1500);
+        }).catch(() => {});
+      }
+    });
+  }
+
+  // Direct IP connect button
+  const directConnectBtn = document.getElementById('btnDirectConnect');
+  const inputIP = document.getElementById('lanInputIP');
+  if (directConnectBtn && inputIP) {
+    directConnectBtn.addEventListener('click', () => {
+      const targetIP = inputIP.value.trim();
+      if (targetIP) connectToHost(targetIP);
+    });
+    inputIP.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const targetIP = inputIP.value.trim();
+        if (targetIP) connectToHost(targetIP);
+      }
+    });
+  }
+
+  // Host Enter Character Select CTA
+  const btnHostSelect = document.getElementById('btnHostEnterSelect');
+  if (btnHostSelect) {
+    btnHostSelect.addEventListener('click', () => {
+      if (window.lanManager && window.lanManager.role === 'HOST') {
+        window.lanManager.send('OPEN_CHAR_SELECT');
+        openCharacterSelect('LAN');
+      }
+    });
+  }
+
+  // Auto-Discovery Room List
+  const discoveredHosts = new Map();
+  function renderDiscoveredRooms() {
+    const list = document.getElementById('lanRoomsList');
+    if (!list) return;
+    if (discoveredHosts.size === 0) {
+      list.innerHTML = '<div class="lan-no-rooms">Searching for LAN lobbies...</div>';
+      return;
+    }
+    list.innerHTML = '';
+    discoveredHosts.forEach(host => {
+      const item = document.createElement('div');
+      item.className = 'lan-room-card';
+      item.innerHTML = `
+        <div class="lan-room-info">
+          <div class="lan-room-host">⚔️ ${escapeLANHtml(host.hostname || 'Apex Fighter Host')}</div>
+          <div class="lan-room-ip">${escapeLANHtml(host.ip)}:${escapeLANHtml(String(host.port || 8765))}</div>
+        </div>
+        <button class="lan-btn-join-room" data-ip="${escapeLANHtml(host.ip)}" data-port="${escapeLANHtml(String(host.port || 8765))}">JOIN ROOM</button>
+      `;
+      item.querySelector('.lan-btn-join-room').addEventListener('click', () => {
+        connectToHost(host.ip, host.port || 8765);
+      });
+      list.appendChild(item);
+    });
+  }
+
+  if (window.electronAPI && window.electronAPI.onHostDiscovered) {
+    window.electronAPI.onHostDiscovered((hostInfo) => {
+      if (hostInfo && hostInfo.ip) {
+        discoveredHosts.set(hostInfo.ip, hostInfo);
+        renderDiscoveredRooms();
+      }
+    });
+  }
+
+  // Hook LAN Manager Events
+  if (window.lanManager) {
+    window.lanManager.on('OPEN_CHAR_SELECT', () => {
+      openCharacterSelect('LAN');
+    });
+
+    window.lanManager.on('CHAR_SELECT', (data) => {
+      if (data && data.player && data.charId) {
+        setFighterSelection(String(data.player), data.charId);
+      }
+    });
+
+    window.lanManager.on('STAGE_SELECT', (data) => {
+      if (data && data.stage) {
+        window.selectedStage = data.stage;
+        updateStagePillUI();
+      }
+    });
+
+    window.lanManager.on('START_MATCH', (data) => {
+      closeAllModals();
+      window.selectedFighterP1 = data.p1Char;
+      window.selectedFighterP2 = data.p2Char;
+      window.selectedStage = data.stage || 'japanese_temple';
+      window.isLanMatch = true;
+      if (window.startMatchWithLoadingScreen) {
+        window.startMatchWithLoadingScreen({
+          p1Char: data.p1Char,
+          p2Char: data.p2Char,
+          stage: data.stage,
+          isLan: true
+        });
+      }
+    });
+
+    window.lanManager.on('PEER_JOINED', () => {
+      if (window.lanManager.role === 'HOST') {
+        const dot = document.getElementById('lanPeerDot');
+        const status = document.getElementById('lanPeerStatus');
+        const btn = document.getElementById('btnHostEnterSelect');
+        const banner = document.getElementById('lanHostBanner');
+        if (dot) dot.classList.add('connected');
+        if (status) status.textContent = 'CHALLENGER CONNECTED!';
+        if (btn) btn.disabled = false;
+        if (banner) {
+          banner.textContent = 'Challenger connected! Click START MATCH to proceed.';
+          banner.className = 'lan-status-banner success';
+        }
+        if (window.soundFX) window.soundFX.playSelect();
+      }
+    });
+
+    window.lanManager.on('PEER_DISCONNECTED', () => {
+      if (window.lanManager.role === 'HOST') {
+        const dot = document.getElementById('lanPeerDot');
+        const status = document.getElementById('lanPeerStatus');
+        const btn = document.getElementById('btnHostEnterSelect');
+        const banner = document.getElementById('lanHostBanner');
+        if (dot) dot.classList.remove('connected');
+        if (status) status.textContent = 'WAITING FOR CHALLENGER...';
+        if (btn) btn.disabled = true;
+        if (banner) {
+          banner.textContent = 'Challenger disconnected.';
+          banner.className = 'lan-status-banner error';
+        }
+      }
+    });
+
+    window.lanManager.on('ping', (ms) => {
+      const pill = document.getElementById('lanPingPill');
+      if (pill) {
+        pill.style.display = 'inline-block';
+        pill.textContent = `${ms}ms LAN`;
+      }
+    });
+  }
+}
+
+
+// ----------------------------------------------------
+// 6. Arcade Mode Ladder & AI Opponent Controls
+// ----------------------------------------------------
+function initArcadeAndAIControls() {
+  // Arcade Modal Difficulty Buttons
+  document.querySelectorAll('.arcade-diff-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.arcade-diff-btn').forEach(b => {
+        b.classList.remove('active');
+        b.style.background = 'rgba(255,255,255,0.05)';
+      });
+      btn.classList.add('active');
+      btn.style.background = 'rgba(245, 158, 11, 0.25)';
+      window.cpuDifficulty = btn.dataset.diff || 'MEDIUM';
+      if (window.soundFX) window.soundFX.playSelect();
+    });
+  });
+
+  // Start Arcade Run CTA
+  const btnStartArcade = document.getElementById('btnStartArcadeLadder');
+  if (btnStartArcade) {
+    btnStartArcade.addEventListener('click', () => {
+      closeAllModals();
+      window.isArcadeMode = true;
+      window.arcadeStage = 1;
+      window.selectedFighterP2 = 'strange';
+      window.selectedStage = 'sky_temple';
+      openCharacterSelect('ARCADE');
+      if (window.soundFX) window.soundFX.playSelect();
+    });
+  }
 }
