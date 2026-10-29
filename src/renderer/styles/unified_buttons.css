@@ -186,7 +186,6 @@
 /* --------------------------------------------------------------------------
    5. Modal & Panel Tabs (LAN, Training, Grimoire, Arcade)
    -------------------------------------------------------------------------- */
-.lan-tab-btn,
 .training-tab-btn,
 .grimoire-tab-btn,
 .arcade-diff-btn {
@@ -204,7 +203,6 @@
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3) !important;
 }
 
-.lan-tab-btn:hover,
 .training-tab-btn:hover,
 .grimoire-tab-btn:hover,
 .arcade-diff-btn:hover {
@@ -214,7 +212,6 @@
   transform: translateY(-1px) !important;
 }
 
-.lan-tab-btn.active,
 .training-tab-btn.active,
 .grimoire-tab-btn.active,
 .arcade-diff-btn.active {
@@ -231,10 +228,6 @@
 /* --------------------------------------------------------------------------
    6. Medium Action Buttons (LAN Copy, Join Room, Connect, Training Quick Actions)
    -------------------------------------------------------------------------- */
-.lan-copy-btn,
-.lan-btn-connect,
-.lan-btn-join-room,
-.lan-room-join-btn,
 .training-btn,
 .pos-btn {
   background: rgba(14, 11, 22, 0.55) !important;
@@ -251,10 +244,6 @@
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35) !important;
 }
 
-.lan-copy-btn:hover,
-.lan-btn-connect:hover,
-.lan-btn-join-room:hover,
-.lan-room-join-btn:hover,
 .training-btn:hover,
 .pos-btn:hover {
   background: linear-gradient(90deg, rgba(245, 158, 11, 0.35) 0%, rgba(220, 38, 38, 0.22) 100%) !important;
@@ -416,7 +405,6 @@
 }
 
 .modal-card,
-#modal-lan .modal-card,
 #modal-arcade .modal-card,
 #modal-grimoire .modal-card,
 #modal-controls .modal-card,
@@ -432,11 +420,6 @@
   border-bottom: 1px solid rgba(245, 158, 11, 0.25) !important;
 }
 
-.lan-ip-card,
-.lan-peer-box,
-.lan-room-card,
-.lan-rooms-list,
-.lan-direct-connect,
 .training-dialog-header,
 .training-tabs,
 .training-settings-section,
@@ -447,7 +430,4 @@
   -webkit-backdrop-filter: blur(8px) !important;
 }
 
-.lan-header-tabs {
-  background: rgba(10, 8, 16, 0.25) !important;
-  border-bottom: 1px solid rgba(245, 158, 11, 0.25) !important;
-}
+

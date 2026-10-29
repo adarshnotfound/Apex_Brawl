@@ -308,38 +308,33 @@
 
   <!-- 5. LAN Multiplayer Modal -->
   <div class="modal-overlay" id="modal-lan">
-    <div class="modal-card">
+    <div class="modal-card lan-glass-card">
       <div class="lan-header-tabs">
-        <button class="lan-tab-btn active" data-tab="host">
-          <span>📡</span> HOST ROOM
-        </button>
-        <button class="lan-tab-btn" data-tab="join">
-          <span>🔗</span> JOIN ROOM
-        </button>
-        <button class="close-btn" aria-label="Close" style="margin-left: auto;">&times;</button>
+        <div class="lan-tab-group">
+          <button class="lan-tab-btn active" data-tab="host">
+            <span>📡</span> HOST LOBBY
+          </button>
+          <button class="lan-tab-btn" data-tab="join">
+            <span>🔗</span> JOIN LOBBY
+          </button>
+        </div>
+        <button class="close-btn lan-close-btn" aria-label="Close" title="Close LAN Lobby">&times;</button>
       </div>
 
       <!-- Host Panel -->
       <div class="lan-panel active" id="lan-panel-host">
         <div class="lan-ip-card">
-          <div class="lan-ip-label">
-            <span>YOUR LAN IP ADDRESS</span>
-            <span style="color: #10b981;">ACTIVE LOCAL NETWORK</span>
-          </div>
+          <div class="lan-ip-label">HOST ADDRESS</div>
           <div class="lan-ip-row">
             <span class="lan-ip-display" id="lanHostIP">127.0.0.1:8765</span>
             <button class="lan-copy-btn" id="btnCopyHostIP" title="Copy Host IP to Clipboard">COPY IP</button>
           </div>
-          <span style="font-size: 0.72rem; color: #94a3b8;">Share this IP with player 2 on your local Wi-Fi / Ethernet network.</span>
         </div>
 
         <div class="lan-peer-box">
           <div class="lan-peer-info">
             <div class="lan-pulse-dot" id="lanPeerDot"></div>
-            <div>
-              <div class="lan-peer-text" id="lanPeerStatus">WAITING FOR CHALLENGER...</div>
-              <div style="font-size: 0.72rem; color: #64748b;" id="lanBeaconStatus">Broadcasting discovery beacon on LAN</div>
-            </div>
+            <div class="lan-peer-text" id="lanPeerStatus">WAITING FOR CHALLENGER...</div>
           </div>
           <div class="lan-ping-pill" id="lanPingPill" style="display: none;">0ms LAN</div>
         </div>
@@ -347,20 +342,20 @@
         <div class="lan-status-banner" id="lanHostBanner"></div>
 
         <button class="lan-action-cta" id="btnHostEnterSelect" disabled>
-          <span>⚔️</span> START CHARACTER SELECT
+          <span>⚔️</span> START MATCH
         </button>
       </div>
 
       <!-- Join Panel -->
       <div class="lan-panel" id="lan-panel-join">
         <div class="lan-discovered-section">
-          <div class="lan-section-title">AVAILABLE LAN ROOMS (AUTO-DISCOVERY)</div>
+          <div class="lan-section-title">AVAILABLE LOBBIES</div>
           <div class="lan-rooms-list" id="lanRoomsList">
-            <div class="lan-no-rooms">Scanning your local Wi-Fi / LAN for active games...</div>
+            <div class="lan-no-rooms">Searching for LAN lobbies...</div>
           </div>
         </div>
 
-        <div class="lan-section-title">OR DIRECT IP CONNECT</div>
+        <div class="lan-section-title">DIRECT IP CONNECT</div>
         <div class="lan-direct-connect">
           <input type="text" class="lan-input-ip" id="lanInputIP" placeholder="Enter Host IP (e.g. 192.168.1.50)" />
           <button class="lan-btn-connect" id="btnDirectConnect">CONNECT</button>

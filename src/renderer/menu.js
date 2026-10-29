@@ -1160,7 +1160,7 @@ function initLANLobbyUI() {
     const list = document.getElementById('lanRoomsList');
     if (!list) return;
     if (discoveredHosts.size === 0) {
-      list.innerHTML = '<div class="lan-no-rooms">Scanning your local Wi-Fi / LAN for active games...</div>';
+      list.innerHTML = '<div class="lan-no-rooms">Searching for LAN lobbies...</div>';
       return;
     }
     list.innerHTML = '';
@@ -1235,7 +1235,7 @@ function initLANLobbyUI() {
         if (status) status.textContent = 'CHALLENGER CONNECTED!';
         if (btn) btn.disabled = false;
         if (banner) {
-          banner.textContent = 'Challenger joined! Click START CHARACTER SELECT to proceed.';
+          banner.textContent = 'Challenger connected! Click START MATCH to proceed.';
           banner.className = 'lan-status-banner success';
         }
         if (window.soundFX) window.soundFX.playSelect();
